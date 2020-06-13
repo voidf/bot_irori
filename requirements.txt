@@ -1,0 +1,7 @@
+kuriyama
+numpy
+bs4
+requests[socks]
+qrcode
+pillow
+selenium
