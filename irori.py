@@ -97,56 +97,56 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
     Callable.app = app
     player = group.id+2**39
     if member.id not in botList:
-            if 'sudo' in extDict:
-                if s[0] == 'reload':
-                    importlib.reload(Callable)
-                    await app.sendGroupMessage(group,[Plain('热重载完成')])
-                    return
-                elif s[0] == 'pull':
-                    await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
-                    return
-                elif s[0] == 'print-help':
-                    Helps.add(player)
-                    await app.sendGroupMessage(group,[Plain('异常时打印帮助')])
-                    return
-                elif s[0] == 'cancel-help':
-                    Helps.discard(player)
-                    await app.sendGroupMessage(group,[Plain('异常时不打印帮助')])
-                    return
-                elif s[0] == 'print-ext':
-                    Exceptions.add(player)
-                    await app.sendGroupMessage(group,[Plain('异常时打印异常信息')])
-                    return
-                elif s[0] == 'cancel-ext':
-                    Exceptions.discard(player)
-                    await app.sendGroupMessage(group,[Plain('异常时不打印异常信息')])
-                    return
+        if 'sudo' in extDict:
+            if s[0] == 'reload':
+                importlib.reload(Callable)
+                await app.sendGroupMessage(group,[Plain('热重载完成')])
+                return
+            elif s[0] == 'pull':
+                await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
+                return
+            elif s[0] == 'print-help':
+                Helps.add(player)
+                await app.sendGroupMessage(group,[Plain('异常时打印帮助')])
+                return
+            elif s[0] == 'cancel-help':
+                Helps.discard(player)
+                await app.sendGroupMessage(group,[Plain('异常时不打印帮助')])
+                return
+            elif s[0] == 'print-ext':
+                Exceptions.add(player)
+                await app.sendGroupMessage(group,[Plain('异常时打印异常信息')])
+                return
+            elif s[0] == 'cancel-ext':
+                Exceptions.discard(player)
+                await app.sendGroupMessage(group,[Plain('异常时不打印异常信息')])
+                return
 
-            a,*b = s
-            if a in Callable.shortMap:
-                a = Callable.shortMap[a]
-            if player in Callable.QuickCalls:
-                print(Callable.QuickCalls)
-                try:
-                    l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,**extDict)
-                    if l:
-                        await app.sendGroupMessage(group,l)
-                        return
-                except:
-                    if player in Exceptions:
-                        l.append(Plain(traceback.format_exc()))
+        a,*b = s
+        if a in Callable.shortMap:
+            a = Callable.shortMap[a]
+        if player in Callable.QuickCalls:
+            print(Callable.QuickCalls)
+            try:
+                l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,**extDict)
+                if l:
                     await app.sendGroupMessage(group,l)
-            elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and banGroup[group.id] != a) or (group.id in allowGroup and allowGroup[group.id] == a)):
-                try:
-                    l = Callable.functionMap[a](*b, **extDict)
-                    print(f"MESSAGESLENGTH ===> {len(l)}")
-                    if l:
-                        await app.sendGroupMessage(group,l)
-                except:
-                    if player in Exceptions:
-                        l.append(Plain(traceback.format_exc()))
-                    if player in Helps:
-                        l.append(Callable.printHelp(a))
+                    return
+            except:
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                await app.sendGroupMessage(group,l)
+        elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and banGroup[group.id] != a) or (group.id in allowGroup and allowGroup[group.id] == a)):
+            try:
+                l = Callable.functionMap[a](*b, **extDict)
+                print(f"MESSAGESLENGTH ===> {len(l)}")
+                if l:
+                    await app.sendGroupMessage(group,l)
+            except:
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                if player in Helps:
+                    l.append(Callable.printHelp(a))
 
 @irori.receiver("FriendMessage")
 async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
