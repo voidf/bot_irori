@@ -2140,6 +2140,13 @@ def 希望工程(*attrs,**kwargs):
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [Image.fromFileSystem(p)]
+
+def 打拳姬(*attrs,**kwargs):
+    try:
+        return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[2]}何时才能真正的站起来。''')]
+    except:
+        return [Plain(printHelp('#拳'))]
+
 """
 翻译类 from fufu
 """
@@ -2159,7 +2166,7 @@ def 咕狗翻译(*attrs,**kwargs):
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0],attrs[1],' '.join(attrs[2:])]))]
     else:
-        return [Plain(text='原谅我不知道你在说什么（')]
+        return [Plain(text='原谅我不知道你在说什么（'),Plain(printHelp('#gkr'))]
 
 
 def 百度翻译(*attrs,**kwargs):
@@ -2172,7 +2179,7 @@ def 百度翻译(*attrs,**kwargs):
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0],attrs[1],' '.join(attrs[2:])]))]
     else:
-        return [Plain(text='原谅我不知道你在说什么（')]
+        return [Plain(text='原谅我不知道你在说什么（\n'),Plain(printHelp('#bkr'))]
 
 """
 数学类：
@@ -2298,6 +2305,7 @@ functionMap = {
     '#废话':废话生成器,
     '#不会吧':不会吧,
     '#统计':统计值生成器from104,
+    '#拳':打拳姬,
     '#ping':乒乓球,
     '使用#h 命令名（带井号）可以查询详细用法':没用的函数,
     '使用#h #abb可以查询缩写表':没用的函数
@@ -2535,6 +2543,14 @@ functionDescript = {
     #折线 ? <x> <y> <X> <Y> （询问格子x,y到X,Y的穿界次数）
     #折线 ! <x> <y> <X> <Y> （回答起点和终点），
     #折线 render （可视化折线）
+''',
+    '#拳':
+'''
+轮到我出拳了！（
+格式:
+    #拳 <事件> <主体>
+例:
+    #拳 我们女孩子到底要怎么活着 女性
 '''
     
 }
