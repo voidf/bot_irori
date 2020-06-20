@@ -1766,6 +1766,7 @@ def 数电笔记(*attrs,**kwargs):
     ins = ' '.join(attrs)
     if ins == 'reload':
         for i in os.listdir('DigitalElectronicsTech'):
+            if i[-6:]=='.json5'
             with open('DigitalElectronicsTech/'+i,'r') as f: 
                 j = json5.load(f)
             for k,v in j.items():
