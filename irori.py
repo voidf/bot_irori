@@ -148,6 +148,7 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                     l.append(Plain(traceback.format_exc()))
                 if player in Helps:
                     l.append(Callable.printHelp(a))
+                await app.sendGroupMessage(group,l)
 
 @irori.receiver("FriendMessage")
 async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
