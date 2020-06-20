@@ -150,12 +150,12 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
         if player in Callable.QuickCalls:
-            l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,mem = hurenzu.id)
+            l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,**extDict)
             if l:
                 await app.sendFriendMessage(hurenzu,l)
                 return
         elif a in Callable.functionMap:
-            l = Callable.functionMap[a](*b, mem = hurenzu,pic = pic)
+            l = Callable.functionMap[a](*b, **extDict)
             if l and len(l):
                 await app.sendFriendMessage(hurenzu,l)
 
