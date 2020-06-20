@@ -75,20 +75,30 @@ Callable.proxy = proxy
 
 @irori.receiver("GroupMessage")
 async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
-    mes = message.toString()
+    s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
-    # print(dir(pic))
-    # print(pic)
-    # print(pic.url)
-    s = mes.split(' ')
+    extDict = {
+        'gp':group.id,
+        'mem':member.id
+    }
+
+    if pic:
+        extDict['pic'] = pic
+    
+
+    if s[0] == 'sudo':
+        s.pop(0)
+        if member.id in masterID:
+            extDict['sudo'] = True
+
     Callable.app = app
     player = group.id+2**39
     if member.id not in botList:
-        if mes == '!@#$%^&*()_+' and member.id in masterID:
+        if s[0] == 'reload' and 'sudo' in extDict:
             importlib.reload(Callable)
             await app.sendGroupMessage(group,[Plain('热重载完成')])
             return
-        elif mes[:3] == '我单推' and mes[-1] == '！' and member.id in masterID:
+        elif s[0] == 'pull' and 'sudo' in extDict:
             await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
             return
         a,*b = s
@@ -96,12 +106,12 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
             a = Callable.shortMap[a]
         if player in Callable.QuickCalls:
             print(Callable.QuickCalls)
-            l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,gp = group.id,mem = member.id)
+            l = Callable.QuickCalls[player][0](*Callable.QuickCalls[player][1:],*s,**extDict)
             if l:
                 await app.sendGroupMessage(group,l)
                 return
         elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and banGroup[group.id] != a) or (group.id in allowGroup and allowGroup[group.id] == a)):
-            l = Callable.functionMap[a](*b, gp = group, mem = member,pic = pic)
+            l = Callable.functionMap[a](*b, **extDict)
             print(f"MESSAGESLENGTH ===> {len(l)}")
             if l:
                 await app.sendGroupMessage(group,l)
@@ -112,7 +122,30 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
     s = message.toString().split(' ')
     player = hurenzu.id
     pic = message.getFirstComponent(Image)
+
+    extDict = {
+        'mem':hurenzu.id
+    }
+
+    if pic:
+        extDict['pic'] = pic
+    
+
+    if s[0] == 'sudo':
+        s.pop(0)
+        if hurenzu.id in masterID:
+            extDict['sudo'] = True
+
     if hurenzu.id not in muteList:
+
+        if s[0] == 'reload' and 'sudo' in extDict:
+            importlib.reload(Callable)
+            await app.sendFriendMessage(hurenzu,[Plain('热重载完成')])
+            return
+        elif s[0] == 'pull' and 'sudo' in extDict:
+            await app.sendFriendMessage(hurenzu,[Plain(os.popen('git pull').read())])
+            return
+
         a,*b = s
         if a in Callable.shortMap:
             a = Callable.shortMap[a]

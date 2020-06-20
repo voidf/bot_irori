@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 import re
 import asyncio
 import requests
+import json5
 import json
 import numpy
 import random
@@ -803,7 +804,6 @@ def printHelp(*attrs,**kwargs):
         l.append(Plain(text='找虫报BUG:2595247078@qq.com\n'))
         l.append(Image.fromFileSystem('muzukashi.png'))
     return l
-
 
 """
 AVG用
@@ -1760,6 +1760,24 @@ def ddl通知姬(*attrs,**kwargs):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
+DEKnowledge = {}
+
+def 数电笔记(*attrs,**kwargs):
+    ins = ' '.join(attrs)
+    if ins == 'reload':
+        for i in os.listdir('DigitalElectronicsTech'):
+            with open('DigitalElectronicsTech/'+i,'r') as f: 
+                j = json5.load(f)
+            for k,v in j.items():
+                DEKnowledge[k] = f'''别名:{v['AN']}\n{v['desc']}'''
+                for an in v['AN']:
+                    DEKnowledge[an] = DEKnowledge[k]
+        return [Plain('知识库已更新')]
+    elif ins in DEKnowledge:
+        return [Plain(DEKnowledge[ins])]
+    else:
+        return [Plain('不存在此条目')]
+
 """
 爬虫类（chromeNMSL）
 """
@@ -2145,7 +2163,7 @@ def 打拳姬(*attrs,**kwargs):
     try:
         return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[2]}何时才能真正的站起来。''')]
     except:
-        return [Plain(printHelp('#拳'))]
+        return printHelp('#拳')
 
 """
 翻译类 from fufu
@@ -2166,8 +2184,7 @@ def 咕狗翻译(*attrs,**kwargs):
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0],attrs[1],' '.join(attrs[2:])]))]
     else:
-        return [Plain(text='原谅我不知道你在说什么（'),Plain(printHelp('#gkr'))]
-
+        return [Plain(text='原谅我不知道你在说什么（')]
 
 def 百度翻译(*attrs,**kwargs):
     if ' '.join(attrs) in ('黙れ','闭嘴','damare','E') or ' '.join(attrs[2:]) in ('黙れ','闭嘴','damare','E'):
@@ -2179,7 +2196,7 @@ def 百度翻译(*attrs,**kwargs):
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0],attrs[1],' '.join(attrs[2:])]))]
     else:
-        return [Plain(text='原谅我不知道你在说什么（\n'),Plain(printHelp('#bkr'))]
+        return [Plain(text='原谅我不知道你在说什么（\n')]
 
 """
 数学类：

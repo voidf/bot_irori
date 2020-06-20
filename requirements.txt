@@ -5,3 +5,4 @@ requests[socks]
 qrcode
 pillow
 selenium
+json5
