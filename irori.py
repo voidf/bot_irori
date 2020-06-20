@@ -123,6 +123,7 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                 return
 
         a,*b = s
+        l = []
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
         if player in Callable.QuickCalls:
