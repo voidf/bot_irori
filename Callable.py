@@ -1839,7 +1839,7 @@ def ddl通知姬(*attrs,**kwargs):
     
 DEKnowledge = {}
 
-def 数电笔记(*attrs,**kwargs):
+def 电笔记(*attrs,**kwargs):
     ins = ' '.join(attrs)
     if ins == 'reload':
         for i in os.listdir('DigitalElectronicsTech'):
@@ -2392,6 +2392,7 @@ def QM化简器(*attrs,**kwargs):
 
 functionMap = {
     '#CF':爬CF,
+    '#AT':爬AtCoder,
     '#肛道理':爬一言,
     '#h':printHelp,
     '#2048':asobi2048,
@@ -2439,7 +2440,7 @@ functionMap = {
     '#不会吧':不会吧,
     '#统计':统计值生成器from104,
     '#拳':打拳姬,
-    '#i数电':数电笔记,
+    '#i电':电笔记,
     '#ping':乒乓球,
     '使用#h 命令名（带井号）可以查询详细用法':没用的函数,
     '使用#h #abb可以查询缩写表':没用的函数
@@ -2588,6 +2589,20 @@ functionDescript = {
 可用参数:
     reset（取消提醒）
     render（提醒时渲染problems）
+""",
+    '#AT':
+"""
+爬取AtCoder将要开始的比赛的时间表
+可用参数:
+    reset（取消提醒）
+""",
+    '#i电':
+"""
+查查某些集成电路的手册（自己整理的
+可用参数:
+    reload (热重载知识库)
+用例:
+    #i电 74283
 """,
     '#2048':
 """
