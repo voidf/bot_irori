@@ -2081,11 +2081,14 @@ def 爬AtCoder(*attrs,**kwargs):
             for cont in ATData['running']:
                 print(cont)
                 li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
+
+        li.append(Plain('将来的比赛：\n'))
         for cont in ATData['upcoming']:
             print(cont)
-            li.append(Plain('将来的比赛：\n'))
+            
             li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
         ATNoticeManager(ATData['upcoming'],**kwargs)
+        li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
     return li
 
 """
