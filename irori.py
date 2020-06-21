@@ -139,7 +139,7 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                     l.append(Plain(traceback.format_exc()))
                 if l:
                     await app.sendGroupMessage(group,l)
-        elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and banGroup[group.id] != a) or (group.id in allowGroup and allowGroup[group.id] == a)):
+        elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
             try:
                 l = Callable.functionMap[a](*b, **extDict)
                 print(f"MESSAGESLENGTH ===> {len(l)}")
