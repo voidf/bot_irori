@@ -137,7 +137,8 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
             except:
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
-                await app.sendGroupMessage(group,l)
+                if l:
+                    await app.sendGroupMessage(group,l)
         elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and banGroup[group.id] != a) or (group.id in allowGroup and allowGroup[group.id] == a)):
             try:
                 l = Callable.functionMap[a](*b, **extDict)
@@ -149,7 +150,8 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                     l.append(Plain(traceback.format_exc()))
                 if player in Helps:
                     l.append(Callable.printHelp(a))
-                await app.sendGroupMessage(group,l)
+                if l:
+                    await app.sendGroupMessage(group,l)
 
 @irori.receiver("FriendMessage")
 async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
