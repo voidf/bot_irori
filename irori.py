@@ -146,6 +146,7 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                 if l:
                     await app.sendGroupMessage(group,l)
             except:
+                print(traceback.format_exc())
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
                 if player in Helps:
