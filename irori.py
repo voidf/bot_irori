@@ -70,6 +70,7 @@ import Callable
 Callable.CFRenderFlag=set()
 Callable.ddlQueuerGlobal = {}
 Callable.CFNoticeQueueGlobal={}
+Callable.ATNoticeQueueGlobal={}
 Callable.QuickCalls = {}
 Callable.proxy = proxy
 

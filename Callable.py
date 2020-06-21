@@ -55,6 +55,18 @@ moeGirlHeaders={
     "upgrade-insecure-requests":"1",
     "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 }
+
+AtCoderHeaders = {
+    "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "accept-encoding":"gzip, deflate, br",
+    "accept-language":"zh-CN,zh;q=0.9",
+    "cache-control":"no-cache",
+    "dnt":"1",
+    "pragma":"no-cache",
+    "upgrade-insecure-requests":"1",
+    "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+}
+
 恶臭字典 = {
 	114514: "114514",
 	58596: "114*514",
@@ -606,7 +618,7 @@ async def fuzzT(g,s,e,w):
         await app.sendGroupMessage(g,[Plain(f'{chr(_)}{_}{w}')])
 
 async def CFLoopRoutiner():
-    print('进入回环')
+    print('进入回环(CF')
     if not os.path.exists('CF/'):
         os.mkdir('CF/')
     while 1:
@@ -620,11 +632,26 @@ async def CFLoopRoutiner():
                     print('CF爬虫挂了！',traceback.format_exc)
         await asyncio.sleep(86400)
 
+async def ATLoopRoutiner():
+    print('进入回环(AT')
+    if not os.path.exists('AtCoder/'):
+        os.mkdir('AtCoder/')
+    while 1:
+        if any([_ for _ in os.listdir('AtCoder/') if _[-4:]!='.png']):
+            j = fetchAtCoderContests()
+            for _ in os.listdir('AtCoder/'):
+                try:
+                    if _[-4:]!='.png':
+                        ATNoticeManager(j,gp=int(_))
+                except:
+                    print('AT爬虫挂了！',traceback.format_exc)
+        await asyncio.sleep(86400)
+
 async def rmTmpFile(fi):
     await asyncio.sleep(60)
     os.remove(fi)
 
-async def CFBeginNotice(g,contest,ti):
+async def contestsBeginNotice(g,contest,ti):
     if ti<0:
         return
     print('进入等待队列，阻塞%f秒'%ti)
@@ -733,11 +760,19 @@ def clearCFFuture(G,key,src):
     global CFNoticeQueueGlobal
     CFNoticeQueue = CFNoticeQueueGlobal.setdefault(src,{})
     try:
-        print('CF提醒进程cancel：',CFNoticeQueue[key].cancel())
         print('清除成功',CFNoticeQueue.pop(key))
     except:
         print('无',G)
-        return
+
+
+def clearATFuture(G,key,src):
+    global ATNoticeQueueGlobal
+    ATNoticeQueue = ATNoticeQueueGlobal.setdefault(src,{})
+    try:
+        print('清除成功',ATNoticeQueue.pop(key))
+    except:
+        print('无',G)
+
 
 def CFNoticeManager(j,**kwargs):
     try:
@@ -750,12 +785,12 @@ def CFNoticeManager(j,**kwargs):
     global CFNoticeQueueGlobal
     CFNoticeQueue = CFNoticeQueueGlobal.setdefault(gp,{})
     for k,v in j.items():
-        #print(v)
+
         if k not in CFNoticeQueue:
             
             if 'routine' in v:
                 timew = v['routine'] - tnow() - datetime.timedelta(hours=1)
-                asy = asyncio.ensure_future(CFBeginNotice(gp,v['title'],timew.total_seconds()))
+                asy = asyncio.ensure_future(contestsBeginNotice(gp,v['title'],timew.total_seconds()))
                 CFNoticeQueue[k] = asy
                 asy.add_done_callback(functools.partial(clearCFFuture,k,gp))
         if feat == 'R' and k + 'RDR' not in CFNoticeQueue:
@@ -765,6 +800,22 @@ def CFNoticeManager(j,**kwargs):
         elif feat == 'Y' and k + 'RDR' in CFNoticeQueue:
             t = CFNoticeQueue.pop(k + 'RDR')
             t.cancel()
+
+def ATNoticeManager(j,**kwargs):
+    try:
+        gp = kwargs['gp'].id
+    except:
+        gp = kwargs['gp']
+
+    global CFNoticeQueueGlobal
+    ATNoticeQueue = ATNoticeQueueGlobal.setdefault(gp,{})
+    for k in j: # 持续时间 排名区间 比赛名 比赛时间
+        if k[2] not in ATNoticeQueue:
+            timew = k[3] - tnow() - datetime.timedelta(hours=1)
+            asy = asyncio.ensure_future(contestsBeginNotice(gp,k[2],timew.total_seconds()))
+            ATNoticeQueue[k] = asy
+            asy.add_done_callback(functools.partial(clearATFuture,k,gp))
+    print(ATNoticeQueue)
 
 def fetchCodeForcesContests():
     r = requests.get('https://codeforces.com/contests')
@@ -790,6 +841,32 @@ def fetchCodeForcesContests():
                 except:
                     print(traceback.format_exc())
     return li
+
+def fetchAtCoderContests():
+    j = {}
+    l = []
+    r = requests.get('https://atcoder.jp/contests/',headers = AtCoderHeaders)
+    s = BeautifulSoup(r.text,'html.parser')
+    for p,i in enumerate(s.find('h3',string='Active Contests').next_sibling.next_sibling('tr')):
+        if p:
+            l.append(i('td')[2].text)
+            l.append(i('td')[3].text)
+            l.append(i('a')[1].text)
+            d = datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+            l.append(d)
+
+    j['running'] = l
+    l = []
+
+    for p,i in enumerate(s.find('h3',string='Upcoming Contests').next_sibling.next_sibling('tr')):
+        if p:
+            l.append(i('td')[2].text)
+            l.append(i('td')[3].text)
+            l.append(i('a')[1].text)
+            d = datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+            l.append(d)
+    j['upcoming'] = l
+    return j
 
 def printHelp(*attrs,**kwargs):
     if len(attrs) and attrs[0] in shortMap:
@@ -1951,7 +2028,7 @@ def 爬CF(*attrs,**kwargs):
             while CFNoticeQueue:
                 i = CFNoticeQueue.popitem()
                 print(i,'删除中->',i[1].cancel())
-            return [Plain('取消本群的CodeForces比赛推送服务')]
+            return [Plain('取消本群的CodeForces比赛提醒服务')]
         elif attrs[0] in ('R','render'):
             with open(fn,'w') as fr:
                 fr.write('R')
@@ -1976,6 +2053,44 @@ def 爬CF(*attrs,**kwargs):
                 li.append(Plain(v['countdown']+'\n'))  
     return li
 
+def 爬AtCoder(*attrs,**kwargs):
+    try:
+        gp = kwargs['gp'].id
+    except:
+        gp = kwargs['gp']
+    fn = f"AtCoder/{gp}"
+    
+    global ATNoticeQueueGlobal
+    ATNoticeQueue = ATNoticeQueueGlobal.setdefault(gp,{})
+            
+    if len(attrs):
+        if attrs[0] in ('reset','stop','cancel'):
+            try:
+                os.remove(fn)
+            except Exception as e:
+                print(e)
+            while ATNoticeQueue:
+                i = ATNoticeQueue.popitem()
+                print(i,'删除中->',i[1].cancel())
+            return [Plain('取消本群的AtCoder比赛提醒服务')]
+    else:
+        with open(fn,'w') as fr:
+            fr.write('Y')
+
+    if os.path.exists(fn):
+
+        ATData = fetchAtCoderContests()
+        li = []
+        for k,v in ATData.items():
+            if ATData['running']:
+                li.append(Plain('正在运行的比赛：\n'))
+                for cont in ATData['running']:
+                    li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
+            for cont in ATData['upcoming']:
+                li.append(Plain('将来的比赛：\n'))
+                li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
+        ATNoticeManager(ATData['upcoming'],**kwargs)
+    return li
 
 """
 测试函数类（危）
