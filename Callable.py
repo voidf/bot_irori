@@ -847,10 +847,12 @@ def fetchAtCoderContests():
     l = []
     r = requests.get('https://atcoder.jp/contests/',headers = AtCoderHeaders)
     s = BeautifulSoup(r.text,'html.parser')
-    for p,i in enumerate(s.find('h3',string='Active Contests').next_sibling.next_sibling('tr')):
-        if p:
-            l.append((i('td')[2].text,i('td')[3].text,i('a')[1].text,datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)))
-
+    try:
+        for p,i in enumerate(s.find('h3',string='Active Contests').next_sibling.next_sibling('tr')):
+            if p:
+                l.append((i('td')[2].text,i('td')[3].text,i('a')[1].text,datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)))
+    except:
+        pass
     j['running'] = l
     l = []
 
