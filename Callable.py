@@ -849,22 +849,15 @@ def fetchAtCoderContests():
     s = BeautifulSoup(r.text,'html.parser')
     for p,i in enumerate(s.find('h3',string='Active Contests').next_sibling.next_sibling('tr')):
         if p:
-            l.append(i('td')[2].text)
-            l.append(i('td')[3].text)
-            l.append(i('a')[1].text)
-            d = datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-            l.append(d)
+            l.append((i('td')[2].text,i('td')[3].text,i('a')[1].text,datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)))
 
     j['running'] = l
     l = []
 
     for p,i in enumerate(s.find('h3',string='Upcoming Contests').next_sibling.next_sibling('tr')):
         if p:
-            l.append(i('td')[2].text)
-            l.append(i('td')[3].text)
-            l.append(i('a')[1].text)
-            d = datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-            l.append(d)
+            l.append((i('td')[2].text,i('td')[3].text,i('a')[1].text,datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)))
+
     j['upcoming'] = l
     print(j)
     return j
