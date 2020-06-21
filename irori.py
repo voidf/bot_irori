@@ -81,8 +81,8 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
     s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
     extDict = {
-        'gp':group.id,
-        'mem':member.id
+        'gp':group,
+        'mem':member
     }
 
     if pic:
