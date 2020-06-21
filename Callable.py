@@ -1840,7 +1840,7 @@ def 爬OIWiki(*attrs,**kwargs):
         ostr = [Plain(text='找到了%d个类似的东西\n'%len(j))]
         if len(j):
             c = j[0]
-            ostr.append(Plain(text='直接把%s扔给你了'%c['title']))
+            ostr.append(Plain(text='直接把%s扔给你了\n'%c['title']))
             suflnk = c['url']
             # print(c)
             # print(suflnk)
