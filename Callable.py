@@ -866,6 +866,7 @@ def fetchAtCoderContests():
             d = datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
             l.append(d)
     j['upcoming'] = l
+    print(j)
     return j
 
 def printHelp(*attrs,**kwargs):
@@ -2081,14 +2082,16 @@ def 爬AtCoder(*attrs,**kwargs):
 
         ATData = fetchAtCoderContests()
         li = []
-        for k,v in ATData.items():
-            if ATData['running']:
-                li.append(Plain('正在运行的比赛：\n'))
-                for cont in ATData['running']:
-                    li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
-            for cont in ATData['upcoming']:
-                li.append(Plain('将来的比赛：\n'))
+
+        if ATData['running']:
+            li.append(Plain('正在运行的比赛：\n'))
+            for cont in ATData['running']:
+                print(cont)
                 li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
+        for cont in ATData['upcoming']:
+            print(cont)
+            li.append(Plain('将来的比赛：\n'))
+            li.append(Plain(f"{cont[2]} {cont[1]} {cont[0]} {cont[3].strftime('%Y/%b/%d %H:%M')}\n"))
         ATNoticeManager(ATData['upcoming'],**kwargs)
     return li
 
