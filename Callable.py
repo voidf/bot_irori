@@ -642,7 +642,7 @@ async def ATLoopRoutiner():
             for _ in os.listdir('AtCoder/'):
                 try:
                     if _[-4:]!='.png':
-                        ATNoticeManager(j,gp=int(_))
+                        ATNoticeManager(j['upcoming'],gp=int(_))
                 except:
                     print('AT爬虫挂了！',traceback.format_exc)
         await asyncio.sleep(86400)

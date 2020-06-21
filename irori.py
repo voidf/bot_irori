@@ -210,6 +210,7 @@ async def startup(bot: Mirai):
             t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
             Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
     asyncio.ensure_future(Callable.CFLoopRoutiner())
+    asyncio.ensure_future(Callable.ATLoopRoutiner())
 
 if __name__ == '__main__':
     irori.run()
