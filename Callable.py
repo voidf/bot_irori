@@ -2479,7 +2479,7 @@ shortMap = {
 functionDescript = {
     '#h':'不传参打印命令表，传参则解释命令',
     '#abb':f'可用缩写表:{shortMap}',
-    '#LaTeX':'我不会写LaTeX，炸了说一下我看看',
+    '#LaTeX':'爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看',
 
     '#肛道理':'请求一言app，加某些参数会黑化',
     '#好好说话':'来自fufu的功能，如果有不懂的缩写可以用它查询，例:#好好说话 bksn',
