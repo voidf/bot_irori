@@ -73,6 +73,7 @@ Callable.CFNoticeQueueGlobal={}
 Callable.ATNoticeQueueGlobal={}
 Callable.QuickCalls = {}
 Callable.proxy = proxy
+Callable.DEKnowledge = {}
 
 Exceptions = set()
 Helps = set()

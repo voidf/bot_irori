@@ -1833,8 +1833,6 @@ def ddl通知姬(*attrs,**kwargs):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-DEKnowledge = {}
-
 def 电笔记(*attrs,**kwargs):
     ins = ' '.join(attrs)
     if ins == 'reload':
@@ -1845,7 +1843,7 @@ def 电笔记(*attrs,**kwargs):
                     j = json5.load(f)
                 for k,v in j.items():
                     ret_msg.append(Plain('\t- '+k+'\n'))
-                    DEKnowledge[k] = [f'''{k}\n别名:{v['AN']}\n{v['desc']}''']
+                    DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
                     if 'img' in v:
                         for vi in v['img']:
                             DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+vi))
