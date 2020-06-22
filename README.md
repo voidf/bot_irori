@@ -88,6 +88,6 @@
 > py安装目录/dist-packages/mirai/event/enums.py
 > 12行后
 > 
-> `+BotLeaveEventActive = "BotLeaveEventActive"`
+> `+ BotLeaveEventActive = "BotLeaveEventActive"`
 > 
-> `+BotLeaveEventKick = "BotLeaveEventKick"`
+> `+ BotLeaveEventKick = "BotLeaveEventKick"`
