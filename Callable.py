@@ -1847,7 +1847,8 @@ def 电笔记(*attrs,**kwargs):
                     ret_msg.append(Plain('\t- '+k+'\n'))
                     DEKnowledge[k] = [f'''{k}\n别名:{v['AN']}\n{v['desc']}''']
                     if 'img' in v:
-                        DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+v['img']))
+                        for vi in v['img']:
+                            DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+vi))
                     for an in v['AN']:
                         DEKnowledge[an] = DEKnowledge[k]
         return ret_msg
