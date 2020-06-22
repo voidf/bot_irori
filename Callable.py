@@ -1845,16 +1845,14 @@ def 电笔记(*attrs,**kwargs):
                     j = json5.load(f)
                 for k,v in j.items():
                     ret_msg.append(Plain('\t- '+k+'\n'))
-                    DEKnowledge[k] = f'''{k}\n别名:{v['AN']}\n{v['desc']}'''
+                    DEKnowledge[k] = [f'''{k}\n别名:{v['AN']}\n{v['desc']}''']
+                    if 'img' in v:
+                        DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+v['img']))
                     for an in v['AN']:
                         DEKnowledge[an] = DEKnowledge[k]
         return ret_msg
     elif ins in DEKnowledge:
-        ret_msg = [Plain(DEKnowledge[ins])]
-        if 'img' in DEKnowledge:
-            print('DigitalElectronicsTech/img/'+DEKnowledge['img'])
-            ret_msg.append(Image.fromFileSystem('DigitalElectronicsTech/img/'+DEKnowledge['img']))
-        return ret_msg
+        return DEKnowledge[ins]
     else:
         return [Plain('不存在此条目')]
 
