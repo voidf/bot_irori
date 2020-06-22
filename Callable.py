@@ -35,7 +35,7 @@ try:
     from Translate import googleTrans,BDtranslate,hhsh
 except:
     print('fufu Extention no exists!')
-
+import urllib
 
 
 functionMap = {}
@@ -647,7 +647,7 @@ async def ATLoopRoutiner():
                     print('AT爬虫挂了！',traceback.format_exc)
         await asyncio.sleep(86400)
 
-async def rmTmpFile(fi):
+async def rmTmpFile(fi:str):
     await asyncio.sleep(60)
     os.remove(fi)
 
@@ -704,7 +704,7 @@ def comb(n,b):
         res=res*(n-i)//(i+1)
     return res
 
-def randstr(l):
+def randstr(l:int) -> str:
     return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
 
 def renderHtml(dst_lnk,na):
@@ -2095,6 +2095,15 @@ def 爬AtCoder(*attrs,**kwargs):
         ATNoticeManager(ATData['upcoming'],**kwargs)
         li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
     return li
+
+def 爬LaTeX(*attrs,**kwargs):
+    base = r'\dpi{150} \large ' + ' '.join(attrs)
+    r = requests.get('https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base)))
+    fn = f"tmpLaTeX{randstr(3)}.png"
+    with open(fn,'wb') as f:
+        f.write(r.content)
+    asyncio.ensure_future(rmTmpFile(fn))
+    return [Image.fromFileSystem(fn)]
 
 """
 测试函数类（危）
