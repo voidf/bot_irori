@@ -1838,15 +1838,17 @@ DEKnowledge = {}
 def 电笔记(*attrs,**kwargs):
     ins = ' '.join(attrs)
     if ins == 'reload':
+        ret_msg = [Plain('知识库已更新,现有词条：\n')]
         for i in os.listdir('DigitalElectronicsTech'):
             if i[-6:]=='.json5':
                 with open('DigitalElectronicsTech/'+i,'r') as f: 
                     j = json5.load(f)
                 for k,v in j.items():
+                    ret_msg.append(Plain('\t- '+k+'\n'))
                     DEKnowledge[k] = f'''{k}\n别名:{v['AN']}\n{v['desc']}'''
                     for an in v['AN']:
                         DEKnowledge[an] = DEKnowledge[k]
-        return [Plain('知识库已更新')]
+        return ret_msg
     elif ins in DEKnowledge:
         return [Plain(DEKnowledge[ins])]
     else:
