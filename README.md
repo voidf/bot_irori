@@ -75,3 +75,15 @@
 输入#h查看帮助
 
 魔改随意，虽然我主要是自己用
+
+## 老版本kuriyama(0.2.3)留下来的坑
+
+> py安装目录/dist-packages/mirai/event/message/components.py
+> 129行和229行
+> `- return f"{{{self.imageId.upper()}}}.jpg"`
+> `+ return self.imageId.upper()`
+
+> py安装目录/dist-packages/mirai/event/enums.py
+> 12行后
+> `+BotLeaveEventActive = "BotLeaveEventActive"`
+> `+BotLeaveEventKick = "BotLeaveEventKick"`
