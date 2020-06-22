@@ -1843,7 +1843,7 @@ def 电笔记(*attrs,**kwargs):
                 with open('DigitalElectronicsTech/'+i,'r') as f: 
                     j = json5.load(f)
                 for k,v in j.items():
-                    DEKnowledge[k] = f'''别名:{v['AN']}\n{v['desc']}'''
+                    DEKnowledge[k] = f'''{k}\n别名:{v['AN']}\n{v['desc']}'''
                     for an in v['AN']:
                         DEKnowledge[an] = DEKnowledge[k]
         return [Plain('知识库已更新')]
