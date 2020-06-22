@@ -1852,6 +1852,7 @@ def 电笔记(*attrs,**kwargs):
     elif ins in DEKnowledge:
         ret_msg = [Plain(DEKnowledge[ins])]
         if 'img' in DEKnowledge[ins]:
+            print('DigitalElectronicsTech/img/'+DEKnowledge[ins]['img'])
             ret_msg.append(Image.fromFileSystem('DigitalElectronicsTech/img/'+DEKnowledge[ins]['img']))
         return ret_msg
     else:
