@@ -1851,9 +1851,9 @@ def 电笔记(*attrs,**kwargs):
         return ret_msg
     elif ins in DEKnowledge:
         ret_msg = [Plain(DEKnowledge[ins])]
-        if 'img' in DEKnowledge[ins]:
-            print('DigitalElectronicsTech/img/'+DEKnowledge[ins]['img'])
-            ret_msg.append(Image.fromFileSystem('DigitalElectronicsTech/img/'+DEKnowledge[ins]['img']))
+        if 'img' in DEKnowledge:
+            print('DigitalElectronicsTech/img/'+DEKnowledge['img'])
+            ret_msg.append(Image.fromFileSystem('DigitalElectronicsTech/img/'+DEKnowledge['img']))
         return ret_msg
     else:
         return [Plain('不存在此条目')]
