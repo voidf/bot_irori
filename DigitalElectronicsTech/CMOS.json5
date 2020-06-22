@@ -14,24 +14,16 @@ CMOS反相器由N沟道MOSFET和P沟道MOSFET互补而成\n\
 "
     },
     "TG门":{
-        "AN":["传输门","CMOS传输门"],
+        "AN":["TG","传输门","CMOS传输门"],
         "desc":"\
 全称Transmission Gate。\n\
 特点为导通时Vo=Vi\n\
 带圈为C'端，当C'=0;C=Vdd时开关导通\n\
 C=0;C'=Vdd时开关断开。\n\
 Vi和Vo可以互换。\n\
-             C'\n\
-             │\n\
-             o\n\
-        ───────────\n\
-        │         │\n\
- vi/vo──│    TG   │──vo/vi\n\
-        │         │\n\
-        ───────────\n\
-             │\n\
-             C\n\
-"
+",
+        "img":["TG.png"]
+
     }
 
 }

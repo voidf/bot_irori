@@ -1850,7 +1850,10 @@ def 电笔记(*attrs,**kwargs):
                         DEKnowledge[an] = DEKnowledge[k]
         return ret_msg
     elif ins in DEKnowledge:
-        return [Plain(DEKnowledge[ins])]
+        ret_msg = [Plain(DEKnowledge[ins])]
+        if 'img' in DEKnowledge[ins]:
+            ret_msg.append(Image.fromFileSystem('DigitalElectronicsTech/img/'+DEKnowledge[ins][img]))
+        return 
     else:
         return [Plain('不存在此条目')]
 
