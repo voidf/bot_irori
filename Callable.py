@@ -2435,6 +2435,7 @@ functionMap = {
     '#EMJ':表情字典测试姬,
     '#论证':这么臭的函数有必要定义吗,
     '#fuzz':Unicode测试姬,
+    '#LaTeX':爬LaTeX,
     '$quest':AVG.AVGGamer,
     '$rec':AVG.AVGRecover,
     '$story':AVG.AVGStoryTeller,
@@ -2471,12 +2472,14 @@ shortMap = {
     '#什么值得医':'#看看病',
     '#救命':'#看看病',
     '#kr':'#bkr',
+    '#tex':'#LaTeX',
     '#hhsh':'#好好说话'
 }
 
 functionDescript = {
     '#h':'不传参打印命令表，传参则解释命令',
     '#abb':f'可用缩写表:{shortMap}',
+    '#LaTeX':'我不会写LaTeX，炸了说一下我看看',
 
     '#肛道理':'请求一言app，加某些参数会黑化',
     '#好好说话':'来自fufu的功能，如果有不懂的缩写可以用它查询，例:#好好说话 bksn',
