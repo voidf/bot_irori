@@ -2098,7 +2098,7 @@ def 爬AtCoder(*attrs,**kwargs):
 
 def 爬LaTeX(*attrs,**kwargs):
     base = r'\dpi{150} \large ' + ' '.join(attrs).replace('+','&plus;')
-    r = requests.get('https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base)))
+    r = requests.get('https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=1&val='+urllib.parse.quote(urllib.parse.quote(base)))
     fn = f"tmpLaTeX{randstr(3)}.png"
     with open(fn,'wb') as f:
         f.write(r.content)
