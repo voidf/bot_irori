@@ -2147,7 +2147,7 @@ def 营销生成器(*attrs,**kwargs):
         subject = attrs[0]
         event = attrs[1]
         event2 = attrs[2]
-        synthesis = f'''{subject}{event}是怎么回事呢？{subject}相信大家都很熟悉，但是{subject}{event}是怎么回事呢，下面就让小编带大家一起了解吧。\r\n　　{subject}{event}，其实就是{event2}，大家可能会很惊讶{subject}怎么会{event}呢？但事实就是这样，小编也感到非常惊讶。\r\n　　这就是关于{subject}{event}的事情了，大家有什么想法呢，欢迎在评论区告诉小编一起讨论哦！'''
+        synthesis = f'''{subject}{event}是怎么回事呢？{subject}相信大家都很熟悉，但是{subject}{event}是怎么回事呢，下面就让小编带大家一起了解吧。\r\n{subject}{event}，其实就是{event2}，大家可能会很惊讶{subject}怎么会{event}呢？但事实就是这样，小编也感到非常惊讶。\r\n这就是关于{subject}{event}的事情了，大家有什么想法呢，欢迎在评论区告诉小编一起讨论哦！'''
         return [Plain(synthesis)]
     except Exception as e:
         return [Plain(str(e))]
