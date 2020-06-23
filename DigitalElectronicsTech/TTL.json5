@@ -3,6 +3,7 @@
         "AN": ["TTL电路","TTL反相器","TTL非门"],
         "desc": "\
 晶体管-晶体管逻辑电路，英文全称:Transistor-Transistor-Logic\n\
+TTL系电路悬空和通过大于10kΩ电阻接地时视为接1；通过小于10kΩ电阻接地视为接0\n\
 TTL反相器常用参数：\n\
     电源电位Vcc:5V\n\
     高电平电位VH:3.4V\n\
