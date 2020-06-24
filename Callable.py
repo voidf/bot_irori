@@ -2296,7 +2296,7 @@ def 打拳姬(*attrs,**kwargs):
 
 def 舔狗生成器(*attrs,**kwargs):
     pat = ['太太','画','手','图']
-    for i in range(max(len(attrs),len(pat))):
+    for i in range(min(len(attrs),len(pat))):
         pat[i] = attrs[i]
     construct = [
         {"msg":f"您太会{pat[1]}了我跪下来给您用免洗洗{pat[2]}液洗{pat[2]}"},
