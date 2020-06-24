@@ -71,6 +71,7 @@ Callable.CFRenderFlag=set()
 Callable.ddlQueuerGlobal = {}
 Callable.CFNoticeQueueGlobal={}
 Callable.ATNoticeQueueGlobal={}
+Callable.NCNoticeQueueGlobal={}
 Callable.QuickCalls = {}
 Callable.proxy = proxy
 Callable.DEKnowledge = {}
@@ -215,6 +216,7 @@ async def startup(bot: Mirai):
             Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
     asyncio.ensure_future(Callable.CFLoopRoutiner())
     asyncio.ensure_future(Callable.ATLoopRoutiner())
+    asyncio.ensure_future(Callable.NCLoopRoutiner())
 
 if __name__ == '__main__':
     irori.run()

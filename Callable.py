@@ -647,6 +647,21 @@ async def ATLoopRoutiner():
                     print('AT爬虫挂了！',traceback.format_exc)
         await asyncio.sleep(86400)
 
+async def NCLoopRoutiner():
+    print('进入回环(NC')
+    if not os.path.exists('NowCoder/'):
+        os.mkdir('NowCoder/')
+    while 1:
+        if any([_ for _ in os.listdir('NowCoder/') if _[-4:]!='.png']):
+            j = fetchAtCoderContests()
+            for _ in os.listdir('NowCoder/'):
+                try:
+                    if _[-4:]!='.png':
+                        NCNoticeManager(j,gp=int(_))
+                except:
+                    print('NC爬虫挂了！',traceback.format_exc)
+        await asyncio.sleep(86400)
+
 async def rmTmpFile(fi:str):
     await asyncio.sleep(60)
     os.remove(fi)
@@ -773,6 +788,13 @@ def clearATFuture(G,key,src):
     except:
         print('无',G)
 
+def clearNCFuture(G,key,src):
+    global NCNoticeQueueGlobal
+    NCNoticeQueue = NCNoticeQueueGlobal.setdefault(src,{})
+    try:
+        print('清除成功',NCNoticeQueue.pop(key))
+    except:
+        print('无',G)
 
 def CFNoticeManager(j,**kwargs):
     try:
@@ -807,15 +829,31 @@ def ATNoticeManager(j,**kwargs):
     except:
         gp = kwargs['gp']
 
-    global CFNoticeQueueGlobal
+    global ATNoticeQueueGlobal
     ATNoticeQueue = ATNoticeQueueGlobal.setdefault(gp,{})
     for k in j: # 持续时间 排名区间 比赛名 比赛时间
         if k[2] not in ATNoticeQueue:
             timew = k[3] - tnow() - datetime.timedelta(hours=1)
             asy = asyncio.ensure_future(contestsBeginNotice(gp,k[2],timew.total_seconds()))
-            ATNoticeQueue[k] = asy
-            asy.add_done_callback(functools.partial(clearATFuture,k,gp))
+            ATNoticeQueue[k[2]] = asy
+            asy.add_done_callback(functools.partial(clearATFuture,k[2],gp))
     print(ATNoticeQueue)
+
+def NCNoticeManager(j,**kwargs):
+    try:
+        gp = kwargs['gp'].id
+    except:
+        gp = kwargs['gp']
+
+    global NCNoticeQueueGlobal
+    NCNoticeQueue = NCNoticeQueueGlobal.setdefault(gp,{})
+    for k in j: # 持续时间 排名区间 比赛名 比赛时间
+        if k['title'] not in NCNoticeQueue:
+            timew = k['begin'] - tnow() - datetime.timedelta(hours=1)
+            asy = asyncio.ensure_future(contestsBeginNotice(gp,k['begin'],timew.total_seconds()))
+            NCNoticeQueue[k['title']] = asy
+            asy.add_done_callback(functools.partial(clearNCFuture,k['title'],gp))
+    print(NCNoticeQueue)
 
 def fetchCodeForcesContests():
     r = requests.get('https://codeforces.com/contests')
@@ -863,6 +901,24 @@ def fetchAtCoderContests():
     j['upcoming'] = l
     print(j)
     return j
+
+def fetchNowCoderContests():
+    l = []
+    res = requests.get('https://ac.nowcoder.com/acm/contest/vip-index?&headNav=www')
+    bs_res = BeautifulSoup(res.text,'html.parser')
+    items = bs_res.find('div',class_='platform-mod js-current')
+    for item in items.find_all(class_='platform-item'):
+        ans = item.find(class_='platform-item-cont')
+        contest_name = ans.find('a',target='_blank').text
+        contest_time = ans.find('li',class_='match-time-icon').text
+        li = contest_time.split('\n')
+        d = datetime.datetime.strptime(li[0],"比赛时间：%Y-%m-%d %H:%M")
+        l.append({
+            "title":contest_name,
+            "begin":d,
+            "length":li[2].strip()
+        })
+    return l
 
 def printHelp(*attrs,**kwargs):
     if len(attrs) and attrs[0] in shortMap:
@@ -2075,11 +2131,11 @@ def 爬AtCoder(*attrs,**kwargs):
     else:
         with open(fn,'w') as fr:
             fr.write('Y')
-
+    li = []
     if os.path.exists(fn):
 
         ATData = fetchAtCoderContests()
-        li = []
+        
 
         if ATData['running']:
             li.append(Plain('正在运行的比赛：\n'))
@@ -2104,6 +2160,45 @@ def 爬LaTeX(*attrs,**kwargs):
         f.write(r.content)
     asyncio.ensure_future(rmTmpFile(fn))
     return [Image.fromFileSystem(fn)]
+
+def 爬牛客(*attrs,**kwargs):
+    try:
+        gp = kwargs['gp'].id
+    except:
+        gp = kwargs['gp']
+    fn = f"NowCoder/{gp}"
+    
+    global NCNoticeQueueGlobal
+    NCNoticeQueue = NCNoticeQueueGlobal.setdefault(gp,{})
+            
+    if len(attrs):
+        if attrs[0] in ('reset','stop','cancel'):
+            try:
+                os.remove(fn)
+            except Exception as e:
+                print(e)
+            while NCNoticeQueue:
+                i = NCNoticeQueue.popitem()
+                print(i,'删除中->',i[1].cancel())
+            return [Plain('取消本群的牛客比赛提醒服务')]
+    else:
+        with open(fn,'w') as fr:
+            fr.write('Y')
+    li = []
+    if os.path.exists(fn):
+
+        NCData = fetchNowCoderContests()
+        for i in NCData:
+            li.append(Plain(i['title']+'\n'))
+            li.append(Plain(f"{i['begin']}"+'\t'))
+            li.append(Plain(i['length']+'\n'))
+        
+        NCNoticeManager(NCData,**kwargs)
+        
+        li.append(Plain('已自动订阅牛客的比赛提醒服务，取消请使用#NC reset'))
+
+    return li
+        
 
 """
 测试函数类（危）
@@ -2461,6 +2556,7 @@ def QM化简器(*attrs,**kwargs):
 functionMap = {
     '#CF':爬CF,
     '#AT':爬AtCoder,
+    '#牛客':爬牛客,
     '#肛道理':爬一言,
     '#h':printHelp,
     '#2048':asobi2048,
@@ -2531,7 +2627,8 @@ shortMap = {
     '#iee':'#i电',
     '#pr':'#舔',
     '#tex':'#LaTeX',
-    '#hhsh':'#好好说话'
+    '#hhsh':'#好好说话',
+    '#NC':'#牛客'
 }
 
 functionDescript = {
@@ -2667,6 +2764,12 @@ functionDescript = {
     '#AT':
 """
 爬取AtCoder将要开始的比赛的时间表
+可用参数:
+    reset（取消提醒）
+""",
+    '#牛客':
+"""
+爬取牛客将要开始的比赛的时间表
 可用参数:
     reset（取消提醒）
 """,
