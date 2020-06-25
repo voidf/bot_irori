@@ -2192,7 +2192,7 @@ def 爬牛客(*attrs,**kwargs):
         for i in NCData:
             li.append(Plain(i['title']+'\n'))
             li.append(Plain(f"{i['begin']}"+'\t'))
-            li.append(Plain(i['length']+'\n'))
+            li.append(Plain(i['length']+'\n\n'))
         
         NCNoticeManager(NCData,**kwargs)
         
