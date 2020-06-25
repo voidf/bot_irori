@@ -856,7 +856,7 @@ def NCNoticeManager(j,**kwargs):
     print(NCNoticeQueue)
 
 def fetchCodeForcesContests():
-    r = requests.get('https://codeforces.com/contests')
+    r = requests.get('https://codeforces.com/contests?complete=true')
     soup = BeautifulSoup(r.text,'html.parser')
     li = {}
     for i in soup('table')[0]('tr'):
