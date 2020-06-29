@@ -210,17 +210,20 @@ async def startup(bot: Mirai):
             await bot.sendGroupMessage(_[0],[Plain(_[1])])
     except:
         print('未设置登录提醒')
-    for _ in os.listdir('ddl/'): # 文件名即群号
-        with open('ddl/'+_,'r') as fr:
-            jj = json.load(fr)
-        print(jj)
-        for j,v in jj.items(): # j是title，v是(时间,发送成员)
-            t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
-            Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
-    asyncio.ensure_future(Callable.CFLoopRoutiner())
-    asyncio.ensure_future(Callable.ATLoopRoutiner())
-    asyncio.ensure_future(Callable.NCLoopRoutiner())
+    try:
+        for _ in os.listdir('ddl/'): # 文件名即群号
+            with open('ddl/'+_,'r') as fr:
+                jj = json.load(fr)
+            print(jj)
+            for j,v in jj.items(): # j是title，v是(时间,发送成员)
+                t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
+                Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
 
+        asyncio.ensure_future(Callable.CFLoopRoutiner())
+        asyncio.ensure_future(Callable.ATLoopRoutiner())
+        asyncio.ensure_future(Callable.NCLoopRoutiner())
+    except:
+        print('收到异常：\n',traceback.print_exc)
 if __name__ == '__main__':
     irori.run()
     
