@@ -203,10 +203,13 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
 
 @irori.subroutine
 async def startup(bot: Mirai):
-    global cfg
-    print(cfg)
-    for _ in cfg.get('onlineMsg',[]): # 上线提醒
-        await bot.sendGroupMessage(_[0],[Plain(_[1])])
+    try:
+        global cfg
+        print(cfg)
+        for _ in cfg.get('onlineMsg',[]): # 上线提醒
+            await bot.sendGroupMessage(_[0],[Plain(_[1])])
+    except:
+        print('未设置登录提醒')
     for _ in os.listdir('ddl/'): # 文件名即群号
         with open('ddl/'+_,'r') as fr:
             jj = json.load(fr)
