@@ -223,7 +223,7 @@ async def startup(bot: Mirai):
         asyncio.ensure_future(Callable.ATLoopRoutiner())
         asyncio.ensure_future(Callable.NCLoopRoutiner())
     except:
-        print('收到异常：\n',traceback.print_exc)
+        print('收到异常：\n',traceback.format_exc())
 if __name__ == '__main__':
     irori.run()
     
