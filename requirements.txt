@@ -1,0 +1,11 @@
+kuriyama
+numpy
+bs4
+requests[socks]
+qrcode
+pillow
+selenium
+json5
+terminaltables==3.1.0
+colorclass==2.2.0
+mido

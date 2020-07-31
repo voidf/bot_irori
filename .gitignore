@@ -1,0 +1,13 @@
+2048/
+vote/
+CF/
+ddl/
+Polyline/
+BinarySearchGame/
+__pycache__/
+tmp*
+hakushinAVG.txt
+authdata
+groupLimit.json
+cfg.json
+cfg.bak
