@@ -317,11 +317,36 @@ def 爬牛客(*attrs,**kwargs):
 
     return li
         
+def 爬歌(*attrs,**kwargs):
+    keyword = urllib.parse.quote(''.join(attrs))
+
+    lnk = f'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord?key={keyword}&pn=1&rn=30'
+
+    ses = requests.session()
+
+    r = ses.get(f'http://kuwo.cn/search/list?key={keyword}')
+
+    r = ses.get(lnk, headers={
+    	'referer': f'http://www.kuwo.cn/search/list?key={keyword}',
+    	'csrf': f"{ses.cookies.get('kw_token')}"
+    })
+
+    j = json.loads(r.text)
+    mid = j['data']['list'][0]['musicrid']
+
+    url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid=MUSIC_{mid}'
+	r = requests.get(url,headers = {
+		'user-agent': 'okhttp/3.10.0'
+	})
+	print(r.text)
+    return [Plain(r.text)]
+
 SpiderMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
+    '#什么值得听':爬歌,
     '#oeis':爬OEIS,
     '#CF':爬CF,
     '#AT':爬AtCoder,
@@ -339,6 +364,8 @@ SpiderShort = {
     '#NC':'#牛客',
     '#yy':'#肛道理',
     '#tex':'#LaTeX',
+    '#uta':'#什么值得听',
+    '#listen':'#什么值得听',
 }
 
 SpiderDescript = {
@@ -368,4 +395,5 @@ SpiderDescript = {
 可用参数:
     reset（取消提醒）
 """,
+    '#什么值得听':'根据给定关键词从酷我爬歌（以后会更新更多平台的咕（危'
 }

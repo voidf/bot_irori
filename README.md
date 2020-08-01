@@ -4,6 +4,12 @@
 
 mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以了（
 
+## ~~没用的~~features
+
++ 热重载 `sudo reload`
++ 拉库 `sudo pull`
++ 多实例管理 `sudo use <uuid>`、`sudo instances`
+
 ## 前置知识
 
 本篇README不是写给0基础的用户看的（
@@ -99,3 +105,20 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 > `+ BotLeaveEventActive = "BotLeaveEventActive"`
 > 
 > `+ BotLeaveEventKick = "BotLeaveEventKick"`
+
+## TODOs:
+
++ 完善暂时闭源的AVG然后一起开源
++ 实现生命棋
++ 实现Fygon计算复杂度
++ 求二次剩余
++ exlucas
++ ai棋牌
++ 查歌
++ 涩图华容道
+
+## 组友bot推荐
+
+[ssttkkl/PixivBot](https://github.com/ssttkkl/PixivBot)
+
+[KutouAkira/bot_fufu](https://github.com/KutouAkira/bot_fufu)
