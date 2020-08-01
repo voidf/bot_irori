@@ -334,7 +334,7 @@ def 爬歌(*attrs,**kwargs):
     j = json.loads(r.text)
     mid = j['data']['list'][0]['musicrid']
 
-    url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid=MUSIC_{mid}'
+    url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid={mid}'
     r = requests.get(url,headers = {
         'user-agent': 'okhttp/3.10.0'
     })
