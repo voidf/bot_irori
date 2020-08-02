@@ -190,7 +190,7 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                         return
 
                 if s[0] == 'instances':
-                    await app.sendGroupMessage(group,[Plain(f'{identifier}\n{locate}\n{enable_this}')])
+                    await app.sendGroupMessage(group,[Plain(f'{identifier}\n{platform.platform()} {locate}\n{enable_this}')])
                     return
                 elif s[0] == 'use':
                     if s[1] in ('*',identifier):
