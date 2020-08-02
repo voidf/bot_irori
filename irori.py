@@ -133,9 +133,15 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                             try:
                                 while True:
                                     SHELL[member.id].expect('\r\n',timeout = 3)
-                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                                    try:
+                                        patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                                    except UnicodeDecodeError:
+                                        patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
                             except:
-                                patts.append(Plain(SHELL[member.id].before.decode('utf-8')))
+                                try:
+                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                                except UnicodeDecodeError:
+                                    patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
                             await app.sendGroupMessage(group,patts)
                             return
                     if s[0] == 'reload':
