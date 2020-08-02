@@ -27,7 +27,9 @@ import traceback
 import http.client
 import statistics
 import csv
-
+import platform
+import pexpect
+import pexpect.popen_spawn
 import time
 import datetime
 import uuid
@@ -84,7 +86,7 @@ import Callable
 import GLOBAL
 GLOBAL.proxy = proxy
 SU = set()
-SHELL = set()
+SHELL = {}
 Exceptions = set()
 Helps = set()
 
@@ -120,12 +122,21 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
             if 'sudo' in extDict:
                 if enable_this:
                     if 'sh' in extDict:
-                        if s[0] == 'exit':
-                            SHELL.discard(member.id)
-                            await app.sendGroupMessage(group,[Plain('>>>Bash terminated>>>')])
+                        if s[0] == '我不玩了':
+                            SHELL[member.id].kill(9)
+                            del SHELL[member.id]
+                            await app.sendGroupMessage(group,[Plain('ojbk这就把你的任务扔掉')])
                             return
                         else:
-                            await app.sendGroupMessage(group,[Plain(os.popen(message.toString()).read())])
+                            patts = []
+                            SHELL[member.id].sendline(message.toString())
+                            try:
+                                while True:
+                                    SHELL[member.id].expect('\r\n',timeout = 3)
+                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                            except:
+                                patts.append(Plain(SHELL[member.id].before.decode('utf-8')))
+                            await app.sendGroupMessage(group,patts)
                             return
                     if s[0] == 'reload':
                         importlib.reload(Callable)
@@ -158,9 +169,18 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                         SU.discard(member.id)
                         await app.sendGroupMessage(group,[Plain('irori/$')])
                         return
-                    elif s[0] == 'bash':
-                        SHELL.add(member.id)
-                        await app.sendGroupMessage(group,[Plain('>>>Bash Mode>>>')])
+                    elif s[0] == 'terminal':
+                        if platform.platform().find('Windows') != -1:
+                            try:
+                                if s[1] in ('ps','powershell'):
+                                    SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('powershell')
+                                else:
+                                    raise NameError('cmd')
+                            except:
+                                SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('cmd')
+                        else:
+                            SHELL[member.id] = pexpect.spawn('bash')
+                        await app.sendGroupMessage(group,[Plain('终端启动，退出请输入"我不玩了"')])
                         return
 
                 if s[0] == 'instances':
