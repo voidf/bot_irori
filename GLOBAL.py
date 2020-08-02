@@ -13,7 +13,7 @@ CaLimit = 1e13
 CbLimit = 1e5
 revTag = chr(8238)
 pingCtr = 0
-
+sudo_su = {}
 
 AVGHost = ''
 AVGPort = 0

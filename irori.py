@@ -83,13 +83,15 @@ except Exception as e:
 import Callable
 import GLOBAL
 GLOBAL.proxy = proxy
-
+SU = set()
+SHELL = set()
 Exceptions = set()
 Helps = set()
 
 @irori.receiver("GroupMessage")
 async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
     global enable_this
+    global SU
     s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
     extDict = {
@@ -100,6 +102,11 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
     if pic:
         extDict['pic'] = pic
     
+
+    if member.id in SU:
+        extDict['sudo'] = True
+    if member.id in SHELL:
+        extDict['sh'] = True
 
     if s[0] == 'sudo':
         s.pop(0)
@@ -112,6 +119,14 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
         try:
             if 'sudo' in extDict:
                 if enable_this:
+                    if 'sh' in extDict:
+                        if s[0] == 'exit':
+                            SHELL.discard(member.id)
+                            await app.sendGroupMessage(group,[Plain('>>>Bash terminated>>>')])
+                            return
+                        else:
+                            await app.sendGroupMessage(group,[Plain(os.popen(message.toString()).read())])
+                            return
                     if s[0] == 'reload':
                         importlib.reload(Callable)
                         await app.sendGroupMessage(group,[Plain('热重载完成')])
@@ -135,6 +150,19 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                         Exceptions.discard(player)
                         await app.sendGroupMessage(group,[Plain('异常时不打印异常信息')])
                         return
+                    elif s[0] == 'su':
+                        SU.add(member.id)
+                        await app.sendGroupMessage(group,[Plain('irori/#')])
+                        return
+                    elif s[0] == 'exit':
+                        SU.discard(member.id)
+                        await app.sendGroupMessage(group,[Plain('irori/$')])
+                        return
+                    elif s[0] == 'bash':
+                        SHELL.add(member.id)
+                        await app.sendGroupMessage(group,[Plain('>>>Bash Mode>>>')])
+                        return
+
                 if s[0] == 'instances':
                     await app.sendGroupMessage(group,[Plain(f'{identifier}\n{locate}\n{enable_this}')])
                     return
@@ -230,6 +258,8 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
                         Exceptions.discard(player)
                         await app.sendFriendMessage(hurenzu,[Plain('异常时不打印异常信息')])
                         return
+                    elif s[0] == 'su':
+                        GLOBAL
                 if s[0] == 'instances':
                     await app.sendFriendMessage(hurenzu,[Plain(f'实例UUID:{identifier},位于{locate},使能状态{enable_this}')])
                     return
