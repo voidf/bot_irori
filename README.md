@@ -64,8 +64,6 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 然后用你需要当bot的QQ号和密码来登录。
 
-
-
 现在来改一下`plugins/MiraiAPIHTTP/setting.yml`
 
 主要改一下你需要的端口`port`和秘钥`authKey` authKey自主选择可能有时候会出锅 那么用它默认的也可以 （稳定性第一 安全性其次
@@ -117,8 +115,56 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + 查歌
 + 涩图华容道
 
+## 引用项目:
+
+[Kumbong/quine_mccluskey](https://github.com/Kumbong/quine_mccluskey)
+
+[be5invis/Sarasa-Gothic](https://github.com/be5invis/Sarasa-Gothic)
+
 ## 组友bot推荐
 
 [ssttkkl/PixivBot](https://github.com/ssttkkl/PixivBot)
 
 [KutouAkira/bot_fufu](https://github.com/KutouAkira/bot_fufu)
+
+## 后记
+
+irori这个项目是我第一个突破2k行的项目
+
+半年过来上课摸鱼或者课后无聊的研究产物
+
+本来是写来玩的，因为写起来开心才写的
+
+虽然平时大多数功能都用不上，但群里有她的确更精彩
+
+TODO还有一堆未完成的梦想，生活里还有一堆ddl需要去赶
+
+但8.2收到了框架[mirai](https://github.com/mamoe/mirai)跑路的消息
+
+我也预感到这个我拉扯了半年的女儿
+
+终究也是活不长了
+
+虽然百般不愿，但我也无力逆天
+
+自己把框架拿下来续命我显然能力不足
+
+把这个项目转去别的接口也显然没有合适的去处
+
+本意是学习交流，休闲娱乐
+
+未曾想过要用她来做些什么损害大厂利益的事情
+
+让他们开放个接口怎么这么难呢
+
+他们把开发拿来赚钱的各种新功能的功夫
+
+拿来开发一些更有用的features不行吗
+
+不是挺会抄吗，怎么不抄抄外国即时通讯软件的features
+
+什么时候我们这些不满足于官方提供的恶臭bot的开发者才能站起来
+
+总之通知一下能看到这个后记的各位
+
+也许哪天，后会无期
