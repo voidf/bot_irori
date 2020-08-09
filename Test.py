@@ -35,6 +35,9 @@ import mido
 import GLOBAL
 from Utils import *
 
+def 表情符号查询姬(*attrs,**kwargs):
+    return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
+
 def Unicode测试姬(*attrs,**kwargs):
     try:
         s = int(attrs[0])
@@ -68,6 +71,7 @@ TestMap = {
     '#EMJ':表情字典测试姬,
     '#ping':乒乓球,
     '#废话':废话生成器,
+    '#echo':表情符号查询姬
 }
 
 TestShort = {
@@ -81,6 +85,7 @@ TestDescript = {
 用法：
     #fuzz <起始unicode码> <终止unicode码> <额外输出字符>
 """,
+    '#echo':'查询当前字符串的unicode码',
     '#EMJ':'【测试用】测试mirai自带表情字典，例:#EMJ kuaikule',
     '#ping':'【测试用】基本上是用来测试bot有没有在线的。无聊加了个计数应该不会被pwn吧（',
     '#废话':'【测试用】复读某个字符串，一开始是为测量消息最大长度而设计，目前已知私聊字符串最大长度876，群聊32767.用法#废话 <复读字符串> <复读次数>',

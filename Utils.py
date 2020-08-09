@@ -13,6 +13,8 @@ import string
 import functools
 import GLOBAL
 import json
+from typing import *
+
 
 async def CFLoopRoutiner():
     print('进入回环(CF')
@@ -308,6 +310,8 @@ def uploadToChaoXing(fn:str) -> str:
     j = json.loads(r.text)
     return j['att_file']['att_clouddisk']['downPath']
 
+# 数论相关
+
 def comb(n,b):
     res = 1
     b = min(b,n-b)
@@ -320,14 +324,14 @@ def quickpow(x,p,m = -1):
     if m == -1:
         while p:
             if p&1:
-                res = res * a
-            a = a*a
+                res = res * x
+            x = x * x
             p>>=1
     else:
         while p:
             if p&1:
-                res = res * a % mo
-            a = a*a%mo
+                res = res * x % m
+            x = x * x % m
             p>>=1
     return res
 
@@ -342,3 +346,29 @@ def getinv(a,m):
     x,y = exgcd(a,m)
     return x%m
     
+# 树巨结垢相关
+
+def lowbit(x:int): return x&-x
+
+def treearray_update(pos:int,x:int,array:list):
+    while pos < len(array):
+        array[pos] += x
+        pos += lowbit(pos)
+
+def treearray_getsum(pos:int,array:list) -> int:
+    ans = 0
+    while pos > 0:
+        ans += array[pos]
+        pos -= lowbit(pos)
+    return ans
+
+def calcinvs(array:list):
+    d = {}
+    for k,v in enumerate(sorted(array)):
+        d[v] = k+1
+    treearray = [0 for i in range(1+len(array))]
+    invs = 0
+    for i in array:
+        invs += treearray_getsum(len(treearray)-1, treearray) - treearray_getsum(d[i], treearray)
+        treearray_update(d[i],1,treearray)
+    return invs

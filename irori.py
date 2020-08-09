@@ -169,11 +169,11 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                         return
                     elif s[0] == 'su':
                         SU.add(member.id)
-                        await app.sendGroupMessage(group,[Plain('irori/#')])
+                        await app.sendGroupMessage(group,[Plain('irori:~#')])
                         return
                     elif s[0] == 'exit':
                         SU.discard(member.id)
-                        await app.sendGroupMessage(group,[Plain('irori/$')])
+                        await app.sendGroupMessage(group,[Plain('irori:~$')])
                         return
                     elif s[0] == 'terminal':
                         if platform.platform().find('Windows') != -1:
