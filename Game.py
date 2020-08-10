@@ -425,6 +425,12 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
                 with open(f'''SlidingPuzzle/{player}BG''','wb') as f:
                     f.write(src)
                 return [Plain('图片背景更新成功')]
+        elif attrs[0] in ('快速模式','gamestart'):
+            GLOBAL.QuickCalls[player] = (asobiSlidingPuzzle)
+            return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
+        elif attrs[0].lower() in ('terminate','quit','exit','seeyou','bye','sayonara','sayounara','madane','yamero','停','关','やめろ'):
+            del GLOBAL.QuickCalls[player]
+            return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
     return [Image.fromFileSystem(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]

@@ -6,6 +6,7 @@ Polyline/
 SlidingPuzzle/
 BinarySearchGame/
 __pycache__/
+weather/
 *.pyc
 tmp*
 hakushinAVG.txt

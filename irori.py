@@ -333,6 +333,8 @@ async def startup(bot: Mirai):
     except:
         print('未设置登录提醒（不太重要')
     try:
+        if not os.path.exists('ddl/'):
+            os.mkdir('ddl/')
         for _ in os.listdir('ddl/'): # 文件名即群号
             with open('ddl/'+_,'r') as fr:
                 jj = json.load(fr)
@@ -348,6 +350,10 @@ async def startup(bot: Mirai):
         asyncio.ensure_future(Callable.NCLoopRoutiner())
     except:
         print('竞赛日程模块出现异常（不太重要：\n',traceback.format_exc())
+    try:
+        asyncio.ensure_future(Callable.WeatherSubscribeRoutiner())
+    except:
+        print('天气预报模块出现异常（不太重要：\n',traceback.format_exc())
     
 if __name__ == '__main__':
     irori.run()

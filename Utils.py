@@ -15,6 +15,27 @@ import GLOBAL
 import json
 from typing import *
 
+async def WeatherSubscribeRoutiner():
+    print('进入回环(天气预报')
+    if not os.path.exists('weather/'):
+        os.mkdir('weather/')
+    while 1:
+        await asyncio.sleep(86400-(datetime.datetime.now().timestamp()+8*3600+5)%86400)
+        
+            
+        for _ in os.listdir('weather/'):
+            try:
+                with open('weather/'+_,'r') as f:
+                    ans = [datetime.datetime.now().strftime('今天是%Y年%m月%d日')]
+                    for city in f.readlines():
+                        if city.strip():
+                            j = fetchWeather(city.strip())
+                            ans += j[:3]
+                asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=_))
+
+            except:
+                print('天气预报姬挂了！',traceback.format_exc())
+        
 
 async def CFLoopRoutiner():
     print('进入回环(CF')
@@ -97,6 +118,10 @@ async def fuzzT(g,s,e,w):
 
 
 async def msgDistributer(**kwargs):
+    """
+    根据player号分发消息
+    输入字典msg为源文本，typ标识其类型('E'表情,'I'图片文件目录,'P'普通文本)
+    """
     if 'msg' in kwargs and kwargs['msg']:
         if kwargs.get('typ','P') == 'E':
             seq = [Face(QQFaces[kwargs['msg']])]
@@ -111,8 +136,14 @@ async def msgDistributer(**kwargs):
 
         if 'gp' in kwargs:
             await GLOBAL.app.sendGroupMessage(kwargs['gp'],seq)
-        else:
+        elif 'mem' in kwargs:
             await GLOBAL.app.sendFriendMessage(kwargs['mem'],seq)
+        elif 'player' in kwargs:
+            kwargs['player'] = int(kwargs['player'])
+            if kwargs['player'] > 1<<39:
+                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),seq)
+            else:
+                await GLOBAL.app.sendFriendMessage(kwargs['player'],seq)
 
 def tnow():
     return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
@@ -302,6 +333,28 @@ def fetchNowCoderContests() -> list:
             "length":li[2].strip()
         })
     return l
+
+def fetchWeather(city: str) -> list:
+    search_lnk = 'http://toy1.weather.com.cn/search?cityname=' + city
+    j = json.loads(requests.get(search_lnk).text[1:-1])[0]['ref'].split('~')
+    output = [f'{j[2]}的天气数据:']
+    weather_lnk = f'http://www.weather.com.cn/weather/{j[0]}.shtml'
+    b = BeautifulSoup(requests.get(weather_lnk).content,'html.parser')
+
+    ctr = 0
+    pos = 10
+    for p,i in enumerate(b('li')):
+        if i.text.find('今天')!=-1:
+            ctr+=1
+            if ctr>=2:
+                pos = p
+                break
+
+
+    for i in b('li')[pos:pos+7]:
+        t = i('p')
+        output.append(f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
+    return output
 
 def uploadToChaoXing(fn:str) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'

@@ -341,6 +341,30 @@ def 爬歌(*attrs,**kwargs):
     print(r.text)
     return [Plain(j['data']['list'][0]['musicrid']+' '+j['data']['list'][0]['artist']+'\n'),Plain(r.text)]
 
+def 爬天气(*attrs,**kwargs):
+    player = getPlayer(**kwargs)
+    if not attrs:
+        return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
+
+    if attrs[0] in ('unsubscribe','cancel'):
+        os.remove(f'weather/{player}')
+        return [Plain(f'还我清净，拒绝推送')]
+    
+    output = fetchWeather(attrs[0])
+
+    try:
+        if attrs[1] in ('S','sub','subscribe','订阅','推送'):
+            player = getPlayer(**kwargs)
+            if not os.path.exists('weather/'):
+                os.mkdir('weather/')
+            with open(f'weather/{player}','a') as f:
+                f.write(attrs[0]+'\n')
+            output.append(f'成功订阅城市{attrs[0]}的天气推送,取消请用cancel')
+        
+    except:
+        print(traceback.format_exc())
+    return [Plain('\n'.join(output))]
+
 SpiderMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
@@ -352,6 +376,7 @@ SpiderMap = {
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
     '#肛道理':爬一言,
+    '#天气':爬天气
 }
 
 SpiderShort = {
@@ -366,6 +391,7 @@ SpiderShort = {
     '#tex':'#LaTeX',
     '#uta':'#什么值得听',
     '#listen':'#什么值得听',
+    '#weather':'#天气'
 }
 
 SpiderDescript = {
@@ -374,6 +400,7 @@ SpiderDescript = {
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
     '#oeis':'根据给定的逗号隔开的数列在OEIS寻找符合条件的数列，例:#oeis 1,1,4,5,1,4',
+    '#天气':'传入需要查询的城市拼音，如 #天气 shanghai',
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
     '#CF':
 """
