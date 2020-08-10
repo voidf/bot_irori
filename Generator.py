@@ -241,6 +241,11 @@ def 舔狗生成器(*attrs,**kwargs):
     asyncio.ensure_future(AVG.__msgSerializer__(construct,**kwargs))
     return [Plain(f"!{pat[0]}!!!!!!")]
 
+def 川普生成器(*attrs,**kwargs):
+    s = ' '.join(attrs) if attrs else '中国'
+    pat = f"{chr(128588)}没有人\n{chr(128080)}比我\n{chr(128076)}更懂\n{chr(9757)}{s}"
+    return [Plain(pat)]
+
 GeneratorMap = {
     '#论证':这么臭的函数有必要定义吗,
     '#营销':营销生成器,
@@ -252,10 +257,12 @@ GeneratorMap = {
     '#不会吧':不会吧,
     '#拳':打拳姬,
     '#nya':猫图生成器,
+    '#Trump':川普生成器
 }
 
 GeneratorShort = {
     '#pr':'#舔',
+    '#trump':'#Trump'
 }
 
 GeneratorDescript = {
@@ -267,6 +274,7 @@ GeneratorDescript = {
     '#营销':'营销号生成器，格式：#营销 <主题> <事件> <另一种说法>',
     '#同学':'同学你好生成器，格式：#同学 <群名> <这个群教什么东西>',
     '#不会吧':'不会吧生成器，例：#不会吧 把浴霸关上',
+    '#Trump':'No one knows Trump Generator better than me!',
     '#拳':
 """
 轮到我出拳了！（

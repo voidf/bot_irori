@@ -149,6 +149,12 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                         await app.sendGroupMessage(group,[Plain('热重载完成')])
                         return
                     elif s[0] == 'pull':
+                        try:
+                            if s.index('-f'):
+                                await app.sendGroupMessage(group,[Plain(os.popen('git fetch --all && git reset --hard origin/master').read())])
+                                return
+                        except:
+                            pass
                         await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
                         return
                     elif s[0] == 'print-help':
