@@ -364,6 +364,74 @@ def 爬歌(*attrs,**kwargs):
         ans.append('酷狗爬虫炸了')
         print(traceback.format_exc())
 
+    try:
+        xiamihds = {'referer': 'https://h.xiami.com/'}
+        ses = requests.session()
+        ses.get('https://www.xiami.com')
+        lnk = f'http://api.xiami.com/web?v=2.0&app_key=1&key={keyword}&page=1&limit=20&r=search/songs'
+        r = ses.get(lnk,headers=xiamihds)
+        j = json.loads(r.text) # 这个是搜音乐信息
+        print(f'虾米 => {j}')
+        fid = j['data']['songs'][0]['song_id']
+        fname = j['data']['songs'][0]['song_name'] + '-' + j['data']['songs'][0]['artist_name']
+
+        lnk2 = f'https://api.xiami.com/web?v=2.0&app_key=1&id={fid}&r=song/detail'
+        rr = ses.get(lnk2,headers=xiamihds)
+        print(rr.text)
+        print(json.loads(rr.text)['data']['song']['listen_file'])
+        ans.append('来自虾米的检索：')
+        ans.append(fname)
+        ans.append(json.loads(rr.text)['data']['song']['listen_file'])
+        ans.append('')
+    except:
+        ans.append('虾米爬虫炸了')
+        print(traceback.format_exc())
+    try:
+        hds = {
+            'origin': 'http://y.qq.com/',
+            'referer': 'http://y.qq.com/',
+            # 'cookie': 'uin=; qm_keyst='
+        }
+        lnk = f'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?ct=24&qqmusic_ver=1298&new_json=1&remoteplace=txt.yqq.center&searchid=46804741196796149&t=0&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=20&w={keyword}&g_tk=5381&jsonpCallback=MusicJsonCallback10005317669353331&loginUin=0&hostUin=0&format=jsonp&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0'
+        r = ses.get(lnk)
+        j = json.loads(r.text[35:-1])  # 这个是搜音乐信息
+        fid = j['data']['song']['list'][0]['mid']
+        ffid = j['data']['song']['list'][0]['file']['media_mid']
+        fname = j['data']['song']['list'][0]['title'] + '-' + \
+            j['data']['song']['list'][0]['singer'][0]['name']
+
+        d = {
+            'req_0': {
+                'module': 'vkey.GetVkeyServer',
+                'method': 'CgiGetVkey',
+                'param': {
+                    'guid': '7332953645',
+                    'loginflag': 1,
+                    'filename': [f'M500{ffid}.mp3'],
+                    'songmid': [fid],
+                    'songtype': [0],
+                    'uin': '0',
+                    'platform': '20'
+                }
+            }
+        }
+
+        lnk2 = f'https://u.y.qq.com/cgi-bin/musicu.fcg?data={urllib.parse.quote(json.dumps(d))}'
+        rr = ses.get(lnk2, headers=hds)
+        jj = json.loads(rr.text)['req_0']['data']
+        sip = jj['sip'][0]
+
+        if jj['midurlinfo'][0]['purl']:
+            ans.append('来自QQ的检索：')
+            ans.append(fname)
+            ans.append(sip+jj['midurlinfo'][0]['purl'])
+            ans.append('')
+        else:
+            raise NameError('QQ没权限拿歌')
+    except:
+        ans.append('QQ爬虫炸了')
+        print(traceback.format_exc())
+        
     return [Plain('\n'.join(ans))]
 
 def 爬天气(*attrs,**kwargs):
@@ -425,7 +493,18 @@ SpiderDescript = {
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
     '#oeis':'根据给定的逗号隔开的数列在OEIS寻找符合条件的数列，例:#oeis 1,1,4,5,1,4',
-    '#天气':'传入需要查询的城市拼音，如 #天气 shanghai',
+    '#天气':
+"""
+传入需要查询的城市拼音
+如：
+    #天气 shanghai
+可以订阅每日的天气推送：
+用法：
+    #天气 <城市名拼音> sub
+注意此处订阅是append，即新添加需要推送的城市，而不是覆写
+如需取消所有推送，请使用：
+    #天气 cancel
+""",
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
     '#CF':
 """
@@ -447,5 +526,5 @@ SpiderDescript = {
 可用参数:
     reset（取消提醒）
 """,
-    '#什么值得听':'根据给定关键词从酷我爬歌（以后会更新更多平台的咕（危'
+    '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人'
 }

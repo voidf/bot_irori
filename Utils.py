@@ -20,13 +20,15 @@ async def WeatherSubscribeRoutiner():
     if not os.path.exists('weather/'):
         os.mkdir('weather/')
     while 1:
+
+        print(f'weather report waiting for {86400-(datetime.datetime.now().timestamp()+8*3600+5)%86400}')
         await asyncio.sleep(86400-(datetime.datetime.now().timestamp()+8*3600+5)%86400)
-        
-            
+
         for _ in os.listdir('weather/'):
             try:
                 with open('weather/'+_,'r') as f:
-                    ans = [datetime.datetime.now().strftime('今天是%Y年%m月%d日')]
+                    dt = datetime.datetime.now()
+                    ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日']
                     for city in f.readlines():
                         if city.strip():
                             j = fetchWeather(city.strip())
@@ -35,6 +37,7 @@ async def WeatherSubscribeRoutiner():
 
             except:
                 print('天气预报姬挂了！',traceback.format_exc())
+        
         
 
 async def CFLoopRoutiner():

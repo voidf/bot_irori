@@ -325,6 +325,7 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
 
 @irori.subroutine
 async def startup(bot: Mirai):
+    GLOBAL.app = bot
     try:
         global cfg
         print(cfg)
