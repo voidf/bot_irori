@@ -319,27 +319,52 @@ def 爬牛客(*attrs,**kwargs):
         
 def 爬歌(*attrs,**kwargs):
     keyword = urllib.parse.quote(''.join(attrs))
+    ans = []
+    try:
+        kuwolnk = f'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord?key={keyword}&pn=1&rn=30'
 
-    lnk = f'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord?key={keyword}&pn=1&rn=30'
+        ses = requests.session()
 
-    ses = requests.session()
+        r = ses.get(f'http://kuwo.cn/search/list?key={keyword}')
 
-    r = ses.get(f'http://kuwo.cn/search/list?key={keyword}')
+        r = ses.get(kuwolnk, headers={
+            'referer': f'http://www.kuwo.cn/search/list?key={keyword}',
+            'csrf': f"{ses.cookies.get('kw_token')}"
+        })
 
-    r = ses.get(lnk, headers={
-        'referer': f'http://www.kuwo.cn/search/list?key={keyword}',
-        'csrf': f"{ses.cookies.get('kw_token')}"
-    })
+        j = json.loads(r.text)
+        mid = j['data']['list'][0]['musicrid']
 
-    j = json.loads(r.text)
-    mid = j['data']['list'][0]['musicrid']
+        url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid={mid}'
+        r = requests.get(url,headers = {
+            'user-agent': 'okhttp/3.10.0'
+        })
+        print(r.text)
+        ans.append('来自酷我的检索：')
+        ans.append(j['data']['list'][0]['name']+' '+j['data']['list'][0]['artist'])
+        ans.append(r.text)
+        ans.append('')
+    except:
+        ans.append('酷我爬虫炸了')
+        print(traceback.format_exc())
 
-    url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid={mid}'
-    r = requests.get(url,headers = {
-        'user-agent': 'okhttp/3.10.0'
-    })
-    print(r.text)
-    return [Plain(j['data']['list'][0]['musicrid']+' '+j['data']['list'][0]['artist']+'\n'),Plain(r.text)]
+    try:
+        kugoulnk = f'http://songsearch.kugou.com/song_search_v2?keyword={keyword}&page=1'
+        r = ses.get(kugoulnk)
+        j = json.loads(r.text.strip())
+        
+        fid = j['data']['lists'][0]['FileHash']
+        lnk2 = f'http://trackercdn.kugou.com/i/v2/?key={hashlib.md5(bytes(fid+"kgcloudv2","utf-8")).hexdigest()}&hash={fid}&br=hq&appid=1005&pid=2&cmd=25&behavior=play'
+        rr = ses.get(lnk2)
+        ans.append('来自酷狗的检索：')
+        ans.append(j['data']['lists'][0]['FileName'])
+        ans.append(json.loads(rr.text)['url'][0])
+        ans.append('')
+    except:
+        ans.append('酷狗爬虫炸了')
+        print(traceback.format_exc())
+
+    return [Plain('\n'.join(ans))]
 
 def 爬天气(*attrs,**kwargs):
     player = getPlayer(**kwargs)
