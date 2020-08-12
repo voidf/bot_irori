@@ -118,7 +118,7 @@ def 猫图生成器(*attrs,**kwargs):
     beginPixel = (34-len(text)*9,55)
 
     draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = randstr(GLOBAL.randomStrLength) + 'tmpNya'+str(kwargs['mem'].id)+'.png'
+    p = 'tmpNya' + randstr(GLOBAL.randomStrLength)+str(kwargs['mem'].id)+'.png'
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -134,10 +134,26 @@ def 优质解答生成器(*attrs,**kwargs):
     beginPixel = (50,120)
 
     draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = randstr(GLOBAL.randomStrLength) + 'tmpAns'+str(kwargs['mem'].id)+'.png'
+    p = 'tmpAns' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
+    return [Image.fromFileSystem(p)]
+
+def IPlay生成器(*attrs,**kwargs):
+    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
+    Src = PImage.open('IPlayRhythmGame.png').convert('RGBA')
+    layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
+    draw = ImageDraw.Draw(layer2)
+    
+    text = ' '.join(attrs)
+    beginPixel = (308,1004)
+
+    draw.text(beginPixel,text,fill=(255,255,255,255),font=font)
+    p = 'tmpIPlay' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
+
+    PImage.alpha_composite(Src,layer2).save(p)
+    asyncio.ensure_future(rmTmpFile(p))
     return [Image.fromFileSystem(p)]
     
 def 希望没事生成器(*attrs,**kwargs):
@@ -155,7 +171,7 @@ def 希望没事生成器(*attrs,**kwargs):
         draw.text(beginPixel,text,fill=(r,g,b,255),font=font)
     else:
         draw.text(beginPixel,text,fill=(255,255,255,255),font=font)
-    p = randstr(GLOBAL.randomStrLength) + 'tmpWish'+str(kwargs['mem'].id)+'.png'
+    p = 'tmpWish' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -176,7 +192,7 @@ def 希望工程(*attrs,**kwargs):
         draw.text(beginPixel,text,fill=(r,g,b,255),font=font)
     else:
         draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = randstr(GLOBAL.randomStrLength) + 'tmpWish'+str(kwargs['mem'].id)+'.png'
+    p = 'tmpWish' + randstr(GLOBAL.randomStrLength) + str(kwargs['mem'].id)+'.png'
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -257,7 +273,8 @@ GeneratorMap = {
     '#不会吧':不会吧,
     '#拳':打拳姬,
     '#nya':猫图生成器,
-    '#Trump':川普生成器
+    '#Trump':川普生成器,
+    '#口罩':IPlay生成器
 }
 
 GeneratorShort = {
@@ -274,6 +291,7 @@ GeneratorDescript = {
     '#营销':'营销号生成器，格式：#营销 <主题> <事件> <另一种说法>',
     '#同学':'同学你好生成器，格式：#同学 <群名> <这个群教什么东西>',
     '#不会吧':'不会吧生成器，例：#不会吧 把浴霸关上',
+    '#口罩':'自己试试效果吧，例:#口罩 I play BanG Dream!',
     '#Trump':'No one knows Trump Generator better than me!',
     '#拳':
 """
