@@ -108,13 +108,14 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 ## TODOs:
 
-+ 完善暂时闭源的AVG然后一起开源
-+ 实现生命棋
-+ 实现Fygon计算复杂度
-+ 求二次剩余
-+ ai棋牌
-+ 查歌
-+ 天气推送
++ [ ] 完善暂时闭源的AVG然后一起开源
++ [ ] 实现生命棋
++ [ ] 实现Fygon计算复杂度
++ [ ] 求二次剩余
++ [ ] ai棋牌
++ [ ] TRPG
++ [x] 查歌
++ [x] 天气推送
 
 ## 引用项目:
 
@@ -122,7 +123,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 [be5invis/Sarasa-Gothic](https://github.com/be5invis/Sarasa-Gothic)
 
-## 组友bot推荐
+## irori的好朋友
 
 [ssttkkl/PixivBot](https://github.com/ssttkkl/PixivBot)
 
