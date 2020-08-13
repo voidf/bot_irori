@@ -21,8 +21,8 @@ async def WeatherSubscribeRoutiner():
         os.mkdir('weather/')
     while 1:
 
-        print(f'weather report waiting for {86400-(datetime.datetime.now().timestamp()+8*3600+500)%86400}')
-        await asyncio.sleep(86400-(datetime.datetime.now().timestamp()+8*3600+500)%86400)
+        print(f'weather report waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
+        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400)
 
         for _ in os.listdir('weather/'):
             try:
