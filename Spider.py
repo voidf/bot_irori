@@ -431,7 +431,7 @@ def 爬歌(*attrs,**kwargs):
     except:
         ans.append('QQ爬虫炸了')
         print(traceback.format_exc())
-        
+    print(ans)
     return [Plain('\n'.join(ans))]
 
 def 爬天气(*attrs,**kwargs):
