@@ -121,6 +121,123 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
+with open('zh2morse.json','r') as f:
+    z2m = json.load(f)
+
+with open('morse2zh.json','r') as f:
+    m2z = json.load(f)
+
+k1 = """ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:,;?='/!-_"()$&@"""
+k2 = """.- -... -.-. -..
+. ..-. --. ....
+.. .--- -.- .-..
+-- -. --- .--.
+--.- .-. ... -
+..- ...- .-- -..-
+-.-- --..
+----- .---- ..--- ...--
+....- ..... -.... --...
+---.. ----.
+.-.-.- ---... --..-- -.-.-.
+..--.. -...- .----. -..-.
+-.-.-- -....- ..--.- .-..-.
+-.--. -.--.-
+...-..- .-... .--.-."""
+
+a2m = dict(zip(k1,k2.split()))
+m2a = dict(zip(k2.split(),k1))
+
+def 转电码(*attrs,**kwargs):
+    global z2m,a2m
+    msg = ' '.join(attrs).upper()
+
+    conf = re.findall('''SPLIT=(.*?) ''',msg)
+    split_symbol = '/'
+    print(conf)
+    if not conf:
+        conf = re.findall('''SPLIT=(.*?)$''',msg)
+        print(conf)
+        if conf:
+            split_symbol = conf[0]
+            for i in conf:
+                msg = msg.replace(f'''SPLIT={i}''','')
+    else:
+        split_symbol = conf[0]
+        for i in conf:
+            msg = msg.replace(f'''SPLIT={i}''','')
+
+    msg = msg.replace(' ','_')
+    ans = []
+    cmsg = msg
+    for i in msg:
+        if i in z2m:
+            cmsg = cmsg.replace(i,'_'+z2m[i]+'_')
+        elif i not in z2m and i not in a2m:
+            return [Plain(f'不合法的字符：{i}')]
+    # while '  ' in cmsg:
+    #     cmsg = cmsg.replace('  ',' ')
+
+    for i in cmsg:
+        ans.append(a2m[i])
+    
+    return [Plain(split_symbol.join(ans))]
+
+def 译电码(*attrs,**kwargs):
+    global m2a
+    msg = ' '.join(attrs).upper()
+
+    conf = re.findall('''SPLIT=(.*?) ''',msg)
+    split_symbol = '/'
+    print(conf)
+    if not conf:
+        conf = re.findall('''SPLIT=(.*?)$''',msg)
+        print(conf)
+        if conf:
+            split_symbol = conf[0]
+            for i in conf:
+                msg = msg.replace(f'''SPLIT={i}''','')
+    else:
+        split_symbol = conf[0]
+        for i in conf:
+            msg = msg.replace(f'''SPLIT={i}''','')
+    
+    msg = msg.replace(' ','')
+    ans = []
+    for i in msg.split(split_symbol):
+        if i not in m2a:
+            return [Plain(f'不合法的电码：{i}')]
+        ans.append(m2a[i])
+    return [Plain(''.join(ans))]
+
+def 译中文电码(*attrs,**kwargs):
+    global m2z
+    msg = ' '.join(attrs).upper()
+
+    conf = re.findall('''SPLIT=(.*?) ''',msg)
+    split_symbol = '_'
+    print(conf)
+    if not conf:
+        conf = re.findall('''SPLIT=(.*?)$''',msg)
+        print(conf)
+        if conf:
+            split_symbol = conf[0]
+            for i in conf:
+                msg = msg.replace(f'''SPLIT={i}''','')
+    else:
+        split_symbol = conf[0]
+        for i in conf:
+            msg = msg.replace(f'''SPLIT={i}''','')
+    
+    msg = msg.replace(' ','')
+    ans = []
+    for i in msg.split(split_symbol):
+        if i:
+            if i not in m2z:
+                return [Plain(f'不合法的电码：{i}')]
+            ans.append(m2z[i])
+    return [Plain(''.join(ans))]
+
+
 StringMap = {
     '#BV':BVCoder,
     '#b64e':编码base64,
@@ -128,7 +245,10 @@ StringMap = {
     '#rot13':rot_13,
     '#rev':字符串反转,
     '#qr':二维码生成器,
-    '#digest':字符串签名
+    '#digest':字符串签名,
+    '#a2m':转电码,
+    '#m2a':译电码,
+    '#m2z':译中文电码
 }
 
 StringShort = {}
@@ -147,5 +267,28 @@ StringDescript = {
     即返回av号
     #BV <av号,纯数字，不带av两个字>
     即返回BV号
+''',
+    '#a2m':
 '''
+将输入字符转为morse电码
+如存在中文则依据《标准电码本》转换成四位数字编码
+空格会被转换成下划线
+可以指定分隔符,用例:
+    #a2m 1145141919810 931 split=?
+    使用问号作为字符串"1145141919810 931"的morse电码分隔符
+''',
+    '#m2a':
+'''
+将输入morse电码转换成明文
+可以指定分隔符,用例:
+    #m2a -.--/---/..-/-.-/---/.../--- split=/
+    使用/作为电码"-.--/---/..-/-.-/---/.../---"的分隔符
+''',
+    '#m2z':
+'''
+将输入数字电码转换成中文
+可以指定分隔符,用例:
+    #m2z _7093__2448__5530__5358_ split=_
+    使用/作为电码"_7093__2448__5530__5358_"的分隔符
+''',
 }

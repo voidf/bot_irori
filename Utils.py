@@ -60,8 +60,6 @@ async def WeatherSubscribeRoutiner():
 
             except:
                 print('天气预报姬挂了！',traceback.format_exc())
-        
-        
 
 async def CFLoopRoutiner():
     print('进入回环(CF')
