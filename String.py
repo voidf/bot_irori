@@ -233,8 +233,9 @@ def 译中文电码(*attrs,**kwargs):
     for i in msg.split(split_symbol):
         if i:
             if i not in m2z:
-                return [Plain(f'不合法的电码：{i}')]
-            ans.append(m2z[i])
+                ans.append(i)
+            else:
+                ans.append(m2z[i])
     return [Plain(''.join(ans))]
 
 
