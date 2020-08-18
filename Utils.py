@@ -15,6 +15,16 @@ import GLOBAL
 import json
 from typing import *
 
+youbi = {
+    1:'月曜日',
+    2:'火曜日',
+    3:'水曜日',
+    4:'木曜日',
+    5:'金曜日',
+    6:'土曜日',
+    7:'日曜日',
+}
+
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
     if not os.path.exists('weather/'):
@@ -28,7 +38,20 @@ async def WeatherSubscribeRoutiner():
             try:
                 with open('weather/'+_,'r') as f:
                     dt = datetime.datetime.now()
-                    ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日']
+                    ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{youbi[dt.isoweekday()]}']
+
+                    try:
+                        bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
+                        res = bs('div',attrs={'id':'jie_guo'})
+                        ans.append(res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
+                        ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
+                    except:
+                        ans.append('我忘了今天农历几号了')
+                        print(traceback.format_exc())
+
+                    if random.randint(0,3):
+                        ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
+
                     for city in f.readlines():
                         if city.strip():
                             j = fetchWeather(city.strip())
