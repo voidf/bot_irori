@@ -43,7 +43,7 @@ async def WeatherSubscribeRoutiner():
                     try:
                         bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
                         res = bs('div',attrs={'id':'jie_guo'})
-                        ans.append(res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
+                        ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
                         ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
                     except:
                         ans.append('我忘了今天农历几号了')

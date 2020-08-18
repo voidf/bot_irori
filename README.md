@@ -114,7 +114,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + [ ] 求二次剩余
 + [ ] ai棋牌
 + [ ] TRPG
-+ [ ] https://tool.lu/morse/
++ [x] https://tool.lu/morse/
 + [ ] https://ip.51240.com/
 + [x] 查歌
 + [x] 天气推送
