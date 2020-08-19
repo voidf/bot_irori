@@ -471,7 +471,7 @@ def 爬ip(*attrs,**kwargs):
         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
     if not rr:
         return [Plain('输入有点问题？我找着找着找炸了')]
-    return [Plain(' '.join(rr))]
+    return [Plain(' '.join(rr[0]))]
 
 SpiderMap = {
     '#LaTeX':爬LaTeX,
