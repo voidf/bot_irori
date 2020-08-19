@@ -458,6 +458,21 @@ def 爬天气(*attrs,**kwargs):
         print(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
+def 爬ip(*attrs,**kwargs):
+    if not attrs:
+        return [Plain('没有输入ip哦\n'+SpiderDescript['#ip'])]
+    ip = attrs[0]
+    lnk = f'https://ip.51240.com/{ip}__ip/'
+
+    r = requests.get(lnk)
+
+    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">{ip}</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
+    if not rr:
+        rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
+    if not rr:
+        return [Plain('输入有点问题？我找着找着找炸了')]
+    return [Plain(rr[0])]
+
 SpiderMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
@@ -469,7 +484,8 @@ SpiderMap = {
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
     '#肛道理':爬一言,
-    '#天气':爬天气
+    '#天气':爬天气,
+    '#ip':爬ip
 }
 
 SpiderShort = {
@@ -526,5 +542,6 @@ SpiderDescript = {
 可用参数:
     reset（取消提醒）
 """,
-    '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人'
+    '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
+    '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10'
 }
