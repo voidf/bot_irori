@@ -466,12 +466,12 @@ def 爬ip(*attrs,**kwargs):
 
     r = requests.get(lnk)
 
-    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">{ip}</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
+    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
     if not rr:
         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
     if not rr:
         return [Plain('输入有点问题？我找着找着找炸了')]
-    return [Plain(rr[0])]
+    return [Plain(' '.join(rr))]
 
 SpiderMap = {
     '#LaTeX':爬LaTeX,
