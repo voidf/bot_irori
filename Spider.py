@@ -473,6 +473,30 @@ def 爬ip(*attrs,**kwargs):
         return [Plain('输入有点问题？我找着找着找炸了')]
     return [Plain(' '.join(rr[0]))]
 
+def 爬答案之书(*attrs,**kwargs):
+    try:
+        hds = {
+            "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+            "accept-encoding":"gzip, deflate, br",
+            "accept-language":"zh-CN,zh;q=0.9",
+            "cache-control":"no-cache",
+            "content-length":"41",
+            "content-type":"application/x-www-form-urlencoded",
+            "dnt":"1",
+            "origin":"https://www.daanshu.com",
+            "pragma":"no-cache",
+            "referer":"https://www.daanshu.com/",
+            "upgrade-insecure-requests":"1",
+            "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
+        lnk = 'https://www.daanshu.com/'
+        res = requests.post(lnk,headers=hds,data={'text':' '.join(attrs)})
+        ans = re.findall('''<div class="content">(.*?)</div>''',res.text,re.S)[0]
+        ans = re.findall('''<p>(.*?)</p>''',ans,re.S)[0]
+    except:
+        ans = random.choice(['鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚'])
+    return [Plain(ans)]
+
 SpiderMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
@@ -485,7 +509,8 @@ SpiderMap = {
     '#牛客':爬牛客,
     '#肛道理':爬一言,
     '#天气':爬天气,
-    '#ip':爬ip
+    '#ip':爬ip,
+    '#为什么':爬答案之书
 }
 
 SpiderShort = {
@@ -500,7 +525,10 @@ SpiderShort = {
     '#tex':'#LaTeX',
     '#uta':'#什么值得听',
     '#listen':'#什么值得听',
-    '#weather':'#天气'
+    '#weather':'#天气',
+    '#ans':'#为什么',
+    '#why':'#为什么',
+    '#wsm':'#为什么'
 }
 
 SpiderDescript = {
@@ -543,5 +571,6 @@ SpiderDescript = {
     reset（取消提醒）
 """,
     '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
-    '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10'
+    '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
+    '#为什么':'向答案之书提问（答非所问（问就是自己解决'
 }
