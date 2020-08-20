@@ -490,7 +490,7 @@ def 爬答案之书(*attrs,**kwargs):
             "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
         lnk = 'https://www.daanshu.com/'
-        res = requests.post(lnk,headers=hds,data={'text':' '.join(attrs)})
+        res = requests.post(lnk,headers=hds,data={'text':' '.join(attrs)},timeout=5)
         ans = re.findall('''<div class="content">(.*?)</div>''',res.text,re.S)[0]
         ans = re.findall('''<p>(.*?)</p>''',ans,re.S)[0]
     except:
