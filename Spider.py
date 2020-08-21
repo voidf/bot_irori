@@ -490,6 +490,11 @@ def 反爬ip(*attrs,**kwargs):
     return [Plain('\n'.join(ans))]
 
 def 爬答案之书(*attrs,**kwargs):
+    player = getPlayer(**kwargs)
+    if attrs[-1] in ('sub','sniff'):
+        overwriteSniffer(player,'#为什么',r'\?')
+        appendSniffer(player,'#为什么',r'\？')
+        attrs = attrs[:-1]
     try:
         hds = {
             "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",

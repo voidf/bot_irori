@@ -65,13 +65,46 @@ def 乒乓球(*attrs,**kwargs):
 def 废话生成器(*attrs,**kwargs):
     return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
+def 清空嗅探器(*attrs,**kwargs):
+    player = getPlayer(**kwargs)
+    print('clearing')
+    try:
+        del GLOBAL.QuickCalls[player]
+    except:
+        print('可能是内存里没有这个嗅探器引起的：')
+        print(traceback.format_exc())
+    if not os.path.exists(f'sniffer/{player}'):
+        return [Plain('没有储存sniffer，无需清空')]
+    else:
+        os.remove(f'sniffer/{player}')
+        return [Plain('已清除sniffer')]
+
+def 同步嗅探器(*attrs,**kwargs):
+    if 'player' in kwargs:
+        player = kwargs['player']
+    else:
+        player = getPlayer(**kwargs)
+    if not os.path.exists(f'sniffer/{player}'):
+        try:
+            del GLOBAL.QuickCalls[player]
+        except:
+            print(traceback.format_exc())
+        return [Plain('同步完毕，没有活动的嗅探器')]
+    else:
+        with open(f'sniffer/{player}','r') as f:
+            j = json.load(f)
+        GLOBAL.QuickCalls[player] = j
+    return [Plain(f'同步完毕，现有{len(GLOBAL.QuickCalls[player])}个已经激活的嗅探器')]
+
 
 TestMap = {
     '#fuzz':Unicode测试姬,
     '#EMJ':表情字典测试姬,
     '#ping':乒乓球,
     '#废话':废话生成器,
-    '#echo':表情符号查询姬
+    '#echo':表情符号查询姬,
+    r'%clear':清空嗅探器,
+    r'%sync':同步嗅探器
 }
 
 TestShort = {
@@ -89,4 +122,6 @@ TestDescript = {
     '#EMJ':'【测试用】测试mirai自带表情字典，例:#EMJ kuaikule',
     '#ping':'【测试用】基本上是用来测试bot有没有在线的。无聊加了个计数应该不会被pwn吧（',
     '#废话':'【测试用】复读某个字符串，一开始是为测量消息最大长度而设计，目前已知私聊字符串最大长度876，群聊32767.用法#废话 <复读字符串> <复读次数>',
+    r'%clear':'【嗅探器】清空本群的所有嗅探器',
+    r'%sync':'【嗅探器】从文件同步本群的嗅探器'
 }

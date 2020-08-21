@@ -33,6 +33,7 @@ import pexpect.popen_spawn
 import time
 import datetime
 import uuid
+import Test
 
 identifier = uuid.uuid1().hex
 
@@ -157,6 +158,9 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                             pass
                         await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
                         return
+                    elif s[0] == 'eval':
+                        await app.sendGroupMessage(group,[Plain(f"""{eval(' '.join(s[1:]))}""")])
+                        return
                     elif s[0] == 'print-help':
                         Helps.add(player)
                         await app.sendGroupMessage(group,[Plain('异常时打印帮助')])
@@ -217,16 +221,23 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
         if player in GLOBAL.QuickCalls:
             print(GLOBAL.QuickCalls)
             try:
-                l = GLOBAL.QuickCalls[player][0](*GLOBAL.QuickCalls[player][1:],*s,**extDict)
-                if l:
-                    await app.sendGroupMessage(group,l)
-                    return
+                for ev,mono in GLOBAL.QuickCalls[player].items():
+                    for sniffKey in mono['sniff']:
+                        if re.search(sniffKey,message.toString(),re.S):
+                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                            if l:
+                                asyncio.ensure_future(app.sendGroupMessage(group,l))
+                            break
+                    # l = GLOBAL.QuickCalls[player][0](*GLOBAL.QuickCalls[player][1:],*s,**extDict)
+                # if l:
+                #     await app.sendGroupMessage(group,l)
+                #     return
             except:
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
                 if l:
                     await app.sendGroupMessage(group,l)
-        elif a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
+        if a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
             try:
                 l = Callable.functionMap[a](*b, **extDict)
                 print(f"MESSAGESLENGTH ===> {len(l)}")
@@ -326,6 +337,13 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
 @irori.subroutine
 async def startup(bot: Mirai):
     GLOBAL.app = bot
+    try:
+        if not os.path.exists('sniffer/'):
+            os.mkdir('sniffer/')
+        for _ in os.listdir('sniffer/'):
+            Test.同步嗅探器(player=int(_))
+    except:
+        print('嗅探器爆炸了，有点严重\n',traceback.format_exc())
     try:
         global cfg
         print(cfg)

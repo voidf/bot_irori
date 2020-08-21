@@ -140,10 +140,10 @@ def asobi2048(*attrs,**kwargs):
                             grids[i][j] = 0
                             f = True
     elif attrs[0].lower() in ('cancel','terminate','quit','exit','seeyou','bye','sayonara','sayounara','madane','yamero','停','关','やめろ'):
-        del GLOBAL.QuickCalls[player]
+        removeSniffer(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
-        GLOBAL.QuickCalls[player] = [asobi2048]
+        overwriteSniffer(player,'#2048','.*')
         return [Plain(text=random.choice(['开始切咧，让我闭嘴大声yamero','快速游戏模式开启，关闭请使用bye']))]
     if f:
         zeromap = []
@@ -426,10 +426,10 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
                     f.write(src)
                 return [Plain('图片背景更新成功')]
         elif attrs[0] in ('快速模式','gamestart'):
-            GLOBAL.QuickCalls[player] = [asobiSlidingPuzzle]
+            overwriteSniffer(player,'#华容道','.*')
             return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
         elif attrs[0].lower() in ('cancel','terminate','quit','exit','seeyou','bye','sayonara','sayounara','madane','yamero','停','关','やめろ'):
-            del GLOBAL.QuickCalls[player]
+            removeSniffer(player,'#华容道')
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')

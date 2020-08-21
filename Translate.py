@@ -239,13 +239,13 @@ def 能不能好好说话(*attrs, **kwargs):
 
 
 def 咕狗翻译(*attrs, **kwargs):
+    player = getPlayer(**kwargs)
     if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
-        del GLOBAL.QuickCalls[getPlayer(**kwargs)]
+        removeSniffer(player,'#gkr')
         return [Plain('我住嘴了')]
     if len(attrs) > 2:
         if attrs[2] == '=':
-            GLOBAL.QuickCalls[getPlayer(
-                **kwargs)] = (咕狗翻译, attrs[0], attrs[1])
+            overwriteSniffer(player,'#gkr','.*',attrs[0], attrs[1])
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
@@ -253,13 +253,13 @@ def 咕狗翻译(*attrs, **kwargs):
 
 
 def 百度翻译(*attrs, **kwargs):
+    player = getPlayer(**kwargs)
     if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
-        del GLOBAL.QuickCalls[getPlayer(**kwargs)]
+        removeSniffer(player,'#bkr')
         return [Plain('我住嘴了')]
     if len(attrs) > 2:
         if attrs[2] == '=':
-            GLOBAL.QuickCalls[getPlayer(
-                **kwargs)] = (百度翻译, attrs[0], attrs[1])
+            overwriteSniffer(player,'#bkr','.*',attrs[0], attrs[1])
             return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:

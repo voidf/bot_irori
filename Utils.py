@@ -224,6 +224,44 @@ def getPlayer(**kwargs):
             player = kwargs['mem']
     return player
 
+def removeSniffer(player,event):
+    try:
+        del GLOBAL.QuickCalls[player][event]
+    except:
+        print('清除全局变量QuickCalls出错')
+        print(traceback.format_exc())
+    try:
+        with open(f'sniffer/{player}','r') as f:
+            j = json.load(f)
+        del j[event]
+        with open(f'sniffer/{player}','w') as f:
+            json.dump(j,f)
+    except:
+        print('缓存sniffer文件出错')
+        print(traceback.format_exc())
+
+def overwriteSniffer(player,event,pattern,*attrs):
+    eventObj = {event:{'sniff':[pattern],'attrs':attrs}}
+    GLOBAL.QuickCalls.setdefault(player,{})
+    GLOBAL.QuickCalls[player].update(eventObj)
+    if not os.path.exists(f'sniffer/{player}'):
+        with open(f'sniffer/{player}','w') as f:
+            json.dump(eventObj,f)
+        return
+    with open(f'sniffer/{player}','r') as f:
+        j = json.load(f)
+    j.update(eventObj)
+    with open(f'sniffer/{player}','w') as f:
+        json.dump(j,f)
+
+def appendSniffer(player,event,pattern): # 注意捕捉exc
+    GLOBAL.QuickCalls[player][event]['sniff'].append(pattern)
+    with open(f'sniffer/{player}','r') as f:
+        j = json.load(f)
+    j[event]['sniff'].append(pattern)
+    with open(f'sniffer/{player}','w') as f:
+        json.dump(j,f)
+
 def clearCFFuture(G,key,src):
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(src,{})
     try:

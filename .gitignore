@@ -7,6 +7,7 @@ SlidingPuzzle/
 BinarySearchGame/
 __pycache__/
 weather/
+sniffer/
 *.pyc
 tmp*
 hakushinAVG.txt
