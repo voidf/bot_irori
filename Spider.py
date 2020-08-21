@@ -494,6 +494,8 @@ def 爬答案之书(*attrs,**kwargs):
     if attrs[-1] in ('sub','sniff'):
         overwriteSniffer(player,'#为什么',r'\?')
         appendSniffer(player,'#为什么',r'\？')
+        appendSniffer(player,'#为什么',r'¿')
+        appendSniffer(player,'#为什么',r'吗')
         attrs = attrs[:-1]
     try:
         hds = {
