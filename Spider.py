@@ -471,7 +471,23 @@ def 爬ip(*attrs,**kwargs):
         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
     if not rr:
         return [Plain('输入有点问题？我找着找着找炸了')]
-    return [Plain(' '.join(rr[0]))]
+    ans = [' '.join(i) for i in rr]
+    return [Plain('\n'.join(ans))]
+
+def 反爬ip(*attrs,**kwargs):
+    if not attrs:
+        return [Plain('没有输入地址哦\n'+SpiderDescript['#addr'])]
+    kw = ' '.join(attrs)
+    lnk = f'https://ip.51240.com/?dz={kw}'
+
+    r = requests.get(lnk)
+    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
+    if not rr:
+        rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
+    if not rr:
+        return [Plain('输入有点问题？我找着找着找炸了')]
+    ans = [' '.join(i) for i in rr]
+    return [Plain('\n'.join(ans))]
 
 def 爬答案之书(*attrs,**kwargs):
     try:
@@ -495,7 +511,7 @@ def 爬答案之书(*attrs,**kwargs):
         ans = re.findall('''<p>(.*?)</p>''',ans,re.S)[0]
     except:
         ans = random.choice(['鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚'])
-    return [Plain(ans)]
+    return [Plain(ans.strip())]
 
 SpiderMap = {
     '#LaTeX':爬LaTeX,
@@ -510,6 +526,7 @@ SpiderMap = {
     '#肛道理':爬一言,
     '#天气':爬天气,
     '#ip':爬ip,
+    '#addr':反爬ip,
     '#为什么':爬答案之书
 }
 
@@ -572,5 +589,6 @@ SpiderDescript = {
 """,
     '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
+    '#addr':'根据给定地址爬ip。例：#addr 谷歌',
     '#为什么':'向答案之书提问（答非所问（问就是自己解决'
 }
