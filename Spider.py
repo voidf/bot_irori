@@ -496,7 +496,10 @@ def 爬答案之书(*attrs,**kwargs):
         appendSniffer(player,'#为什么',r'\？')
         appendSniffer(player,'#为什么',r'¿')
         appendSniffer(player,'#为什么',r'吗')
-        attrs = attrs[:-1]
+        appendSniffer(player,'#为什么',r'为什么')
+        return [Plain('【答案之书】sniff模式')]
+    elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
+        return [Plain('【答案之书】禁用sniffer')]
     try:
         hds = {
             "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -517,7 +520,7 @@ def 爬答案之书(*attrs,**kwargs):
         ans = re.findall('''<div class="content">(.*?)</div>''',res.text,re.S)[0]
         ans = re.findall('''<p>(.*?)</p>''',ans,re.S)[0]
     except:
-        ans = random.choice(['鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚'])
+        ans = random.choice(['鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚','百度啊'])
     return [Plain(ans.strip())]
 
 SpiderMap = {
@@ -597,5 +600,5 @@ SpiderDescript = {
     '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
     '#addr':'根据给定地址爬ip。例：#addr 谷歌',
-    '#为什么':'向答案之书提问（答非所问（问就是自己解决'
+    '#为什么':'向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
 }

@@ -255,6 +255,8 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
 @irori.receiver("FriendMessage")
 async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
     global enable_this
+    global SU
+    print('hurenzu')
     GLOBAL.app = app
     s = message.toString().split(' ')
     player = hurenzu.id
@@ -266,24 +268,62 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
 
     if pic:
         extDict['pic'] = pic
+    if hurenzu.id in SU:
+        extDict['sudo'] = True
+    if hurenzu.id in SHELL:
+        extDict['sh'] = True
     
 
     if s[0] == 'sudo':
         s.pop(0)
         if hurenzu.id in masterID:
             extDict['sudo'] = True
+    
+    member = hurenzu
 
     if hurenzu.id not in muteList:
         
         try:
             if 'sudo' in extDict:
                 if enable_this:
+                    if 'sh' in extDict:
+                        if s[0] == '我不玩了':
+                            SHELL[member.id].kill(9)
+                            del SHELL[member.id]
+                            await app.sendFriendMessage(hurenzu,[Plain('ojbk这就把你的任务扔掉')])
+                            return
+                        else:
+                            patts = []
+                            SHELL[member.id].sendline(message.toString())
+                            try:
+                                while True:
+                                    SHELL[member.id].expect('\r\n',timeout = 3)
+                                    try:
+                                        patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                                    except UnicodeDecodeError:
+                                        patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
+                            except:
+                                try:
+                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
+                                except UnicodeDecodeError:
+                                    patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
+                            await app.sendFriendMessage(hurenzu,patts)
+                            return
                     if s[0] == 'reload':
                         importlib.reload(Callable)
                         await app.sendFriendMessage(hurenzu,[Plain('热重载完成')])
                         return
                     elif s[0] == 'pull':
+                        try:
+                            if s.index('-f'):
+                                await app.sendFriendMessage(hurenzu,[Plain(os.popen('git fetch --all && git reset --hard origin/master').read())])
+                                return
+                        except:
+                            pass
                         await app.sendFriendMessage(hurenzu,[Plain(os.popen('git pull').read())])
+                        return
+                    elif s[0] == 'eval':
+                        await app.sendFriendMessage(hurenzu,[Plain(f"""{eval(' '.join(s[1:]))}""")])
                         return
                     elif s[0] == 'print-help':
                         Helps.add(player)
@@ -302,9 +342,29 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
                         await app.sendFriendMessage(hurenzu,[Plain('异常时不打印异常信息')])
                         return
                     elif s[0] == 'su':
-                        GLOBAL
+                        SU.add(member.id)
+                        await app.sendFriendMessage(hurenzu,[Plain('irori:~#')])
+                        return
+                    elif s[0] == 'exit':
+                        SU.discard(member.id)
+                        await app.sendFriendMessage(hurenzu,[Plain('irori:~$')])
+                        return
+                    elif s[0] == 'terminal':
+                        if platform.platform().find('Windows') != -1:
+                            try:
+                                if s[1] in ('ps','powershell'):
+                                    SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('powershell')
+                                else:
+                                    raise NameError('cmd')
+                            except:
+                                SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('cmd')
+                        else:
+                            SHELL[member.id] = pexpect.spawn('bash')
+                        await app.sendFriendMessage(hurenzu,[Plain('终端启动，退出请输入"我不玩了"')])
+                        return
+
                 if s[0] == 'instances':
-                    await app.sendFriendMessage(hurenzu,[Plain(f'实例UUID:{identifier},位于{locate},使能状态{enable_this}')])
+                    await app.sendFriendMessage(hurenzu,[Plain(f'{identifier}\n{platform.platform()} {locate}\n{enable_this}')])
                     return
                 elif s[0] == 'use':
                     if s[1] in ('*',identifier):
@@ -318,19 +378,40 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
             return
         if not enable_this:
             return
-
         a,*b = s
+        l = []
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
         if player in GLOBAL.QuickCalls:
-            l = GLOBAL.QuickCalls[player][0](*GLOBAL.QuickCalls[player][1:],*s,**extDict)
-            if l:
-                await app.sendFriendMessage(hurenzu,l)
-                return
-        elif a in Callable.functionMap:
-            l = Callable.functionMap[a](*b, **extDict)
-            if l and len(l):
-                await app.sendFriendMessage(hurenzu,l)
+            print(GLOBAL.QuickCalls)
+            try:
+                for ev,mono in GLOBAL.QuickCalls[player].items():
+                    for sniffKey in mono['sniff']:
+                        if re.search(sniffKey,message.toString(),re.S):
+                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                            if l:
+                                asyncio.ensure_future(app.sendFriendMessage(hurenzu,l))
+                            break
+
+            except:
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                if l:
+                    await app.sendFriendMessage(hurenzu,l)
+        if a in Callable.functionMap:
+            try:
+                l = Callable.functionMap[a](*b, **extDict)
+                print(f"MESSAGESLENGTH ===> {len(l)}")
+                if l:
+                    await app.sendFriendMessage(hurenzu,l)
+            except:
+                print(traceback.format_exc())
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                if player in Helps:
+                    l.append(Callable.printHelp(a))
+                if l:
+                    await app.sendFriendMessage(hurenzu,l)
 
 #Image.fromFileSystem('80699361_p0.jpg')
 
