@@ -78,7 +78,7 @@ def 爬一言(*attrs,**kwargs):
     dst = ' '.join(attrs)
     for _ in ('f','sl','nm','cao','你妈','屌','mmp','傻逼','妈逼','操'):
         if _ in dst.lower():
-            tmp = requests.get('https://nmsl.shadiao.GLOBAL.app/api.php?lang=zh_cn')
+            tmp = requests.get('https://nmsl.shadiao.app/api.php?lang=zh_cn')
             return [Plain(text=tmp.text)]
 
     tmp = requests.get('https://v1.hitokoto.cn')

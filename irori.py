@@ -92,7 +92,7 @@ Exceptions = set()
 Helps = set()
 
 @irori.receiver("GroupMessage")
-async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
+async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
     global enable_this
     global SU
     s = message.toString().split(' ')
@@ -218,6 +218,23 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
         l = []
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
+        
+        if a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
+            try:
+                l = Callable.functionMap[a](*b, **extDict)
+                print(f"MESSAGESLENGTH ===> {len(l)}")
+                if l:
+                    await app.sendGroupMessage(group,l)
+            except:
+                print(traceback.format_exc())
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                if player in Helps:
+                    l.append(Callable.printHelp(a))
+                if l:
+                    await app.sendGroupMessage(group,l)
+            return
+
         if player in GLOBAL.QuickCalls:
             print(GLOBAL.QuickCalls)
             try:
@@ -237,26 +254,11 @@ async def NormalHandler(message: MessageChain,app: Mirai, group: Group,member:Me
                     l.append(Plain(traceback.format_exc()))
                 if l:
                     await app.sendGroupMessage(group,l)
-        if a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
-            try:
-                l = Callable.functionMap[a](*b, **extDict)
-                print(f"MESSAGESLENGTH ===> {len(l)}")
-                if l:
-                    await app.sendGroupMessage(group,l)
-            except:
-                print(traceback.format_exc())
-                if player in Exceptions:
-                    l.append(Plain(traceback.format_exc()))
-                if player in Helps:
-                    l.append(Callable.printHelp(a))
-                if l:
-                    await app.sendGroupMessage(group,l)
 
 @irori.receiver("FriendMessage")
-async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
+async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
     global enable_this
     global SU
-    print('hurenzu')
     GLOBAL.app = app
     s = message.toString().split(' ')
     player = hurenzu.id
@@ -382,7 +384,24 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
         l = []
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
-        if player in GLOBAL.QuickCalls:
+        
+        if a in Callable.functionMap: # 命令模块
+            try:
+                l = Callable.functionMap[a](*b, **extDict)
+                print(f"MESSAGESLENGTH ===> {len(l)}")
+                if l:
+                    await app.sendFriendMessage(hurenzu,l)
+            except:
+                print(traceback.format_exc())
+                if player in Exceptions:
+                    l.append(Plain(traceback.format_exc()))
+                if player in Helps:
+                    l.append(Callable.printHelp(a))
+                if l:
+                    await app.sendFriendMessage(hurenzu,l)
+            return
+
+        if player in GLOBAL.QuickCalls: # sniff模块
             print(GLOBAL.QuickCalls)
             try:
                 for ev,mono in GLOBAL.QuickCalls[player].items():
@@ -396,20 +415,6 @@ async def event_gm1(message: MessageChain,app: Mirai, hurenzu: Friend):
             except:
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
-                if l:
-                    await app.sendFriendMessage(hurenzu,l)
-        if a in Callable.functionMap:
-            try:
-                l = Callable.functionMap[a](*b, **extDict)
-                print(f"MESSAGESLENGTH ===> {len(l)}")
-                if l:
-                    await app.sendFriendMessage(hurenzu,l)
-            except:
-                print(traceback.format_exc())
-                if player in Exceptions:
-                    l.append(Plain(traceback.format_exc()))
-                if player in Helps:
-                    l.append(Callable.printHelp(a))
                 if l:
                     await app.sendFriendMessage(hurenzu,l)
 
