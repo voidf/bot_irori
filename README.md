@@ -64,7 +64,7 @@ env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
 
 解压以后就是整个我自己用的环境了
 
-双击`run.bat`或者终端敲入`run.sh`就动起来了，现在可以直接跳[配置api](配置api)
+双击`run.bat`或者终端敲入`run.sh`就动起来了，现在可以直接跳[配置api](https://github.com/voidf/bot_irori#配置api)
 
 ~~当然如果你想跟着下面也行~~
 

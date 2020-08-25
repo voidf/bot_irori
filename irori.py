@@ -73,6 +73,7 @@ try:
         proxy = cfg.get('proxy',{})
         muteList = set(cfg.get('muteList',[]))
         masterID = set(cfg.get('masters',[]))
+        enable_this = set(cfg.get('enables',[0]))
         
 except Exception as e:
     print(e)
@@ -93,7 +94,7 @@ Helps = set()
 
 @irori.receiver("GroupMessage")
 async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
-    global enable_this
+    global enable_this # 放个0作为全局启用,负player号作为关闭标记
     global SU
     s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
@@ -121,7 +122,7 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
     if member.id not in botList:
         try:
             if 'sudo' in extDict:
-                if enable_this:
+                if player in enable_this or (not (player in enable_this) and 0 in enable_this):
                     if 'sh' in extDict:
                         if s[0] == '我不玩了':
                             SHELL[member.id].kill(9)
@@ -204,15 +205,17 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                     return
                 elif s[0] == 'use':
                     if s[1] in ('*',identifier):
-                        enable_this = True
+                        enable_this.add(player)
+                        enable_this.discard(-player)
                     else:
-                        enable_this = False
+                        enable_this.discard(player)
+                        enable_this.add(-player)
                     return
         except:
             if player in Exceptions:
                 await app.sendGroupMessage(group,[Plain(traceback.format_exc())])
             return
-        if not enable_this:
+        if -player in enable_this or (not player in enable_this and not 0 in enable_this):
             return
         a,*b = s
         l = []
@@ -287,7 +290,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
         
         try:
             if 'sudo' in extDict:
-                if enable_this:
+                if player in enable_this or (not (player in enable_this) and 0 in enable_this):
                     if 'sh' in extDict:
                         if s[0] == '我不玩了':
                             SHELL[member.id].kill(9)
@@ -370,15 +373,17 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                     return
                 elif s[0] == 'use':
                     if s[1] in ('*',identifier):
-                        enable_this = True
+                        enable_this.add(player)
+                        enable_this.discard(-player)
                     else:
-                        enable_this = False
+                        enable_this.discard(player)
+                        enable_this.add(-player)
                     return
         except:
             if player in Exceptions:
                 await app.sendFriendMessage(hurenzu,[Plain(traceback.format_exc())])
             return
-        if not enable_this:
+        if -player in enable_this or (not player in enable_this and not 0 in enable_this):
             return
         a,*b = s
         l = []

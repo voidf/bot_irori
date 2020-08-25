@@ -41,6 +41,10 @@ def asobi2048(*attrs,**kwargs):
     player = getPlayer(**kwargs)
     f = False
     n = 4
+
+    if not attrs:
+        return [Plain('想玩2048的话请像 #2048 w 这样写')]
+
     if not os.path.exists('2048/'):
         os.mkdir('2048/')
     try:
@@ -454,6 +458,9 @@ GameDescript = {
     d:向右滑动
     init [(可选)2~8]:初始化游戏棋盘，加数字可以定制棋盘大小
     gamestart:快速游戏模式，每句话都当做2048游戏的命令处理
+例子：
+    #2048 init (初始化游戏棋盘)
+    #2048 w (向上滑动)
 """,
     '#折线':
 """
