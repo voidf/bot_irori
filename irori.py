@@ -241,7 +241,7 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
         if player in GLOBAL.QuickCalls:
             print(GLOBAL.QuickCalls)
             try:
-                for ev,mono in GLOBAL.QuickCalls[player].items():
+                for ev,mono in dict(GLOBAL.QuickCalls[player]).items():
                     for sniffKey in mono['sniff']:
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
