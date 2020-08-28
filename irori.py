@@ -34,7 +34,8 @@ import time
 import datetime
 import uuid
 import Test
-
+from Utils import *
+import GLOBAL
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
@@ -57,6 +58,7 @@ enable_this = True
 
 # java -jar mirai-console-wrapper-0.2.0-all.jar -Djava.awt.headless=true
 
+
 with open('authdata','r') as f:
     qq = int(f.readline().strip())
     authKey = f.readline().strip()
@@ -70,10 +72,12 @@ try:
         banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
         allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
         botList = set(cfg.get('botList',[]))
-        proxy = cfg.get('proxy',{})
+        GLOBAL.proxy = cfg.get('proxy',{})
         muteList = set(cfg.get('muteList',[]))
         masterID = set(cfg.get('masters',[]))
         enable_this = set(cfg.get('enables',[0]))
+        GLOBAL.lengthLim = cfg.get('lengthLim',500)
+        GLOBAL.compressFontSize = cfg.get('fontSize',18)
         
 except Exception as e:
     print(e)
@@ -81,16 +85,21 @@ except Exception as e:
     allowGroup={}
     botList = set()
     muteList = set()
-    proxy = {}
+    GLOBAL.proxy = {}
     masterID = set()
+    enable_this = {0}
+    GLOBAL.lengthLim = 500
+    GLOBAL.compressFontSize = 18
 
 import Callable
-import GLOBAL
-GLOBAL.proxy = proxy
+
+
 SU = set()
 SHELL = {}
 Exceptions = set()
 Helps = set()
+
+
 
 @irori.receiver("GroupMessage")
 async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
@@ -144,7 +153,7 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                                     patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
                                 except UnicodeDecodeError:
                                     patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            await app.sendGroupMessage(group,patts)
+                            await app.sendGroupMessage(group,compressMsg(patts,theme = 255))
                             return
                     if s[0] == 'reload':
                         importlib.reload(Callable)
@@ -227,7 +236,7 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                 l = Callable.functionMap[a](*b, **extDict)
                 print(f"MESSAGESLENGTH ===> {len(l)}")
                 if l:
-                    await app.sendGroupMessage(group,l)
+                    await app.sendGroupMessage(group,(compressMsg(l)))
             except:
                 print(traceback.format_exc())
                 if player in Exceptions:
@@ -235,7 +244,7 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                 if player in Helps:
                     l.append(Callable.printHelp(a))
                 if l:
-                    await app.sendGroupMessage(group,l)
+                    await app.sendGroupMessage(group,(compressMsg(l)))
             return
 
         if player in GLOBAL.QuickCalls:
@@ -246,17 +255,14 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
                             if l:
-                                asyncio.ensure_future(app.sendGroupMessage(group,l))
+                                asyncio.ensure_future(app.sendGroupMessage(group,(compressMsg(l))))
                             break
-                    # l = GLOBAL.QuickCalls[player][0](*GLOBAL.QuickCalls[player][1:],*s,**extDict)
-                # if l:
-                #     await app.sendGroupMessage(group,l)
-                #     return
+
             except:
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendGroupMessage(group,l)
+                    await app.sendGroupMessage(group,(compressMsg(l)))
 
 @irori.receiver("FriendMessage")
 async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
@@ -312,7 +318,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                                     patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
                                 except UnicodeDecodeError:
                                     patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            await app.sendFriendMessage(hurenzu,patts)
+                            await app.sendFriendMessage(hurenzu,compressMsg(patts))
                             return
                     if s[0] == 'reload':
                         importlib.reload(Callable)
@@ -395,7 +401,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 l = Callable.functionMap[a](*b, **extDict)
                 print(f"MESSAGESLENGTH ===> {len(l)}")
                 if l:
-                    await app.sendFriendMessage(hurenzu,l)
+                    await app.sendFriendMessage(hurenzu,compressMsg(l))
             except:
                 print(traceback.format_exc())
                 if player in Exceptions:
@@ -403,7 +409,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 if player in Helps:
                     l.append(Callable.printHelp(a))
                 if l:
-                    await app.sendFriendMessage(hurenzu,l)
+                    await app.sendFriendMessage(hurenzu,compressMsg(l))
             return
 
         if player in GLOBAL.QuickCalls: # sniff模块
@@ -414,14 +420,14 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
                             if l:
-                                asyncio.ensure_future(app.sendFriendMessage(hurenzu,l))
+                                asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
                             break
 
             except:
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendFriendMessage(hurenzu,l)
+                    await app.sendFriendMessage(hurenzu,compressMsg(l))
 
 #Image.fromFileSystem('80699361_p0.jpg')
 

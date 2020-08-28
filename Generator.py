@@ -36,9 +36,6 @@ import GLOBAL
 from Utils import *
 from AVG import AVG
 
-def generateTmpFileName(ext,**kwargs):
-    return f'''tmp{ext}{randstr(GLOBAL.randomStrLength)}'''
-
 def 不会吧(*attrs,**kwargs):
     return [Plain(f'不会真的有人{" ".join(attrs)}吧？不会吧不会吧？')]
 

@@ -14,7 +14,8 @@ import functools
 import GLOBAL
 import json
 from typing import *
-
+from PIL import Image as PImage
+from PIL import ImageFont,ImageDraw
 youbi = {
     1:'月曜日',
     2:'火曜日',
@@ -210,6 +211,46 @@ def renderHtml(dst_lnk,na):
     driver.get_screenshot_as_file(na)
     driver.quit()
     return ostr
+
+def generateTmpFileName(ext,**kwargs):
+    return f'''tmp{ext}{randstr(GLOBAL.randomStrLength)}'''
+
+def compressMsg(l,theme = 0):
+    """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
+    nl = []
+    others = []
+    for i in l:
+        if isinstance(i,Plain):
+            nl.append(i.toString())
+        else:
+            others.append(i)
+    s = ''.join(nl)
+    if len(s) >GLOBAL.lengthLim:
+        
+        font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
+        
+        sl = s.split('\n')
+        height = len(sl)
+        width = 0
+        for i in sl:
+            width = max(width,len(i))
+
+        layer2 = PImage.new(
+            'RGBA',
+            (height * (GLOBAL.compressFontSize + 5, width * (GLOBAL.compressFontSize + 5))),
+            (255 - theme, 255 - theme, 255 - theme, 0)
+        )
+        p = generateTmpFileName('ZIP')
+        # PImage.alpha_composite(nyaSrc,layer2).save(p)
+        draw = ImageDraw.Draw(layer2)
+
+        for column,txt in enumerate(sl):
+            draw.text((2, 2 + column * GLOBAL.compressFontSize), txt, (theme,theme,theme,255), font)
+        layer2.save(p)
+        asyncio.ensure_future(rmTmpFile(p))
+        return [Image.fromFileSystem(p)] + others
+    else:
+        return l
 
 def getPlayer(**kwargs):
     if 'gp' in kwargs:
