@@ -212,11 +212,13 @@ def renderHtml(dst_lnk,na):
     driver.quit()
     return ostr
 
-def generateTmpFileName(ext,**kwargs):
-    return f'''tmp{ext}{randstr(GLOBAL.randomStrLength)}'''
+def generateTmpFileName(pref,ext='.png',**kwargs):
+    return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
 def compressMsg(l,theme = 0):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
+    offset = GLOBAL.compressFontSize >> 1
+
     nl = []
     others = []
     for i in l:
@@ -237,7 +239,7 @@ def compressMsg(l,theme = 0):
 
         layer2 = PImage.new(
             'RGBA',
-            (height * (GLOBAL.compressFontSize + 5), width * (GLOBAL.compressFontSize + 5)),
+            (height * (GLOBAL.compressFontSize + offset), width * (GLOBAL.compressFontSize + offset)),
             (255 - theme, 255 - theme, 255 - theme, 0)
         )
         p = generateTmpFileName('ZIP')
@@ -245,7 +247,7 @@ def compressMsg(l,theme = 0):
         draw = ImageDraw.Draw(layer2)
 
         for column,txt in enumerate(sl):
-            draw.text((2, 2 + column * GLOBAL.compressFontSize), txt, (theme,theme,theme,255), font)
+            draw.text((offset>>1, (offset>>1) + column * GLOBAL.compressFontSize), txt, (theme,theme,theme,255), font)
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
         return [Image.fromFileSystem(p)] + others
