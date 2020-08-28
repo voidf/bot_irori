@@ -237,7 +237,7 @@ def compressMsg(l,theme = 0):
 
         layer2 = PImage.new(
             'RGBA',
-            (height * (GLOBAL.compressFontSize + 5, width * (GLOBAL.compressFontSize + 5))),
+            (height * (GLOBAL.compressFontSize + 5), width * (GLOBAL.compressFontSize + 5)),
             (255 - theme, 255 - theme, 255 - theme, 0)
         )
         p = generateTmpFileName('ZIP')
