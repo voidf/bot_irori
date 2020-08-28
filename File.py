@@ -36,8 +36,8 @@ import GLOBAL
 from Utils import *
 
 def 投票姬(*attrs,**kwargs):
-    mem = str(kwargs['mem'].id)
-    gp = str(kwargs['gp'].id)
+    mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
+    gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
     if not os.path.exists('vote/'):
         os.mkdir('vote/')
@@ -222,8 +222,8 @@ def ddl通知姬(*attrs,**kwargs):
                 t = datetime.datetime(*(int(i) for i in ss))
                 if t>datetime.datetime.now():
                     dt = t-datetime.datetime.now()
-                    j[s] = [','.join(ss),kwargs['mem'].id]
-                    notice2(player,kwargs['mem'].id,s,dt)
+                    j[s] = [','.join(ss),getattr(kwargs['mem'],'id',kwargs['mem'])]
+                    notice2(player,getattr(kwargs['mem'],'id',kwargs['mem']),s,dt)
                 else:
                     return [Plain(random.choice(['你的日程真的没问题喵（？','噔 噔 咚！这件事已经过期了']))]
                 
