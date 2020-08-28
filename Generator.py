@@ -36,6 +36,9 @@ import GLOBAL
 from Utils import *
 from AVG import AVG
 
+def generateTmpFileName(ext,**kwargs):
+    return f'''tmp{ext}{randstr(GLOBAL.randomStrLength)}'''
+
 def 不会吧(*attrs,**kwargs):
     return [Plain(f'不会真的有人{" ".join(attrs)}吧？不会吧不会吧？')]
 
@@ -118,7 +121,7 @@ def 猫图生成器(*attrs,**kwargs):
     beginPixel = (34-len(text)*9,55)
 
     draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = 'tmpNya' + randstr(GLOBAL.randomStrLength)+str(kwargs['mem'].id)+'.png'
+    p = generateTmpFileName('Nya')
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -134,7 +137,7 @@ def 优质解答生成器(*attrs,**kwargs):
     beginPixel = (50,120)
 
     draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = 'tmpAns' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
+    p = generateTmpFileName('Ans')
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -150,7 +153,7 @@ def IPlay生成器(*attrs,**kwargs):
     beginPixel = (308,1004)
 
     draw.text(beginPixel,text,fill=(255,255,255,255),font=font)
-    p = 'tmpIPlay' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
+    p = generateTmpFileName('IPlay')
 
     PImage.alpha_composite(Src,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p))
@@ -171,7 +174,7 @@ def 希望没事生成器(*attrs,**kwargs):
         draw.text(beginPixel,text,fill=(r,g,b,255),font=font)
     else:
         draw.text(beginPixel,text,fill=(255,255,255,255),font=font)
-    p = 'tmpWish' + randstr(GLOBAL.randomStrLength) +str(kwargs['mem'].id)+'.png'
+    p = generateTmpFileName('Wish2')
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
@@ -192,7 +195,7 @@ def 希望工程(*attrs,**kwargs):
         draw.text(beginPixel,text,fill=(r,g,b,255),font=font)
     else:
         draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-    p = 'tmpWish' + randstr(GLOBAL.randomStrLength) + str(kwargs['mem'].id)+'.png'
+    p = generateTmpFileName('Wish')
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
