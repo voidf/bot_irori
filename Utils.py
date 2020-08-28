@@ -160,15 +160,15 @@ async def msgDistributer(**kwargs):
             seq = [Plain(kwargs['msg'])]
 
         if 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],seq)
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
         elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],seq)
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
         elif 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
-                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),seq)
+                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),compressMsg(seq))
             else:
-                await GLOBAL.app.sendFriendMessage(kwargs['player'],seq)
+                await GLOBAL.app.sendFriendMessage(kwargs['player'],compressMsg(seq))
 
 def tnow():
     return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
