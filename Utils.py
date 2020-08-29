@@ -151,9 +151,10 @@ async def msgDistributer(**kwargs):
         if kwargs.get('typ','P') == 'E':
             seq = [Face(QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
+            print(kwargs['msg'])
             f_n = randstr(8)
             with open(f_n,'wb') as f:
-                f.write(kwargs['msg'])
+                f.write(bytes(kwargs['msg'],'utf-8'))
             seq = [Image.fromFileSystem(f_n)]
             # seq = [Image.fromFileSystem(kwargs['msg'])]
         else:
