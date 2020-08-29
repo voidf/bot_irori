@@ -75,7 +75,7 @@ class AVG():
                 
                 
         except Exception as e:
-            print(e)
+            print(traceback.format_exc())
         AVG.PROGRESS[p] = []
 
     async def __requestMaker__(pl,dl=0):
