@@ -238,6 +238,8 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
                 if l:
                     await app.sendGroupMessage(group,(compressMsg(l)))
             except:
+                if l is None:
+                    l = []
                 print(traceback.format_exc())
                 if player in Exceptions:
                     l.append(Plain(traceback.format_exc()))
