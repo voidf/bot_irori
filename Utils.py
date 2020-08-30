@@ -16,6 +16,7 @@ import json
 from typing import *
 from PIL import Image as PImage
 from PIL import ImageFont,ImageDraw
+import base64
 youbi = {
     1:'月曜日',
     2:'火曜日',
@@ -154,7 +155,7 @@ async def msgDistributer(**kwargs):
             print(kwargs['msg'])
             f_n = randstr(8)
             with open(f_n,'wb') as f:
-                f.write(kwargs['msg'])
+                f.write(base64.b64decode(kwargs['msg']))
             seq = [Image.fromFileSystem(f_n)]
             # seq = [Image.fromFileSystem(kwargs['msg'])]
         else:
