@@ -61,7 +61,8 @@ class AVG():
                 if 'note' in _i:
                     await msgDistributer(msg=_i['note'],**kwargs)
                 if 'msg' in _i:
-                    await asyncio.sleep(len(_i['msg'])/5/rate)
+                    if _i.get('typ','P') != 'I':
+                        await asyncio.sleep(len(_i['msg'])/5/rate)
                     await msgDistributer(**_i,**kwargs)
                 
 
@@ -157,6 +158,7 @@ class AVG():
             if attrs:
                 j = AVG.__requestValidater__('story',{'qq':player,'storyid':attrs[0]},**kwargs)
                 pro.append(asyncio.ensure_future(AVG.__msgSerializer__(j['data'],**kwargs)))
+                return []
             else:
                 return [Plain('您要读哪块数据？看看$view里面有没有感兴趣的')]
 
