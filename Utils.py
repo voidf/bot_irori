@@ -154,7 +154,7 @@ async def msgDistributer(**kwargs):
             print(kwargs['msg'])
             f_n = randstr(8)
             with open(f_n,'wb') as f:
-                f.write(bytes(kwargs['msg'],'utf-8'))
+                f.write(kwargs['msg'])
             seq = [Image.fromFileSystem(f_n)]
             # seq = [Image.fromFileSystem(kwargs['msg'])]
         else:
