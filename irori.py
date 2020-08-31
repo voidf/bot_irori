@@ -474,6 +474,10 @@ async def startup(bot: Mirai):
         asyncio.ensure_future(Callable.WeatherSubscribeRoutiner())
     except:
         print('天气预报模块出现异常（不太重要：\n',traceback.format_exc())
+    try:
+        asyncio.ensure_future(Callable.SentenceSubscribeRoutiner())
+    except:
+        print('天气预报模块出现异常（不太重要：\n',traceback.format_exc())
     
 if __name__ == '__main__':
     irori.run()

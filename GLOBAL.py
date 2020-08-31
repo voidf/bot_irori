@@ -570,3 +570,6 @@ OIWikiHeaders ={
 	"d": "11-4-5+1-4"
     }
 恶臭键值 = sorted(list(这 for 这 in 恶臭字典.keys() if 这!='d'))
+
+subscribes = ('S','sub','subscribe','订阅','推送','push')
+unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop')

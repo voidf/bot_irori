@@ -210,4 +210,4 @@ functionMap['#h'] = printHelp
 functionDescript['#h'] = '不传参打印命令表，传参则解释命令'
 functionDescript['#abb'] = f'可用缩写表:{shortMap}'
 
-print('LOAD DONE =========>')
+print('Callable LOAD DONE =========>')

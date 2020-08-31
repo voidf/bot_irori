@@ -63,6 +63,26 @@ async def WeatherSubscribeRoutiner():
             except:
                 print('天气预报姬挂了！',traceback.format_exc())
 
+async def SentenceSubscribeRoutiner():
+    print('进入回环(每日一句')
+    if not os.path.exists('sentence/'):
+        os.mkdir('sentence/')
+    while 1:
+
+        print(f'sentence report waiting for {86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400}')
+        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400)
+
+        for _ in os.listdir('sentence/'):
+            try:
+                d={}
+                fetchSentences(d)
+                if 'img' in d:
+                    asyncio.ensure_future(msgDistributer(msg=d['img'],typ='I',player=_))
+                asyncio.ensure_future(msgDistributer(msg='\n'.join(d['plain']),typ='P',player=_))
+
+            except:
+                print('每日一句挂了！',traceback.format_exc())
+
 async def CFLoopRoutiner():
     print('进入回环(CF')
     if not os.path.exists('CF/'):
@@ -153,11 +173,24 @@ async def msgDistributer(**kwargs):
             seq = [Face(QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
             # print(base64.b64decode(kwargs['msg']))
-            f_n = 'tmp'+randstr(8)
-            with open(f_n,'wb') as f:
-                f.write(base64.b64decode(kwargs['msg']))
-            seq = [Image.fromFileSystem(f_n)]
-            # seq = [Image.fromFileSystem(kwargs['msg'])]
+            try:
+                base64.b64decode(kwargs['msg'])
+                f_n = 'tmp'+randstr(8)
+                with open(f_n,'wb') as f:
+                    f.write(base64.b64decode(kwargs['msg']))
+                asyncio.ensure_future(rmTmpFile(f_n))
+                seq = [Image.fromFileSystem(f_n)]
+                # seq = [Image.fromFileSystem(kwargs['msg'])]
+            except:
+                if kwargs['msg'][:4] == 'http':
+                    r = requests.get(kwargs['msg'])
+                    f_n = 'tmp'+randstr(8)
+                    with open(f_n,'wb') as f:
+                        f.write(r.content)
+                    asyncio.ensure_future(rmTmpFile(f_n))
+                    seq = [Image.fromFileSystem(f_n)]
+                else:
+                    seq = [Image.fromFileSystem(kwargs['msg'])]
         else:
             seq = [Plain(kwargs['msg'])]
 
@@ -462,6 +495,23 @@ def fetchWeather(city: str) -> list:
         t = i('p')
         output.append(f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
     return output
+
+def fetchSentences(d):
+    r = requests.get(f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
+    j = json.loads(r.text)
+    try:
+        rr = requests.get(j['picture'])
+        fn = 'tmp' + randstr(4)
+        with open(fn,'wb') as f:
+            f.write(rr.content)
+        d['img'] = fn
+        print(fn)
+        asyncio.ensure_future(rmTmpFile(fn))
+    except:
+        print(f'【每日一句】爬图炸了:{traceback.format_exc()}')
+    d.setdefault('plain',[]).append(j['content'])
+    d.setdefault('plain',[]).append(j['note'])
+    
 
 def uploadToChaoXing(fn:str) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'

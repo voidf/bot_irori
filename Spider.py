@@ -195,7 +195,7 @@ def 爬CF(*attrs,**kwargs):
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
-        if attrs[0] in ('reset','stop','cancel'):
+        if attrs[0] in GLOBAL.unsubscribes:
             try:
                 os.remove(fn)
             except Exception as e:
@@ -238,7 +238,7 @@ def 爬AtCoder(*attrs,**kwargs):
     ATNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
-        if attrs[0] in ('reset','stop','cancel'):
+        if attrs[0] in GLOBAL.unsubscribes:
             try:
                 os.remove(fn)
             except Exception as e:
@@ -289,7 +289,7 @@ def 爬牛客(*attrs,**kwargs):
     NCNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
-        if attrs[0] in ('reset','stop','cancel'):
+        if attrs[0] in GLOBAL.unsubscribes:
             try:
                 os.remove(fn)
             except Exception as e:
@@ -446,7 +446,7 @@ def 爬天气(*attrs,**kwargs):
     output = fetchWeather(attrs[0])
 
     try:
-        if attrs[1] in ('S','sub','subscribe','订阅','推送'):
+        if attrs[1] in GLOBAL.unsubscribes:
             player = getPlayer(**kwargs)
             if not os.path.exists('weather/'):
                 os.mkdir('weather/')
@@ -457,6 +457,32 @@ def 爬天气(*attrs,**kwargs):
     except:
         print(traceback.format_exc())
     return [Plain('\n'.join(output))]
+
+def 爬每日一句(*attrs,**kwargs):
+    player = getPlayer(**kwargs)
+    if attrs:
+        if attrs[0] in GLOBAL.unsubscribes:
+            os.remove(f'sentence/{player}')
+            return [Plain(f'别骂了别骂了，不给你推就是了')]
+            
+    output = {}
+    fetchSentences(output)
+    print(output)
+    try:
+        if attrs and attrs[0] in GLOBAL.subscribes:
+            player = getPlayer(**kwargs)
+            if not os.path.exists('sentence/'):
+                os.mkdir('sentence/')
+            with open(f'sentence/{player}','w') as f:
+                f.write('\n')
+            output.setdefault('plain',[]).append(f'成功订阅每日一句推送,回复td退订')
+        
+    except:
+        print(traceback.format_exc())
+    if 'img' in output:
+        return [Image.fromFileSystem(output['img'])]+[Plain('\n'.join(output['plain']))]
+    else:
+        return [Plain('\n'.join(output['plain']))]
 
 def 爬ip(*attrs,**kwargs):
     if not attrs:
@@ -505,7 +531,7 @@ SpiderMap = {
     '#天气':爬天气,
     '#ip':爬ip,
     '#addr':反爬ip,
-    
+    '#每日一句':爬每日一句
 }
 
 SpiderShort = {
@@ -541,6 +567,15 @@ SpiderDescript = {
 注意此处订阅是append，即新添加需要推送的城市，而不是覆写
 如需取消所有推送，请使用：
     #天气 cancel
+""",
+    '#每日一句':
+"""
+爬今天的每日一句
+也可以订阅：
+用法：
+    #每日一句 sub
+如需取消，请使用：
+    #每日一句 cancel
 """,
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
     '#CF':
