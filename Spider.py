@@ -489,39 +489,7 @@ def 反爬ip(*attrs,**kwargs):
     ans = [' '.join(i) for i in rr]
     return [Plain('\n'.join(ans))]
 
-def 爬答案之书(*attrs,**kwargs):
-    player = getPlayer(**kwargs)
-    if attrs[-1] in ('sub','sniff'):
-        overwriteSniffer(player,'#为什么',r'\?')
-        appendSniffer(player,'#为什么',r'\？')
-        appendSniffer(player,'#为什么',r'¿')
-        appendSniffer(player,'#为什么',r'吗')
-        appendSniffer(player,'#为什么',r'为什么')
-        return [Plain('【答案之书】sniff模式')]
-    elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
-        return [Plain('【答案之书】禁用sniffer')]
-    try:
-        hds = {
-            "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-            "accept-encoding":"gzip, deflate, br",
-            "accept-language":"zh-CN,zh;q=0.9",
-            "cache-control":"no-cache",
-            "content-length":"41",
-            "content-type":"application/x-www-form-urlencoded",
-            "dnt":"1",
-            "origin":"https://www.daanshu.com",
-            "pragma":"no-cache",
-            "referer":"https://www.daanshu.com/",
-            "upgrade-insecure-requests":"1",
-            "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
-        }
-        lnk = 'https://www.daanshu.com/'
-        res = requests.post(lnk,headers=hds,data={'text':' '.join(attrs)},timeout=8)
-        ans = re.findall('''<div class="content">(.*?)</div>''',res.text,re.S)[0]
-        ans = re.findall('''<p>(.*?)</p>''',ans,re.S)[0]
-    except:
-        ans = random.choice(['鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚','百度啊'])
-    return [Plain(ans.strip())]
+
 
 SpiderMap = {
     '#LaTeX':爬LaTeX,
@@ -537,7 +505,7 @@ SpiderMap = {
     '#天气':爬天气,
     '#ip':爬ip,
     '#addr':反爬ip,
-    '#为什么':爬答案之书
+    
 }
 
 SpiderShort = {
@@ -553,9 +521,7 @@ SpiderShort = {
     '#uta':'#什么值得听',
     '#listen':'#什么值得听',
     '#weather':'#天气',
-    '#ans':'#为什么',
-    '#why':'#为什么',
-    '#wsm':'#为什么'
+
 }
 
 SpiderDescript = {
@@ -600,5 +566,5 @@ SpiderDescript = {
     '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
     '#addr':'根据给定地址爬ip。例：#addr 谷歌',
-    '#为什么':'向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
+    
 }
