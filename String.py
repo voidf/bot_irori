@@ -861,7 +861,7 @@ def KMP(*attrs,**kwargs):
     for i in range(1,len(pat)):
         if i >= k or i + EX_next[i - a] >= k:
             k = max(k,i)
-            while k <= len(pat) and pat[k] == pat[k - i]:
+            while k < len(pat) and pat[k] == pat[k - i]:
                 k+=1
             EX_next.append(k - i)
             a = i
