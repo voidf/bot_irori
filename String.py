@@ -625,6 +625,8 @@ book_of_answers = [
     "你开心就好"
 ]
 
+book_of_answers = list(set(book_of_answers))
+
 book_of_answers_en = [
     "A Substantial Effort Will Be Required",
     "A Year From Now It Won't Matter",
@@ -799,36 +801,40 @@ book_of_answers_en = [
     "Your Actions Will Improve Thin"
 ]
 
+book_of_answers_en = list(set(book_of_answers_en))
+
 def 答案之书(*attrs,**kwargs):
     player = getPlayer(**kwargs)
-    if attrs[-1] in ('sub','sniff'):
-        overwriteSniffer(player,'#为什么',r'\?')
-        appendSniffer(player,'#为什么',r'\？')
-        appendSniffer(player,'#为什么',r'¿')
-        appendSniffer(player,'#为什么',r'吗')
-        appendSniffer(player,'#为什么',r'怎么')
-        appendSniffer(player,'#为什么',r'如何')
-        appendSniffer(player,'#为什么',r'为什么')
-        return [Plain('【答案之书】sniff模式')]
-    elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
-        return [Plain('【答案之书】禁用sniffer')]
+    if attrs:
+        if attrs[-1] in ('sub','sniff'):
+            overwriteSniffer(player,'#为什么',r'\?')
+            appendSniffer(player,'#为什么',r'\？')
+            appendSniffer(player,'#为什么',r'¿')
+            appendSniffer(player,'#为什么',r'吗')
+            appendSniffer(player,'#为什么',r'怎么')
+            appendSniffer(player,'#为什么',r'如何')
+            appendSniffer(player,'#为什么',r'为什么')
+            return [Plain('【答案之书】sniff模式')]
+        elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
+            return [Plain('【答案之书】禁用sniffer')]
 
     ans = random.choice(book_of_answers)
     return [Plain(ans.strip())]
 
 def 答案之书en(*attrs,**kwargs):
     player = getPlayer(**kwargs)
-    if attrs[-1] in ('sub','sniff'):
-        overwriteSniffer(player,'#为什么e',r'\?')
-        appendSniffer(player,'#为什么e',r'\？')
-        appendSniffer(player,'#为什么e',r'¿')
-        appendSniffer(player,'#为什么e',r'吗')
-        appendSniffer(player,'#为什么e',r'怎么')
-        appendSniffer(player,'#为什么e',r'如何')
-        appendSniffer(player,'#为什么e',r'为什么')
-        return [Plain('【book of answers】sniff mode on')]
-    elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
-        return [Plain('【book of answers】sniff mode off')]
+    if attrs:
+        if attrs[-1] in ('sub','sniff'):
+            overwriteSniffer(player,'#为什么e',r'\?')
+            appendSniffer(player,'#为什么e',r'\？')
+            appendSniffer(player,'#为什么e',r'¿')
+            appendSniffer(player,'#为什么e',r'吗')
+            appendSniffer(player,'#为什么e',r'怎么')
+            appendSniffer(player,'#为什么e',r'如何')
+            appendSniffer(player,'#为什么e',r'为什么')
+            return [Plain('【book of answers】sniff mode on')]
+        elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
+            return [Plain('【book of answers】sniff mode off')]
 
     ans = random.choice(book_of_answers_en)
     return [Plain(ans.strip())]
