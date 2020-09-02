@@ -853,11 +853,11 @@ def KMP(*attrs,**kwargs):
         else:
             p2 = fail[p2]
 
-    for p,i in enumerate(1,pat[1:]):
-        if i == pat[fail[p]]:
-            fval.append(fval[fail[p]])
+    for i in range(1,len(pat)):
+        if pat[i] == pat[fail[i]]:
+            fval.append(fval[fail[i]])
         else:
-            fval.append(fail[p])
+            fval.append(fail[i])
 
     EX_next = [len(pat)]
     EX_extent = []
