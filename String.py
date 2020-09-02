@@ -839,6 +839,32 @@ def 答案之书en(*attrs,**kwargs):
     ans = random.choice(book_of_answers_en)
     return [Plain(ans.strip())]
 
+def KMP(*attrs,**kwargs):
+    pat,s = ' '.join(attrs).split(',')
+    fail = [-1]
+    p1 = 0 
+    p2 = -1
+    while p1<len(pat):
+        if p2==-1 or pat[p1] == pat[p2]:
+            p1+=1
+            p2+=1
+            fail.append(p2)
+        else:
+            p2 = fail[p2]
+
+    EX_next = [len(pat)]
+    EX_extent = []
+
+    a = 0
+    k = 0
+
+    for i in range(1,len(pat)):
+        if i >= k or i + EX_next[i - a] >= k:
+            if i>=k:
+                k = i
+            while k <= len(pat) and 
+
+
 StringMap = {
     '#BV':BVCoder,
     '#b64e':编码base64,
