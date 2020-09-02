@@ -860,9 +860,28 @@ def KMP(*attrs,**kwargs):
 
     for i in range(1,len(pat)):
         if i >= k or i + EX_next[i - a] >= k:
-            if i>=k:
-                k = i
-            while k <= len(pat) and 
+            k = max(k,i)
+            while k <= len(pat) and pat[k] == pat[k - i]:
+                k+=1
+            EX_next.append(k - i)
+            a = i
+        else:
+            EX_next.append(EX_next[i - a])
+
+    a = 0
+    k = 0
+
+    for i in range(len(s)):
+        if i >= k or i + EX_next[i-a]>=k:
+            k = max(k,i)
+            while k < len(s) and k - i < len(pat) and s[k] == pat[k-i]:
+                k+=1
+            EX_extent.append(k - i)
+            a = i
+        else:
+            EX_extent.append(EX_next[i - a])
+
+    return [Plain(f'KMP-Fail:{fail}\nEXKMP-next:{EX_next}\nEXKMP-extent:{EX_extent}')]
 
 
 StringMap = {
@@ -877,7 +896,8 @@ StringMap = {
     '#m2a':译电码,
     '#m2z':译中文电码,
     '#为什么':答案之书,
-    '#为什么e':答案之书en
+    '#为什么e':答案之书en,
+    '#KMP':KMP
 }
 
 StringShort = {
@@ -927,6 +947,14 @@ StringDescript = {
     #m2z _7093__2448__5530__5358_ split=_
     使用_作为电码"_7093__2448__5530__5358_"的分隔符
 ''',
-'#为什么':'向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？',
-'#为什么e':'向答案之书（英文）提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
-}
+    '#为什么':'向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？',
+    '#为什么e':'向答案之书（英文）提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？',
+    '#KMP':
+'''
+生成KMP算法的fail数组和EXKMP的next和extent数组
+格式:
+    #KMP <模式串>,<原串>
+例：
+    #KMP iiyo,koiyo
+    #KMP ababaab,aabbbabababaabababaabababaababb
+'''}
