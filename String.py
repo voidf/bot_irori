@@ -842,6 +842,7 @@ def 答案之书en(*attrs,**kwargs):
 def KMP(*attrs,**kwargs):
     pat,s = ' '.join(attrs).split(',')
     fail = [-1]
+    fval = [-1]
     p1 = 0 
     p2 = -1
     while p1<len(pat):
@@ -851,6 +852,12 @@ def KMP(*attrs,**kwargs):
             fail.append(p2)
         else:
             p2 = fail[p2]
+
+    for p,i in enumerate(1,pat[1:]):
+        if i == pat[fail[p]]:
+            fval.append(fval[fail[p]])
+        else:
+            fval.append(fail[p])
 
     EX_next = [len(pat)]
     EX_extent = []
@@ -881,7 +888,7 @@ def KMP(*attrs,**kwargs):
         else:
             EX_extent.append(EX_next[i - a])
 
-    return [Plain(f'KMP-Fail:{fail}\nEXKMP-next:{EX_next}\nEXKMP-extent:{EX_extent}')]
+    return [Plain(f'KMP-Fail:{fail}\nKMP-Fval:{fval}\nEXKMP-next:{EX_next}\nEXKMP-extent:{EX_extent}')]
 
 
 StringMap = {
