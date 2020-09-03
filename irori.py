@@ -302,6 +302,9 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
     
     member = hurenzu
 
+    if GLOBAL.echoMsg:
+        print(f"""{message}""")
+
     if hurenzu.id not in muteList:
         
         try:
