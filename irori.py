@@ -78,7 +78,8 @@ try:
         enable_this = set(cfg.get('enables',[0]))
         GLOBAL.lengthLim = cfg.get('lengthLim',500)
         GLOBAL.compressFontSize = cfg.get('fontSize',18)
-        
+        GLOBAL.echoMsg = cfg.get('echoMsg',False)
+
 except Exception as e:
     print(e)
     banGroup = {}
@@ -90,6 +91,7 @@ except Exception as e:
     enable_this = {0}
     GLOBAL.lengthLim = 500
     GLOBAL.compressFontSize = 18
+    GLOBAL.echoMsg = False
 
 import Callable
 
@@ -125,9 +127,13 @@ async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Mem
         s.pop(0)
         if member.id in masterID:
             extDict['sudo'] = True
+    
 
     GLOBAL.app = app
     player = group.id+2**39
+
+    if GLOBAL.echoMsg:
+        print(f"""{message}""")
     if member.id not in botList:
         try:
             if 'sudo' in extDict:
