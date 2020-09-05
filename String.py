@@ -815,7 +815,8 @@ def 答案之书(*attrs,**kwargs):
             appendSniffer(player,'#为什么',r'如何')
             appendSniffer(player,'#为什么',r'为什么')
             return [Plain('【答案之书】sniff模式')]
-        elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
+        elif attrs[-1] in GLOBAL.unsubscribes:
+            removeSniffer(player,'#为什么')
             return [Plain('【答案之书】禁用sniffer')]
 
     ans = random.choice(book_of_answers)
@@ -833,7 +834,8 @@ def 答案之书en(*attrs,**kwargs):
             appendSniffer(player,'#为什么e',r'如何')
             appendSniffer(player,'#为什么e',r'为什么')
             return [Plain('【book of answers】sniff mode on')]
-        elif attrs[-1] in ('黙れ', '闭嘴', 'damare', 'E'):
+        elif attrs[-1] in GLOBAL.unsubscribes:
+            removeSniffer(player,'#为什么e')
             return [Plain('【book of answers】sniff mode off')]
 
     ans = random.choice(book_of_answers_en)
