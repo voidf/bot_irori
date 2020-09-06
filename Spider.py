@@ -439,14 +439,14 @@ def 爬天气(*attrs,**kwargs):
     if not attrs:
         return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
 
-    if attrs[0] in ('unsubscribe','cancel'):
+    if attrs[0] in GLOBAL.unsubscribes:
         os.remove(f'weather/{player}')
         return [Plain(f'还我清净，拒绝推送')]
     
     output = fetchWeather(attrs[0])
 
     try:
-        if attrs[1] in GLOBAL.unsubscribes:
+        if attrs[1] in GLOBAL.subscribes:
             player = getPlayer(**kwargs)
             if not os.path.exists('weather/'):
                 os.mkdir('weather/')
