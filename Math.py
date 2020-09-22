@@ -170,6 +170,23 @@ class FindTruth:
     def _print(self):
         self.outPut.append(','.join(self.li))
 
+# def read_matrix(s):
+#     r = re.search(r"""[]"""))
+
+def read_matrix_matlab(s):
+    row = s.split(';')
+    if not row[-1]:
+        row.pop()
+    li = [i.split(',') for i in row]
+    for i,ii in enumerate(li):
+        for j,jj in enumerate(ii):
+            if '/' in li[i][j]:
+                u,d = jj.split('/')
+                li[i][j] = float(u) / float(j)
+            else:
+                li[i][j] = float(li[i][j])
+    return numpy.matrix(li)
+
 def CalC(*attrs,**kwargs):
     try:
         if len(attrs)==3:
@@ -269,8 +286,54 @@ def 孙子定理(*attrs,**kwargs):
         return [Plain(str(r))]
             
 
-
-
+def 老线代bot了(*attrs,**kwargs):
+    if attrs[0] in ('乘','*','mul'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        return [Plain(f'{A*B}')]
+    elif attrs[0] in ('加','+','add'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        return [Plain(f'{A+B}')]
+    elif attrs[0] in ('减','-','sub'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        return [Plain(f'{A-B}')]
+    elif attrs[0] in ('解方程','solve'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        if len(B) == 1:
+            B = B.T
+        return [Plain(f'{numpy.linalg.solve(A,B)}')]
+    elif attrs[0] in ('叉','cross','叉乘','叉积'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        A = numpy.array(A)[0]
+        B = numpy.array(B)[0]
+        return [Plain(f'{numpy.cross(A,B)}')]
+    elif attrs[0] in ('点','dot','点乘','点积'):
+        A = read_matrix_matlab(attrs[1])
+        B = read_matrix_matlab(attrs[2])
+        A = numpy.array(A)[0]
+        B = numpy.array(B)[0]
+        return [Plain(f'{numpy.dot(A,B)}')]
+    elif attrs[0] in ('逆','求逆','inv','I'):
+        A = read_matrix_matlab(attrs[1])
+        return [Plain(f'{A.I}')]
+    elif attrs[0] in ('转','转置','transpose','T'):
+        A = read_matrix_matlab(attrs[1])
+        return [Plain(f'{A.T}')]
+    elif attrs[0] in ('行列式','det'):
+        A = read_matrix_matlab(attrs[1])
+        return [Plain(f'{numpy.linalg.det(A)}')]
+    elif attrs[0] in ('特征值','eig'):
+        A = read_matrix_matlab(attrs[1])
+        return [Plain(f'{numpy.linalg.eig(A)}')]
+    elif attrs[0] in ('秩','rank'):
+        A = read_matrix_matlab(attrs[1])
+        return [Plain(f'{numpy.linalg.matrix_rank(A)}')]
+    else:
+        return [Plain('没有命中的决策树，看看#h #线代？')]
 
 MathMap = {
     '#QM':QM化简器,
@@ -309,6 +372,25 @@ MathDescript = {
 例:
     #QM 1,4,2,8,5,7 3 a,b,c,d
     #QM b'd+a'bc'+a'bcd' 1,2
+""",
+    '#线代':
+"""
+没啥想讲的
+用法：
+    #线代 <操作命令> <矩阵1> <矩阵2>
+    #线代 <操作命令> <矩阵1>
+    #线代 <操作命令> <向量1> <向量2>
+    #线代 <操作命令> <向量1>
+二目（需要两个参数）操作命令包括：
+乘，加，减，解方程，叉乘，点乘
+单目操作命令包括：
+求逆，转置，行列式，特征值，秩
+输入矩阵格式仿照matlab：
+如1,1,4;5,1,4代表矩阵
+[1 1 4]
+[5 1 4]
+例:
+    #线代 乘 1,1,4;5,1,4;9,3,1 1,9,1;9,1,9;8,1,0
 """,
     '#真值表':
 """
