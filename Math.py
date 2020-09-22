@@ -279,7 +279,8 @@ MathMap = {
     '#K':CalKatalan,
     '#统计':统计姬from104,
     '#inv':逆元,
-    '#CRT':孙子定理
+    '#CRT':孙子定理,
+    '#真值表':打印真值表
 }
 
 MathShort = {
