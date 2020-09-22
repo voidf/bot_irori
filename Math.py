@@ -36,7 +36,139 @@ import mido
 import GLOBAL
 from Utils import *
 
+'''
+否.......... !
+合取........ &
+可兼或...... |
+异或.... ^
+由...可得... >
+当且仅当.... =
+'''
+class FindTruth:
 
+    def __init__(self,inputMono):
+        #存储字母及其真值
+        self.Dic = {}
+        self.Lis = []
+        self.li = []
+        self.outPut = []
+        #输入表达式
+        self.__In(inputMono)
+        #输出真值表
+        self.__Out()
+        
+    #输入
+    def __In(self,inputMono):
+        #得到表达式Str
+        self.Str = inputMono
+        #筛出字母集合
+        self.Set = set(self.Str).difference(set("()!&|>=^"))
+    #求公式结果
+    def __Sum(self, Str):
+        i = 0 #字符位置
+        s = -1#式子真值
+        while i < len(Str):
+            c = Str[i]
+        #单操作符'！'要做特殊的分类处理
+            if c == "!":
+            #右边是字母
+                if Str[i+1] in self.Set:
+                    c = Str[i+1]
+                    i = i + 1
+                    s0 = self.__Add('!',self.Dic[c])   
+            #右边是左括号
+                else:
+                    end = self.__Pei(i+1, Str)
+                    s0 = self.__Add('!', self.__Sum(Str[i+1:end+1]))
+                    i = end
+        #字母
+            elif c in self.Set:
+                s0 = self.Dic[c]
+        #其它运算符
+            elif c in set("&|>=^"):
+                operat = c
+        #左括号
+            elif c == '(':
+                end = self.__Pei(i, Str)
+                s0 = self.__Sum(Str[i+1:end])
+                i = end
+        #运算结果
+            if s == -1:
+                s = s0
+                s0 = -1
+            elif operat != 0 and s0 != -1:
+                s1 = s
+                s = self.__Add(operat, s, s0)
+                operat = 0
+                s0 = -1
+            i = i + 1
+        return s
+    #配对左右括号
+    def __Pei(self, cur, Str):
+        kflag = 1  # 左括号的数目
+        while not kflag == 0:
+            cur = cur + 1
+            if Str[cur] == '(':
+                kflag = kflag + 1
+            elif Str[cur] == ')':
+                kflag = kflag - 1
+        return cur    
+    #运算操作
+    def __Add(self, operator, a, b = -1):#b默认为-1时，表示是单操作符号' ! '
+        if operator == '!':
+            boo = not a
+        elif operator == '&':
+            boo = a and b
+        elif operator == '|':
+            boo = a or b
+        elif operator == '^':
+            boo = ((not a) or (not b)) and (a or b)
+        elif operator == '>':
+            boo = (not a) or b
+        elif operator == '=':
+            boo = ((not a) and (not b)) or (a and b)
+        else:
+            self.outPut.append("there is no such operator")
+        if boo:
+            return 1
+        else:
+            return 0
+    #输出
+    def __Out(self):
+        #将字母放入dict和List
+        S = ''
+        for c in sorted(self.Set):
+            self.Dic[c] = 0
+            self.Lis.append(c)
+            S = S + c + ' '
+        self.outPut.append(f"{S} {self.Str}")
+        self.__Count(0)
+    #构造2^n的序列
+    def __Count(self, i):
+        #是结尾，打印 + 运算
+        
+        if i == len(self.Lis):
+            #self.Lis.sort()
+            S = ''
+            Minmal = 0
+            #self.li = []
+            for idx,l in enumerate(self.Lis):
+                S = S + str(self.Dic[l]) + ' '
+                Minmal += self.Dic[l] * 2**(len(self.Lis) - idx - 1)
+
+            res = self.__Sum(self.Str)
+            if res:
+                self.li.append(str(Minmal))
+            self.outPut.append(f"{S} {res} {Minmal}")
+            return
+        #不是结尾，递归赋值
+        self.Dic[self.Lis[i]] = 0
+        self.__Count(i+1)
+        self.Dic[self.Lis[i]] = 1
+        self.__Count(i+1)
+
+    def _print(self):
+        self.outPut.append(','.join(self.li))
 
 def CalC(*attrs,**kwargs):
     try:
@@ -105,6 +237,10 @@ def QM化简器(*attrs,**kwargs):
     else:
         return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
 
+def 打印真值表(*attrs,**kwargs):
+    s = FindTruth(' '.join(attrs))
+    return [Plain('\n'.join(s.outPut))]
+
 def 逆元(*attrs,**kwargs):
     return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
@@ -172,6 +308,19 @@ MathDescript = {
 例:
     #QM 1,4,2,8,5,7 3 a,b,c,d
     #QM b'd+a'bc'+a'bcd' 1,2
+""",
+    '#真值表':
+"""
+用给定的逻辑式生成真值表，注意除了非运算外其他运算同级
+即从左到右计算，如需要请加括号
+非 !
+与 &
+或 |
+异或 ^
+由...可得... >
+当且仅当.... =
+例:
+    #真值表 !A|(B^C)
 """,
     '#inv':'求给定的x在模m意义下的逆元（exgcd',
     '#CRT':
