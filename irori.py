@@ -144,7 +144,6 @@ sys_dict = {
 }
 
 def systemcall(member,player:int,s) -> List[bool,str]:
-    
     if player in enable_this or (not (-player in enable_this) and 0 in enable_this):
         if member in SHELL:
             if s[0] == '我不玩了':
@@ -197,7 +196,14 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         print(f"""{message}""")
     ns = []
     for i in s:
-        if i[2]
+        if i[:2] == "--":
+            arg,*val = i[2:].split("=")
+            extDict["-"+arg] = "".join(val)
+        elif i[:1] == "-":
+            arg,*val = i[1:].split("=")
+            extDict["-"+arg] = "".join(val)
+        else: ns.append(i)
+    return ns
 
 @irori.receiver("GroupMessage")
 async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:Member):
@@ -210,12 +216,14 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
         'mem':member,
         'player':player
     }
-    
-
+    s = msgprework(message,extDict)
+    member = getattr(extDict[mem],'id',int(member))
     if member not in botList:
         try:
             if 'sudo' in extDict:
-                
+                is_called,output=systemcall(member)
+                if is_called:
+                    return app.sendGroupMessage(group,compressMsg([Plain(output))])
         except:
             if player in Exceptions:
                 await app.sendGroupMessage(group,[Plain(traceback.format_exc())])
@@ -269,125 +277,22 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
     global enable_this
     global SU
     GLOBAL.app = app
-    s = message.toString().split(' ')
     player = hurenzu.id
-    pic = message.getFirstComponent(Image)
 
     extDict = {
-        'mem':hurenzu.id
+        'mem':member,
+        'player':player
     }
-
-    if pic:
-        extDict['pic'] = pic
-    if hurenzu.id in SU:
-        extDict['sudo'] = True
-    if hurenzu.id in SHELL:
-        extDict['sh'] = True
-    
-
-    if s[0] == 'sudo':
-        s.pop(0)
-        if hurenzu.id in masterID:
-            extDict['sudo'] = True
-    
-    member = hurenzu
-
-    if GLOBAL.echoMsg:
-        print(f"""{message}""")
+    member = getattr(hurenzu,"id",int(hurenzu))
+    s = msgprework(message,extDict)
 
     if hurenzu.id not in muteList:
         
         try:
             if 'sudo' in extDict:
-                if player in enable_this or (not (player in enable_this) and 0 in enable_this):
-                    if 'sh' in extDict:
-                        if s[0] == '我不玩了':
-                            SHELL[member.id].kill(9)
-                            del SHELL[member.id]
-                            await app.sendFriendMessage(hurenzu,[Plain('ojbk这就把你的任务扔掉')])
-                            return
-                        else:
-                            patts = []
-                            SHELL[member.id].sendline(message.toString())
-                            try:
-                                while True:
-                                    SHELL[member.id].expect('\r\n',timeout = 3)
-                                    try:
-                                        patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
-                                    except UnicodeDecodeError:
-                                        patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            except:
-                                try:
-                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
-                                except UnicodeDecodeError:
-                                    patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            await app.sendFriendMessage(hurenzu,compressMsg(patts))
-                            return
-                    if s[0] == 'reload':
-                        importlib.reload(Callable)
-                        await app.sendFriendMessage(hurenzu,[Plain('热重载完成')])
-                        return
-                    elif s[0] == 'pull':
-                        try:
-                            if s.index('-f'):
-                                await app.sendFriendMessage(hurenzu,[Plain(os.popen('git fetch --all && git reset --hard origin/master').read())])
-                                return
-                        except:
-                            pass
-                        await app.sendFriendMessage(hurenzu,[Plain(os.popen('git pull').read())])
-                        return
-                    elif s[0] == 'eval':
-                        await app.sendFriendMessage(hurenzu,[Plain(f"""{eval(' '.join(s[1:]))}""")])
-                        return
-                    elif s[0] == 'print-help':
-                        Helps.add(player)
-                        await app.sendFriendMessage(hurenzu,[Plain('异常时打印帮助')])
-                        return
-                    elif s[0] == 'cancel-help':
-                        Helps.discard(player)
-                        await app.sendFriendMessage(hurenzu,[Plain('异常时不打印帮助')])
-                        return
-                    elif s[0] == 'print-ext':
-                        Exceptions.add(player)
-                        await app.sendFriendMessage(hurenzu,[Plain('异常时打印异常信息')])
-                        return
-                    elif s[0] == 'cancel-ext':
-                        Exceptions.discard(player)
-                        await app.sendFriendMessage(hurenzu,[Plain('异常时不打印异常信息')])
-                        return
-                    elif s[0] == 'su':
-                        SU.add(member.id)
-                        await app.sendFriendMessage(hurenzu,[Plain('irori:~#')])
-                        return
-                    elif s[0] == 'exit':
-                        SU.discard(member.id)
-                        await app.sendFriendMessage(hurenzu,[Plain('irori:~$')])
-                        return
-                    elif s[0] == 'terminal':
-                        if platform.platform().find('Windows') != -1:
-                            try:
-                                if s[1] in ('ps','powershell'):
-                                    SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('powershell')
-                                else:
-                                    raise NameError('cmd')
-                            except:
-                                SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('cmd')
-                        else:
-                            SHELL[member.id] = pexpect.spawn('bash')
-                        await app.sendFriendMessage(hurenzu,[Plain('终端启动，退出请输入"我不玩了"')])
-                        return
-
-                if s[0] == 'instances':
-                    await app.sendFriendMessage(hurenzu,[Plain(f'{identifier}\n{platform.platform()} {locate}\n{enable_this}')])
-                    return
-                elif s[0] == 'use':
-                    if s[1] in ('*',identifier):
-                        enable_this.add(player)
-                        enable_this.discard(-player)
-                    else:
-                        enable_this.discard(player)
-                        enable_this.add(-player)
-                    return
+                is_called,output=systemcall(member)
+                if is_called:
+                    return app.sendFriendMessage(hurenzu,compressMsg([Plain(output))])
         except:
             if player in Exceptions:
                 await app.sendFriendMessage(hurenzu,[Plain(traceback.format_exc())])
@@ -431,8 +336,6 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                     l.append(Plain(traceback.format_exc()))
                 if l:
                     await app.sendFriendMessage(hurenzu,compressMsg(l))
-
-#Image.fromFileSystem('80699361_p0.jpg')
 
 @irori.subroutine
 async def startup(bot: Mirai):

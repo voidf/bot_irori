@@ -250,7 +250,7 @@ def renderHtml(dst_lnk,na):
 def generateTmpFileName(pref,ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
-def compressMsg(l,theme = 255):
+def compressMsg(l,theme = 255,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     offset = GLOBAL.compressFontSize >> 1
     print(offset)
@@ -261,8 +261,9 @@ def compressMsg(l,theme = 255):
             nl.append(i.toString())
         else:
             others.append(i)
+    print(others)
     s = ''.join(nl)
-    if len(s) >GLOBAL.lengthLim:
+    if len(s) >GLOBAL.lengthLim or "-force-image" in extDict:
         
         font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
         
