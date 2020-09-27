@@ -6,6 +6,7 @@ from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from typing import *
 import importlib
 import re
 import asyncio
@@ -34,6 +35,7 @@ import time
 import datetime
 import uuid
 import Test
+import argparse
 from Utils import *
 import GLOBAL
 identifier = uuid.uuid1().hex
@@ -101,131 +103,119 @@ SHELL = {}
 Exceptions = set()
 Helps = set()
 
+def sys_reload(member,player,s):importlib.reload(Callable);return '热重载完成'
 
+def sys_pull(member,player,s):
+    if '-f' in s:c = 'git fetch --all && git reset --hard origin/master'
+    else:c = 'git pull'
+    return os.popen(c).read()
 
-@irori.receiver("GroupMessage")
-async def GroupHandler(message: MessageChain,app: Mirai, group: Group,member:Member):
-    global enable_this # 放个0作为全局启用,负player号作为关闭标记
-    global SU
+def sys_eval(member,player,s):return f"""{eval(' '.join(s[1:]))}"""
+
+def sys_pexc(member,player,s):Exceptions.add(player);return '异常时打印异常信息'
+
+def sys_cexc(member,player,s):Exceptions.discard(player);return '异常时不打印异常信息'
+
+def sys_su(member,player,s):SU.add(member);return 'irori:~#'
+
+def sys_exit(member,player,s):SU.add(member);return 'irori:~$'
+
+def sys_terminal(member,player,s):
+    if platform.platform().find('Windows') != -1:
+        for i in s[1:]
+            if i in ('ps','powershell'):
+                SHELL[member] = pexpect.popen_spawn.PopenSpawn('powershell')
+                return '终端启动(Windows PowerShell)，退出请输入"我不玩了"'
+        SHELL[member] = pexpect.popen_spawn.PopenSpawn('cmd')
+        return '终端启动(Windows command prompt)，退出请输入"我不玩了"'
+    else:
+        SHELL[member] = pexpect.spawn('bash')
+        return '终端启动(Linux bash)，退出请输入"我不玩了"'
+
+sys_dict = {
+    'reload':sys_reload,
+    'pull':sys_pull,
+    'eval':sys_eval,
+    'pexc':sys_pexc,
+    'cexc':sys_cexc,
+    'su':sys_su,
+    'exit':sys_exit,
+    'terminal':sys_terminal,
+}
+
+def systemcall(member,player:int,s) -> List[bool,str]:
+    
+    if player in enable_this or (not (-player in enable_this) and 0 in enable_this):
+        if member in SHELL:
+            if s[0] == '我不玩了':
+                SHELL[member].kill(9)
+                del SHELL[member]
+                return True,'ojbk这就把你的任务扔掉'
+            else:
+                patts = []
+                SHELL[member].sendline(message.toString())
+                try:
+                    while True:
+                        SHELL[member].expect('\r\n',timeout = 3)
+                        try:
+                            patts.append(SHELL[member].before.decode('utf-8'))
+                        except UnicodeDecodeError:
+                            patts.append(SHELL[member].before.decode('gbk'))
+                except:
+                    try:
+                        patts.append(SHELL[member].before.decode('utf-8'))
+                    except UnicodeDecodeError:
+                        patts.append(SHELL[member].before.decode('gbk'))
+                return True,'\n'.join(patts)
+        if s[0] in sys_dict:
+            return True,sys_dict[s[0]]
+    if s[0] == 'instances':
+        return True,f'{identifier}\n{platform.platform()} {locate}\n{enable_this}'
+    elif s[0] == 'use':
+        if s[1] in ('*',identifier):
+            enable_this.add(player)
+            enable_this.discard(-player)
+        else:
+            enable_this.discard(player)
+            enable_this.add(-player)
+        return True,f'{identifier}响应中'
+    return False,''
+
+def msgprework(message: MessageChain, extDict: dict) -> list:
     s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
-    extDict = {
-        'gp':group,
-        'mem':member
-    }
-
+    member = getattr(extDict[mem],'id',int(member))
     if pic:
         extDict['pic'] = pic
-    
-
-    if member.id in SU:
+    if member in SU:
         extDict['sudo'] = True
-    if member.id in SHELL:
-        extDict['sh'] = True
-
     if s[0] == 'sudo':
         s.pop(0)
-        if member.id in masterID:
+        if member in masterID:
             extDict['sudo'] = True
-    
-
-    GLOBAL.app = app
-    player = group.id+2**39
-
     if GLOBAL.echoMsg:
         print(f"""{message}""")
-    if member.id not in botList:
+    ns = []
+    for i in s:
+        if i[2]
+
+@irori.receiver("GroupMessage")
+async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:Member):
+    global enable_this # 放个0作为全局启用,负player号作为关闭标记
+    global SU
+    GLOBAL.app = app
+    player = group.id+2**39
+    extDict = {
+        'gp':group,
+        'mem':member,
+        'player':player
+    }
+    
+
+    if member not in botList:
         try:
             if 'sudo' in extDict:
-                if player in enable_this or (not (player in enable_this) and 0 in enable_this):
-                    if 'sh' in extDict:
-                        if s[0] == '我不玩了':
-                            SHELL[member.id].kill(9)
-                            del SHELL[member.id]
-                            await app.sendGroupMessage(group,[Plain('ojbk这就把你的任务扔掉')])
-                            return
-                        else:
-                            patts = []
-                            SHELL[member.id].sendline(message.toString())
-                            try:
-                                while True:
-                                    SHELL[member.id].expect('\r\n',timeout = 3)
-                                    try:
-                                        patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
-                                    except UnicodeDecodeError:
-                                        patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            except:
-                                try:
-                                    patts.append(Plain(SHELL[member.id].before.decode('utf-8') + '\n'))
-                                except UnicodeDecodeError:
-                                    patts.append(Plain(SHELL[member.id].before.decode('gbk') + '\n'))
-                            await app.sendGroupMessage(group,compressMsg(patts,theme = 255))
-                            return
-                    if s[0] == 'reload':
-                        importlib.reload(Callable)
-                        await app.sendGroupMessage(group,[Plain('热重载完成')])
-                        return
-                    elif s[0] == 'pull':
-                        try:
-                            if s.index('-f'):
-                                await app.sendGroupMessage(group,[Plain(os.popen('git fetch --all && git reset --hard origin/master').read())])
-                                return
-                        except:
-                            pass
-                        await app.sendGroupMessage(group,[Plain(os.popen('git pull').read())])
-                        return
-                    elif s[0] == 'eval':
-                        await app.sendGroupMessage(group,[Plain(f"""{eval(' '.join(s[1:]))}""")])
-                        return
-                    elif s[0] == 'print-help':
-                        Helps.add(player)
-                        await app.sendGroupMessage(group,[Plain('异常时打印帮助')])
-                        return
-                    elif s[0] == 'cancel-help':
-                        Helps.discard(player)
-                        await app.sendGroupMessage(group,[Plain('异常时不打印帮助')])
-                        return
-                    elif s[0] == 'print-ext':
-                        Exceptions.add(player)
-                        await app.sendGroupMessage(group,[Plain('异常时打印异常信息')])
-                        return
-                    elif s[0] == 'cancel-ext':
-                        Exceptions.discard(player)
-                        await app.sendGroupMessage(group,[Plain('异常时不打印异常信息')])
-                        return
-                    elif s[0] == 'su':
-                        SU.add(member.id)
-                        await app.sendGroupMessage(group,[Plain('irori:~#')])
-                        return
-                    elif s[0] == 'exit':
-                        SU.discard(member.id)
-                        await app.sendGroupMessage(group,[Plain('irori:~$')])
-                        return
-                    elif s[0] == 'terminal':
-                        if platform.platform().find('Windows') != -1:
-                            try:
-                                if s[1] in ('ps','powershell'):
-                                    SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('powershell')
-                                else:
-                                    raise NameError('cmd')
-                            except:
-                                SHELL[member.id] = pexpect.popen_spawn.PopenSpawn('cmd')
-                        else:
-                            SHELL[member.id] = pexpect.spawn('bash')
-                        await app.sendGroupMessage(group,[Plain('终端启动，退出请输入"我不玩了"')])
-                        return
-
-                if s[0] == 'instances':
-                    await app.sendGroupMessage(group,[Plain(f'{identifier}\n{platform.platform()} {locate}\n{enable_this}')])
-                    return
-                elif s[0] == 'use':
-                    if s[1] in ('*',identifier):
-                        enable_this.add(player)
-                        enable_this.discard(-player)
-                    else:
-                        enable_this.discard(player)
-                        enable_this.add(-player)
-                    return
+                
         except:
             if player in Exceptions:
                 await app.sendGroupMessage(group,[Plain(traceback.format_exc())])
