@@ -56,11 +56,6 @@ locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.
 
 enable_this = True
 
-# exec(open("""Callable.py""").read())
-
-# java -jar mirai-console-wrapper-0.2.0-all.jar -Djava.awt.headless=true
-
-
 with open('authdata','r') as f:
     qq = int(f.readline().strip())
     authKey = f.readline().strip()
@@ -96,6 +91,20 @@ except Exception as e:
     GLOBAL.echoMsg = False
 
 import Callable
+
+class SessionConfigures():
+    restrict_cmd = set()
+    allow_cmd = set()
+    compress_threshold = 500
+    enable_this = True
+    font_size = 18
+    def __init__(self):
+        self.restrict_cmd = set()
+        self.allow_cmd = set()
+        self.compress_threshold = GLOBAL.lengthLim
+        self.enable_this = GLOBAL.enable_this
+        self.font_size = GLOBAL.compressFontSize
+
 
 
 SU = set()
