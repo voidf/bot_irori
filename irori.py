@@ -98,13 +98,20 @@ class SessionConfigures():
     compress_threshold = 500
     enable_this = True
     font_size = 18
+    contest_announce = {}
+    weather_report = 
+
     def __init__(self):
         self.restrict_cmd = set()
         self.allow_cmd = set()
         self.compress_threshold = GLOBAL.lengthLim
         self.enable_this = GLOBAL.enable_this
         self.font_size = GLOBAL.compressFontSize
-
+        self.contest_announce = {
+            "CF":"N",
+            "AT":"N",
+            "NC":"N"
+        }
 
 
 SU = set()
@@ -388,7 +395,7 @@ async def startup(bot: Mirai):
     try:
         asyncio.ensure_future(Callable.SentenceSubscribeRoutiner())
     except:
-        print('天气预报模块出现异常（不太重要：\n',traceback.format_exc())
+        print('每日一句模块出现异常（不太重要：\n',traceback.format_exc())
     
 if __name__ == '__main__':
     irori.run()
