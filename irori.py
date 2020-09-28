@@ -98,23 +98,23 @@ class SessionConfigures():
     compress_threshold = 500
     enable_this = True
     font_size = 18
-    contest_announce = {}
-    weather_report = 
+    quick_calls = {}
+    super_users = set()
 
     def __init__(self):
-        self.restrict_cmd = set()
-        self.allow_cmd = set()
         self.compress_threshold = GLOBAL.lengthLim
         self.enable_this = GLOBAL.enable_this
         self.font_size = GLOBAL.compressFontSize
-        self.contest_announce = {
-            "CF":"N",
-            "AT":"N",
-            "NC":"N"
-        }
+
+def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures())
+
+GLOBAL.cfgs={}
+
+for k,v in banGroup.items():chkcfg(int(k)).restrict_cmd = set(v)
+
+for k,v in allowGroup.items():chkcfg(int(k)).allow_cmd = set(v)
 
 
-SU = set()
 SHELL = {}
 Exceptions = set()
 Helps = set()
@@ -132,9 +132,9 @@ def sys_pexc(member,player,s):Exceptions.add(player);return '异常时打印异�
 
 def sys_cexc(member,player,s):Exceptions.discard(player);return '异常时不打印异常信息'
 
-def sys_su(member,player,s):SU.add(member);return 'irori:~#'
+def sys_su(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~#'
 
-def sys_exit(member,player,s):SU.add(member);return 'irori:~$'
+def sys_exit(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~$'
 
 def sys_terminal(member,player,s):
     if platform.platform().find('Windows') != -1:
@@ -224,7 +224,6 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
 @irori.receiver("GroupMessage")
 async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:Member):
     global enable_this # 放个0作为全局启用,负player号作为关闭标记
-    global SU
     GLOBAL.app = app
     player = group.id+2**39
     extDict = {
@@ -232,6 +231,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
         'mem':member,
         'player':player
     }
+    curcfg = chkcfg(player)
     s = msgprework(message,extDict)
     member = getattr(extDict[mem],'id',int(member))
     if member not in botList:
@@ -251,30 +251,32 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
         if a in Callable.shortMap:
             a = Callable.shortMap[a]
         
-        if a in Callable.functionMap and (group.id not in allowGroup and group.id not in banGroup) or ((group.id in banGroup and a not in banGroup[group.id]) or (group.id in allowGroup and a in allowGroup[group.id] )):
-            try:
-                l = Callable.functionMap[a](*b, **extDict)
-                if l is None:
+        if a in Callable.functionMap:
+            
+            if a not in curcfg.restrict_cmd and (not curcfg.allow_cmd or a in curcfg.allow_cmd):
+                try:
+                    l = Callable.functionMap[a](*b, **extDict)
+                    if l is None:
+                        print(traceback.format_exc())
+                    print(f"MESSAGESLENGTH ===> {len(l)}")
+                    if l:
+                        await app.sendGroupMessage(group,(compressMsg(l)))
+                except:
+                    if l is None:
+                        l = []
                     print(traceback.format_exc())
-                print(f"MESSAGESLENGTH ===> {len(l)}")
-                if l:
-                    await app.sendGroupMessage(group,(compressMsg(l)))
-            except:
-                if l is None:
-                    l = []
-                print(traceback.format_exc())
-                if player in Exceptions:
-                    l.append(Plain(traceback.format_exc()))
-                if player in Helps:
-                    l.append(Callable.printHelp(a))
-                if l:
-                    await app.sendGroupMessage(group,(compressMsg(l)))
-            return
+                    if player in Exceptions:
+                        l.append(Plain(traceback.format_exc()))
+                    if player in Helps:
+                        l.append(Callable.printHelp(a))
+                    if l:
+                        await app.sendGroupMessage(group,(compressMsg(l)))
+                return
 
-        if player in GLOBAL.QuickCalls:
-            print(GLOBAL.QuickCalls)
+        if curcfg.quick_calls:
+            print(curcfg.quick_calls)
             try:
-                for ev,mono in dict(GLOBAL.QuickCalls[player]).items():
+                for ev,mono in dict(curcfg.quick_calls).items():
                     for sniffKey in mono['sniff']:
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
@@ -291,9 +293,9 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
 @irori.receiver("FriendMessage")
 async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
     global enable_this
-    global SU
     GLOBAL.app = app
     player = hurenzu.id
+    curcfg = chkcfg(player)
 
     extDict = {
         'mem':member,
@@ -336,10 +338,10 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                     await app.sendFriendMessage(hurenzu,compressMsg(l))
             return
 
-        if player in GLOBAL.QuickCalls: # sniff模块
-            print(GLOBAL.QuickCalls)
+        if curcfg.quick_calls: # sniff模块
+            print(curcfg.quick_calls)
             try:
-                for ev,mono in GLOBAL.QuickCalls[player].items():
+                for ev,mono in curcfg.quick_calls.items():
                     for sniffKey in mono['sniff']:
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)

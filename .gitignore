@@ -11,6 +11,7 @@ NimGame/
 __pycache__/
 weather/
 sniffer/
+sentence/
 *.pyc
 tmp*
 hakushinAVG.txt

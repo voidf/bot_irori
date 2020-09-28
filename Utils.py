@@ -27,6 +27,8 @@ youbi = {
     7:'日曜日',
 }
 
+def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures())
+
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
     if not os.path.exists('weather/'):
@@ -321,8 +323,7 @@ def removeSniffer(player,event):
 
 def overwriteSniffer(player,event,pattern,*attrs):
     eventObj = {event:{'sniff':[pattern],'attrs':attrs}}
-    GLOBAL.QuickCalls.setdefault(player,{})
-    GLOBAL.QuickCalls[player].update(eventObj)
+    chkcfg(player).quick_calls.update(eventObj)
     if not os.path.exists(f'sniffer/{player}'):
         with open(f'sniffer/{player}','w') as f:
             json.dump(eventObj,f)
@@ -334,7 +335,7 @@ def overwriteSniffer(player,event,pattern,*attrs):
         json.dump(j,f)
 
 def appendSniffer(player,event,pattern): # 注意捕捉exc
-    GLOBAL.QuickCalls[player][event]['sniff'].append(pattern)
+    chkcfg(player).quick_calls[event]['sniff'].append(pattern)
     with open(f'sniffer/{player}','r') as f:
         j = json.load(f)
     j[event]['sniff'].append(pattern)
