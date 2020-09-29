@@ -262,6 +262,24 @@ def 川普生成器(*attrs,**kwargs):
     pat = f"{chr(128588)}没有人\n{chr(128080)}比我\n{chr(128076)}更懂\n{chr(9757)}{s}"
     return [Plain(pat)]
 
+def 骰子(*attrs,**kwargs):
+    try:
+        if(len(attrs)==2):
+            x,y=map(int,attrs)
+            if(x>y):
+                return [Plain("李在干什么？？")]
+            return [Plain(str(random.randint(x,y)))]
+        else:
+            return [Plain("李在干什么")]
+    except Exception as e:
+        return [Plain(str(e))]
+
+def 军舰(*attrs,**kwargs):
+    try:
+        return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
+    except Exception as e:
+        return [Plain(str(e))]
+
 GeneratorMap = {
     '#论证':这么臭的函数有必要定义吗,
     '#营销':营销生成器,
@@ -274,12 +292,15 @@ GeneratorMap = {
     '#拳':打拳姬,
     '#nya':猫图生成器,
     '#Trump':川普生成器,
-    '#口罩':IPlay生成器
+    '#口罩':IPlay生成器,
+    "#Roll":骰子,
+    "#军舰":军舰
 }
 
 GeneratorShort = {
     '#pr':'#舔',
-    '#trump':'#Trump'
+    '#trump':'#Trump',
+    '#jj': "#军舰"
 }
 
 GeneratorDescript = {
