@@ -110,8 +110,6 @@ class SessionConfigures():
 
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
-GLOBAL.cfgs={}
-
 for k,v in banGroup.items():chkcfg(int(k)).restrict_cmd = set(v)
 
 for k,v in allowGroup.items():chkcfg(int(k)).allow_cmd = set(v)

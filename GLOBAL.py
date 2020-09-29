@@ -7,6 +7,8 @@ QuickCalls = {}
 proxy = {}
 DEKnowledge = {}
 
+cfgs={}
+
 randomStrLength = 4
 webPngLimit = int(1e6)
 CaLimit = 1e13
