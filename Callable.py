@@ -100,7 +100,7 @@ def printHelp(*attrs,**kwargs):
         elif attrs[0] in Classes:
             l.append(f'分类：{attrs[0]}')
             for k in Classes[attrs[0]]:
-                l.append(f'''\t{k}\t{functionDescript[k][:10] if len(functionDescript[k][:10])<=10 else functionDescript[k][:10]+'...'}\n''' )
+                l.append(f'''\t{k}\t{functionDescript[k].strip()[:10] if len(functionDescript[k].strip()[:10])<=10 else functionDescript[k].strip()[:10]+'...'}\n''' )
         else:
             l.append('【错误】参数不合法\n')
             ext = printHelp()
