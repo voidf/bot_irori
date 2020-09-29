@@ -14,6 +14,7 @@ sniffer/
 sentence/
 *.pyc
 tmp*
+temp*
 hakushinAVG.txt
 authdata
 groupLimit.json

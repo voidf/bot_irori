@@ -576,3 +576,23 @@ OIWikiHeaders ={
 subscribes = ('S','sub','subscribe','订阅','推送','push')
 unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭嘴', 'damare', 'E', 'yamero', '停')
 
+lengthLim = 500
+enable_this = {0}
+compressFontSize = 18
+
+class SessionConfigures():
+    restrict_cmd = set()
+    allow_cmd = set()
+    compress_threshold = 500
+    enable_this = True
+    font_size = 18
+    quick_calls = {}
+    super_users = set()
+    print_exception = False
+    def __init__(self,player):
+        self.compress_threshold = lengthLim
+        self.font_size = compressFontSize
+        if -player in enable_this:self.enable_this=False
+        elif player in enable_this:self.enable_this=True
+        elif 0 in enable_this:self.enable_this=True
+        else:self.enable_this=False

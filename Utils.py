@@ -27,6 +27,8 @@ youbi = {
     7:'日曜日',
 }
 
+from GLOBAL import SessionConfigures
+
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
 async def WeatherSubscribeRoutiner():
