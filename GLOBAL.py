@@ -7,6 +7,8 @@ QuickCalls = {}
 proxy = {}
 DEKnowledge = {}
 
+cfgs={}
+
 randomStrLength = 4
 webPngLimit = int(1e6)
 CaLimit = 1e13
@@ -573,3 +575,4 @@ OIWikiHeaders ={
 
 subscribes = ('S','sub','subscribe','订阅','推送','push')
 unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭嘴', 'damare', 'E', 'yamero', '停')
+

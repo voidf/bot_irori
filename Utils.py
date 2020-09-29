@@ -27,6 +27,8 @@ youbi = {
     7:'日曜日',
 }
 
+def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
     if not os.path.exists('weather/'):
@@ -250,7 +252,7 @@ def renderHtml(dst_lnk,na):
 def generateTmpFileName(pref,ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
-def compressMsg(l,theme = 255):
+def compressMsg(l,theme = 255,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     offset = GLOBAL.compressFontSize >> 1
     print(offset)
@@ -261,8 +263,9 @@ def compressMsg(l,theme = 255):
             nl.append(i.toString())
         else:
             others.append(i)
+    print(others)
     s = ''.join(nl)
-    if len(s) >GLOBAL.lengthLim:
+    if len(s) >GLOBAL.lengthLim or "-force-image" in extDict:
         
         font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
         
@@ -303,11 +306,7 @@ def getPlayer(**kwargs):
     return player
 
 def removeSniffer(player,event):
-    try:
-        del GLOBAL.QuickCalls[player][event]
-    except:
-        print('清除全局变量QuickCalls出错')
-        print(traceback.format_exc())
+    chkcfg(player).quick_calls[event].pop(event,"?")
     try:
         with open(f'sniffer/{player}','r') as f:
             j = json.load(f)
@@ -320,8 +319,7 @@ def removeSniffer(player,event):
 
 def overwriteSniffer(player,event,pattern,*attrs):
     eventObj = {event:{'sniff':[pattern],'attrs':attrs}}
-    GLOBAL.QuickCalls.setdefault(player,{})
-    GLOBAL.QuickCalls[player].update(eventObj)
+    chkcfg(player).quick_calls.update(eventObj)
     if not os.path.exists(f'sniffer/{player}'):
         with open(f'sniffer/{player}','w') as f:
             json.dump(eventObj,f)
@@ -333,7 +331,7 @@ def overwriteSniffer(player,event,pattern,*attrs):
         json.dump(j,f)
 
 def appendSniffer(player,event,pattern): # 注意捕捉exc
-    GLOBAL.QuickCalls[player][event]['sniff'].append(pattern)
+    chkcfg(player).quick_calls[event]['sniff'].append(pattern)
     with open(f'sniffer/{player}','r') as f:
         j = json.load(f)
     j[event]['sniff'].append(pattern)
