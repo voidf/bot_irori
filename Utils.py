@@ -27,7 +27,7 @@ youbi = {
     7:'日曜日',
 }
 
-def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures())
+def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
@@ -306,11 +306,7 @@ def getPlayer(**kwargs):
     return player
 
 def removeSniffer(player,event):
-    try:
-        del GLOBAL.QuickCalls[player][event]
-    except:
-        print('清除全局变量QuickCalls出错')
-        print(traceback.format_exc())
+    chkcfg(player).quick_calls[event].pop(event,"?")
     try:
         with open(f'sniffer/{player}','r') as f:
             j = json.load(f)
