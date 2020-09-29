@@ -164,8 +164,7 @@ def systemcall(member,player:int,s) -> (bool,str):
                     except UnicodeDecodeError:
                         patts.append(SHELL[member].before.decode('gbk'))
                 return True,'\n'.join(patts)
-        if s[0] in sys_dict:
-            return True,sys_dict[s[0]]
+        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s)
     if s[0] == 'instances':
         return True,f'{identifier}\n{platform.platform()} {locate}\n{tc.enable_this}'
     elif s[0] == 'use':
