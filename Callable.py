@@ -65,42 +65,48 @@ except Exception as e:
 
 
 def printHelp(*attrs,**kwargs):
+    l = []
+    img = []
+    ext = []
     if not attrs:
-        l = [Plain('命令分类：\n')]
-        l.append(Plain('\tAVG 正在开发的文字冒险游戏类\n'))
-        l.append(Plain('\tGame 小游戏类\n'))
-        l.append(Plain('\tString 字符串处理类\n'))
-        l.append(Plain('\tFile 异步与文件读写类\n'))
-        l.append(Plain('\tSpider 爬虫类\n'))
-        l.append(Plain('\tTest 测试类（开发用\n'))
-        l.append(Plain('\tGenerator 生成器类\n'))
-        l.append(Plain('\tTranslate 翻译类\n'))
-        l.append(Plain('\tMath 数学类\n'))
-        l.append(Plain('输入#h <类名> 以查询分类下命令\n'))
-        l.append(Plain('使用#h <命令名> 可以查询详细用法\n'))
-        l.append(Plain('使用#h #abb可以查询缩写表\n'))
+        l.append('命令分类：')
+        l.append('\tAVG 正在开发的文字冒险游戏类')
+        l.append('\tGame 小游戏类')
+        l.append('\tString 字符串处理类')
+        l.append('\tFile 异步与文件读写类')
+        l.append('\tSpider 爬虫类')
+        l.append('\tTest 测试类（开发用')
+        l.append('\tGenerator 生成器类')
+        l.append('\tTranslate 翻译类')
+        l.append('\tMath 数学类')
+        l.append('输入#h <类名> 以查询分类下命令')
+        l.append('使用#h <命令名> 可以查询详细用法')
+        l.append('尖括号表示参数必要，方括号表示参数可选，实际使用')
+        l.append('使用#h #abb可以查询缩写表')
     else:
         if attrs[0] in shortMap:
             attrs = [shortMap[attrs[0]],*attrs[1:]]
         if attrs[0] in functionDescript:
-            l=[Plain(text=functionDescript[attrs[0]])]
+            l.append(functionDescript[attrs[0]])
 
         elif attrs[0] in ('all','old'):
-            l = [Plain(text='可用命令表：\n')]
+            l.append('可用命令表：')
             for k in functionMap:
-                l.append(Plain(text='\t'+k+'\n'))
-            l.append(Plain(text='使用#h 命令名（带井号）可以查询详细用法\n'))
-            l.append(Plain(text='使用#h #abb可以查询缩写表\n'))
-            l.append(Plain(text='注命令后需打空格，之后的参数如存在空格即以空格分开多个参数，如#qr 1 1 4 5 1 4\n'))
-            l.append(Image.fromFileSystem('muzukashi.png'))
+                l.append('\t'+k)
+            l.append('使用#h 命令名（带井号）可以查询详细用法')
+            l.append('使用#h #abb可以查询缩写表')
+            l.append('注命令后需打空格，之后的参数如存在空格即以空格分开多个参数，如#qr 1 1 4 5 1 4')
+            img.append(Image.fromFileSystem('muzukashi.png'))
         elif attrs[0] in Classes:
-            l = [Plain(text=f'分类：{attrs[0]}\n')]
+            l.append(f'分类：{attrs[0]}')
             for k in Classes[attrs[0]]:
-                l.append(Plain(text='\t'+k+'\n'))
+                l.append(Plain(f'''\t{k}\t{functionDescript[k][:10] if len(functionDescript[k][:10])<=10 else functionDescript[k][:10]+'...'}\n''' ))
         else:
-            l = [Plain('【错误】参数不合法\n')] + printHelp()
+            l.append('【错误】参数不合法\n')
+            ext = printHelp()
         
-    return l
+    return [Plain('\n'.join(l))] + img + ext
+
 
 """
 AVG用
