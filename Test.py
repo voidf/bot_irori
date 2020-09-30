@@ -67,9 +67,10 @@ def 废话生成器(*attrs,**kwargs):
 
 def 清空嗅探器(*attrs,**kwargs):
     player = getPlayer(**kwargs)
+    tc = chkcfg(player)
     print('clearing')
     try:
-        del GLOBAL.QuickCalls[player]
+        tc.quick_calls = {}
     except:
         print('可能是内存里没有这个嗅探器引起的：')
         print(traceback.format_exc())
@@ -84,17 +85,18 @@ def 同步嗅探器(*attrs,**kwargs):
         player = kwargs['player']
     else:
         player = getPlayer(**kwargs)
+    tc = chkcfg(player)
     if not os.path.exists(f'sniffer/{player}'):
         try:
-            del GLOBAL.QuickCalls[player]
+            tc.quick_calls = {}
         except:
             print(traceback.format_exc())
         return [Plain('同步完毕，没有活动的嗅探器')]
     else:
         with open(f'sniffer/{player}','r') as f:
             j = json.load(f)
-        GLOBAL.QuickCalls[player] = j
-    return [Plain(f'同步完毕，现有{len(GLOBAL.QuickCalls[player])}个已经激活的嗅探器')]
+        tc.quick_calls = j
+    return [Plain(f'同步完毕，现有{len(tc.quick_calls)}个已经激活的嗅探器')]
 
 
 TestMap = {
