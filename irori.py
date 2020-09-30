@@ -38,6 +38,7 @@ import Test
 import argparse
 from Utils import *
 import GLOBAL
+
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
@@ -90,25 +91,7 @@ except Exception as e:
 
 import Callable
 
-class SessionConfigures():
-    restrict_cmd = set()
-    allow_cmd = set()
-    compress_threshold = 500
-    enable_this = True
-    font_size = 18
-    quick_calls = {}
-    super_users = set()
-    print_exception = False
-    def __init__(self,player):
-        self.compress_threshold = GLOBAL.lengthLim
-        self.enable_this = GLOBAL.enable_this
-        self.font_size = GLOBAL.compressFontSize
-        if -player in GLOBAL.enable_this:self.enable_this=False
-        elif player in GLOBAL.enable_this:self.enable_this=True
-        elif 0 in GLOBAL.enable_this:self.enable_this=True
-        else:self.enable_this=False
-
-def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+def getmem(mono):return mono.id if getattr(mono,'id',None) else int(mono)
 
 for k,v in banGroup.items():chkcfg(int(k)).restrict_cmd = set(v)
 
@@ -136,7 +119,7 @@ def sys_exit(member,player,s):chkcfg(player).super_users.add(member);return 'iro
 
 def sys_terminal(member,player,s):
     if platform.platform().find('Windows') != -1:
-        for i in s[1:]
+        for i in s[1:]:
             if i in ('ps','powershell'):
                 SHELL[member] = pexpect.popen_spawn.PopenSpawn('powershell')
                 return '终端启动(Windows PowerShell)，退出请输入"我不玩了"'
@@ -157,7 +140,7 @@ sys_dict = {
     'terminal':sys_terminal,
 }
 
-def systemcall(member,player:int,s) -> List[bool,str]:
+def systemcall(member,player:int,s) -> (bool,str):
     tc = chkcfg(player)
     if tc.enable_this:
         if member in SHELL:
@@ -167,7 +150,7 @@ def systemcall(member,player:int,s) -> List[bool,str]:
                 return True,'ojbk这就把你的任务扔掉'
             else:
                 patts = []
-                SHELL[member].sendline(message.toString())
+                SHELL[member].sendline('\n'.join(s))
                 try:
                     while True:
                         SHELL[member].expect('\r\n',timeout = 3)
@@ -181,8 +164,7 @@ def systemcall(member,player:int,s) -> List[bool,str]:
                     except UnicodeDecodeError:
                         patts.append(SHELL[member].before.decode('gbk'))
                 return True,'\n'.join(patts)
-        if s[0] in sys_dict:
-            return True,sys_dict[s[0]]
+        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s)
     if s[0] == 'instances':
         return True,f'{identifier}\n{platform.platform()} {locate}\n{tc.enable_this}'
     elif s[0] == 'use':
@@ -194,19 +176,18 @@ def systemcall(member,player:int,s) -> List[bool,str]:
     return False,''
 
 def msgprework(message: MessageChain, extDict: dict) -> list:
+    tc = chkcfg(extDict['player'])
     s = message.toString().split(' ')
     pic = message.getFirstComponent(Image)
-    member = getattr(extDict[mem],'id',int(member))
-    if pic:
-        extDict['pic'] = pic
-    if member in SU:
-        extDict['sudo'] = True
+
+    member:int = getmem(extDict['mem'])
+    if pic:extDict['pic'] = pic
+    if member in tc.super_users:extDict['sudo'] = True
     if s[0] == 'sudo':
         s.pop(0)
         if member in masterID:
             extDict['sudo'] = True
-    if GLOBAL.echoMsg:
-        print(f"""{message}""")
+    if GLOBAL.echoMsg:print(f"""{message}""")
     ns = []
     for i in s:
         if i[:2] == "--":
@@ -229,13 +210,14 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     }
     tc = chkcfg(player)
     s = msgprework(message,extDict)
-    member = getattr(extDict[mem],'id',int(member))
+    member:int = getmem(extDict['mem'])
     if member not in botList:
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member)
+                is_called,output=systemcall(member,player,s)
                 if is_called:
-                    return app.sendGroupMessage(group,compressMsg([Plain(output))])
+                    await app.sendGroupMessage(group,compressMsg([Plain(output)]))
+                    return
         except:
             if tc.print_exception:
                 await app.sendGroupMessage(group,[Plain(traceback.format_exc())])
@@ -291,19 +273,20 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
     tc = chkcfg(player)
 
     extDict = {
-        'mem':member,
+        'mem':hurenzu,
         'player':player
     }
-    member = getattr(hurenzu,"id",int(hurenzu))
+    member = getmem(hurenzu)
     s = msgprework(message,extDict)
 
     if hurenzu.id not in muteList:
         
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member)
+                is_called,output=systemcall(member,player,s)
                 if is_called:
-                    return app.sendFriendMessage(hurenzu,compressMsg([Plain(output))])
+                    await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)]))
+                    return
         except:
             if tc.print_exception:
                 await app.sendFriendMessage(hurenzu,[Plain(traceback.format_exc())])
