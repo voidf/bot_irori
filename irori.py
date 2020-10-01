@@ -219,7 +219,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             if 'sudo' in extDict:
                 is_called,output=systemcall(member,player,s)
                 if is_called:
-                    await app.sendGroupMessage(group,compressMsg([Plain(output)]))
+                    await app.sendGroupMessage(group,compressMsg([Plain(output)],extDict))
                     return
         except:
             if tc.print_exception:
@@ -241,7 +241,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         print(traceback.format_exc())
                     print(f"MESSAGESLENGTH ===> {len(l)}")
                     if l:
-                        await app.sendGroupMessage(group,(compressMsg(l)))
+                        await app.sendGroupMessage(group,compressMsg(l,extDict))
                 except:
                     if l is None:
                         l = []
@@ -249,7 +249,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if tc.print_exception:
                         l.append(Plain(traceback.format_exc()))
                     if l:
-                        await app.sendGroupMessage(group,(compressMsg(l)))
+                        await app.sendGroupMessage(group,compressMsg(l,extDict))
                 return
 
         if tc.quick_calls:
@@ -260,14 +260,14 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         if re.search(sniffKey,message.toString(),re.S):
                             l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
                             if l:
-                                asyncio.ensure_future(app.sendGroupMessage(group,(compressMsg(l))))
+                                asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
                             break
 
             except:
                 if tc.print_exception:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendGroupMessage(group,(compressMsg(l)))
+                    await app.sendGroupMessage(group,compressMsg(l,extDict))
 
 @irori.receiver("FriendMessage")
 async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
@@ -288,7 +288,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
             if 'sudo' in extDict:
                 is_called,output=systemcall(member,player,s)
                 if is_called:
-                    await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)]))
+                    await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)],extDict))
                     return
         except:
             if tc.print_exception:
@@ -306,13 +306,13 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 l = Callable.functionMap[a](*b, **extDict)
                 print(f"MESSAGESLENGTH ===> {len(l)}")
                 if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
+                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
             except:
                 print(traceback.format_exc())
                 if tc.print_exception:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
+                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
             return
 
         if tc.quick_calls: # sniff模块
@@ -330,7 +330,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 if tc.print_exception:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
+                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
 
 @irori.subroutine
 async def startup(bot: Mirai):
