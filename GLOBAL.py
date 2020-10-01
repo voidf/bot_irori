@@ -21,31 +21,31 @@ AVGHost = ''
 AVGPort = 0
 
 AtCoderHeaders = {
-    "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-    "accept-encoding":"gzip, deflate, br",
-    "accept-language":"zh-CN,zh;q=0.9",
-    "cache-control":"no-cache",
-    "dnt":"1",
-    "pragma":"no-cache",
-    "upgrade-insecure-requests":"1",
-    "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+	"accept-encoding":"gzip, deflate, br",
+	"accept-language":"zh-CN,zh;q=0.9",
+	"cache-control":"no-cache",
+	"dnt":"1",
+	"pragma":"no-cache",
+	"upgrade-insecure-requests":"1",
+	"user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 }
 
 moeGirlHeaders={
-    "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-    "accept-language":"zh-CN,zh;q=0.9",
-    "dnt":"1",
-    "upgrade-insecure-requests":"1",
-    "user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+	"accept-language":"zh-CN,zh;q=0.9",
+	"dnt":"1",
+	"upgrade-insecure-requests":"1",
+	"user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 }
 
 OIWikiHeaders ={
-    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-    "accept-language": "zh-CN,zh;q=0.9",
-    "cache-control": "max-age=0",
-    "dnt": "1",
-    "upgrade-insecure-requests": "1",
-    "user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+	"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+	"accept-language": "zh-CN,zh;q=0.9",
+	"cache-control": "max-age=0",
+	"dnt": "1",
+	"upgrade-insecure-requests": "1",
+	"user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 }
 
 
@@ -570,7 +570,7 @@ OIWikiHeaders ={
 	1: "11/(45-1)*4",
 	0: "(1-1)*4514",
 	"d": "11-4-5+1-4"
-    }
+	}
 恶臭键值 = sorted(list(这 for 这 in 恶臭字典.keys() if 这!='d'))
 
 subscribes = ('S','sub','subscribe','订阅','推送','push')
@@ -581,18 +581,30 @@ enable_this = {0}
 compressFontSize = 18
 
 class SessionConfigures():
-    restrict_cmd = set()
-    allow_cmd = set()
-    compress_threshold = 500
-    enable_this = True
-    font_size = 18
-    quick_calls = {}
-    super_users = set()
-    print_exception = False
-    def __init__(self,player):
-        self.compress_threshold = lengthLim
-        self.font_size = compressFontSize
-        if -player in enable_this:self.enable_this=False
-        elif player in enable_this:self.enable_this=True
-        elif 0 in enable_this:self.enable_this=True
-        else:self.enable_this=False
+	restrict_cmd = set()
+	allow_cmd = set()
+	compress_threshold = 500
+	enable_this = True
+	font_size = 18
+	quick_calls = {}
+	super_users = set()
+	print_exception = False
+	def __init__(self,player):
+		self.compress_threshold = lengthLim
+		self.font_size = compressFontSize
+		if -player in enable_this:self.enable_this=False
+		elif player in enable_this:self.enable_this=True
+		elif 0 in enable_this:self.enable_this=True
+		else:self.enable_this=False
+
+	def infos(self):
+		return f"""
+restrict_cmd:{self.restrict_cmd}
+allow_cmd:{self.allow_cmd}
+compress_threshold:{self.compress_threshold}
+enable_this:{self.enable_this}
+font_size:{self.font_size}
+quick_calls:{list(self.quick_calls.items())}
+super_users:{self.super_users}
+print_exception:{self.print_exception}
+"""
