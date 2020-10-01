@@ -263,16 +263,12 @@ def 川普生成器(*attrs,**kwargs):
     return [Plain(pat)]
 
 def 骰子(*attrs,**kwargs):
-    try:
-        if(len(attrs)==2):
-            x,y=map(int,attrs)
-            if(x>y):
-                return [Plain("李在干什么？？")]
-            return [Plain(str(random.randint(x,y)))]
-        else:
-            return [Plain("李在干什么")]
-    except Exception as e:
-        return [Plain(str(e))]
+    if(len(attrs)>=2):
+        x,y=(int(i) for i in attrs[:2])
+        return [Plain(f"{random.randint(min(x,y),max(x,y))}")]
+    else:
+        return [Plain("我要怎么给你Roll哦")]
+
 
 def 军舰(*attrs,**kwargs):
     try:
@@ -313,6 +309,8 @@ GeneratorDescript = {
     '#同学':'同学你好生成器，格式：#同学 <群名> <这个群教什么东西>',
     '#不会吧':'不会吧生成器，例：#不会吧 把浴霸关上',
     '#口罩':'自己试试效果吧，例:#口罩 I play BanG Dream!',
+    '#Roll':'44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(不包含)>',
+    '#军舰':'重来！这么小声还想问"#军舰"怎么开?',
     '#Trump':'No one knows Trump Generator better than me!',
     '#拳':
 """
