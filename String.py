@@ -95,8 +95,7 @@ def rot_13(*attrs,**kwargs):
         ostr.append(Plain(text=''.join(dst)+'\n'))
     return ostr
 
-def 字符串反转(*attrs,**kwargs):
-    return [Plain(text=' '.join(attrs)[::-1])]
+def 字符串反转(*attrs,**kwargs):return [Plain(' '.join(attrs)[::-1])]
 
 def 二维码生成器(*attrs,**kwargs):
     s = ' '.join(attrs)
@@ -121,10 +120,10 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
-with open('zh2morse.json','r') as f:
+with open('Assets/zh2morse.json','r') as f:
     z2m = json.load(f)
 
-with open('morse2zh.json','r') as f:
+with open('Assets/morse2zh.json','r') as f:
     m2z = json.load(f)
 
 k1 = """ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:,;?='/!-_"()$&@"""
@@ -244,9 +243,13 @@ book_of_answers = [
 
     '优质解答：我不知道',
 
+    '你可长点心吧',
+
     '问问爷爷','问问公公','问问44','问问ss','问问fufu',
 
     '不要这样，妈妈怕',
+
+    '冲，冲tmd',
 
     '下次一定','别吧','又不是不能用','人不能，至少不应该',
 

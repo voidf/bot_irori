@@ -362,7 +362,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
         os.mkdir('SlidingPuzzle/')
 
     if not os.path.exists(f'''SlidingPuzzle/{player}BG'''):
-        shutil.copy('default.png',f'''SlidingPuzzle/{player}BG''')
+        shutil.copy('Assets/default.png',f'''SlidingPuzzle/{player}BG''')
 
     
     if not os.path.exists(f'''SlidingPuzzle/{player}.txt''') or attrs and attrs[0] == 'init':

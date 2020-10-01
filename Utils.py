@@ -177,7 +177,7 @@ async def msgDistributer(**kwargs):
             seq = [Face(QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
             # print(base64.b64decode(kwargs['msg']))
-            try:
+            try: # 这个try用来判断msg是不是可解码的b64
                 base64.b64decode(kwargs['msg'])
                 f_n = 'tmp'+randstr(8)
                 with open(f_n,'wb') as f:
@@ -198,22 +198,21 @@ async def msgDistributer(**kwargs):
         else:
             seq = [Plain(kwargs['msg'])]
 
-        if 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
-        elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
-        elif 'player' in kwargs:
+        if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
                 await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),compressMsg(seq))
             else:
                 await GLOBAL.app.sendFriendMessage(kwargs['player'],compressMsg(seq))
+        elif 'gp' in kwargs:
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
+        elif 'mem' in kwargs:
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
+        
 
-def tnow():
-    return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:
-    return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
+def randstr(l:int) -> str:return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
 
 def renderHtml(dst_lnk,na):
     option = webdriver.ChromeOptions()

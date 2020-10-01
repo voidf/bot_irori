@@ -12,16 +12,16 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + 拉库 `sudo pull`，强制拉库`sudo pull -f`
 + 多实例管理 `sudo use <uuid>`、`sudo instances`
 + QQ群开shell（危
-+ QQ群用eval（危
++ QQ群用eval和exec（危
 + 长文字可以渲染为图片发送
 
-## 部分已实现功能
+## 有那么点点用的功能
 
 + [x] ddl事件安排及提醒
 + [x] LaTeX公式渲染（其实是爬虫
-+ [x] 查询Unicode表情码
 + [x] CodeForces、AtCoder、牛客的比赛提醒推送
 + [x] 谷歌翻译，百度翻译（fufu提供的爬虫
++ [x] 答案之书（不知道为什么群友总能玩出新花样
 
 完整功能请部署后使用#h查看
 
@@ -143,9 +143,9 @@ env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
 }
 ```
 
-## 关于player号
+## 参与开发
 
-player号事irori中根据群或者好友来源qq号生成的一种统一号。用于消息分发等地方。算法事好友消息即好友的qq号，群组消息则事群组qq号加上1<<39
+参见[DEV.md](DEV.md)
 
 ## 老版本kuriyama(0.2.3)留下来的坑
 

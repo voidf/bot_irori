@@ -110,7 +110,7 @@ def 这么臭的函数有必要定义吗(*attrs,**kwargs):
 
 def 猫图生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
-    nyaSrc = PImage.open('nya.png').convert('RGBA')
+    nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -126,7 +126,7 @@ def 猫图生成器(*attrs,**kwargs):
 
 def 优质解答生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
-    nyaSrc = PImage.open('answer.jpg').convert('RGBA')
+    nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -142,7 +142,7 @@ def 优质解答生成器(*attrs,**kwargs):
 
 def IPlay生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
-    Src = PImage.open('IPlayRhythmGame.png').convert('RGBA')
+    Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
     layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -158,7 +158,7 @@ def IPlay生成器(*attrs,**kwargs):
     
 def 希望没事生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
-    nyaSrc = PImage.open('wish.png').convert('RGBA')
+    nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -179,7 +179,7 @@ def 希望没事生成器(*attrs,**kwargs):
 
 def 希望工程(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
-    nyaSrc = PImage.open('wish.jpg').convert('RGBA')
+    nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
