@@ -353,6 +353,7 @@ async def startup(bot: Mirai):
             await bot.sendGroupMessage(k_,[Plain(random.choice(v_))])
     except:
         print('未设置登录提醒（不太重要')
+        traceback.print_exc()
     try:
         if not os.path.exists('ddl/'):
             os.mkdir('ddl/')
