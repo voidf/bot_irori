@@ -22,7 +22,7 @@ irori的代码风格**非常扭曲**，如果你不喜欢看长长长长的函�
 
 # 从复读开始
 
-我们随便打开一个类，比如[String.py](String.py),往里面众多函数下面加一个：
+我们随便打开一个类，比如[Generator.py](Generator.py),往里面众多函数下面加一个：
 
 ```python
 def 复读(*attrs,**kwargs):return [Plain(' '.join(attrs))]
