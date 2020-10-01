@@ -311,7 +311,7 @@ def getPlayer(**kwargs):
     return player
 
 def removeSniffer(player,event):
-    chkcfg(player).quick_calls[event].pop(event,"?")
+    print(chkcfg(player).quick_calls.pop(event,"?"))
     try:
         with open(f'sniffer/{player}','r') as f:
             j = json.load(f)
