@@ -256,12 +256,13 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             print(tc.quick_calls)
             try:
                 for ev,mono in dict(tc.quick_calls).items():
-                    for sniffKey in mono['sniff']:
-                        if re.search(sniffKey,message.toString(),re.S):
-                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
-                            if l:
-                                asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
-                            break
+                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
+                        for sniffKey in mono['sniff']:
+                            if re.search(sniffKey,message.toString(),re.S):
+                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                if l:
+                                    asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
+                                break
 
             except:
                 if tc.print_exception:
@@ -302,29 +303,32 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
             a = Callable.shortMap[a]
         
         if a in Callable.functionMap: # 命令模块
-            try:
-                l = Callable.functionMap[a](*b, **extDict)
-                print(f"MESSAGESLENGTH ===> {len(l)}")
-                if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
-            except:
-                print(traceback.format_exc())
-                if tc.print_exception:
-                    l.append(Plain(traceback.format_exc()))
-                if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
-            return
+            if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
+                try:
+                    
+                    l = Callable.functionMap[a](*b, **extDict)
+                    print(f"MESSAGESLENGTH ===> {len(l)}")
+                    if l:
+                        await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
+                except:
+                    print(traceback.format_exc())
+                    if tc.print_exception:
+                        l.append(Plain(traceback.format_exc()))
+                    if l:
+                        await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
+                return
 
         if tc.quick_calls: # sniff模块
             print(tc.quick_calls)
             try:
                 for ev,mono in tc.quick_calls.items():
-                    for sniffKey in mono['sniff']:
-                        if re.search(sniffKey,message.toString(),re.S):
-                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
-                            if l:
-                                asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
-                            break
+                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
+                        for sniffKey in mono['sniff']:
+                            if re.search(sniffKey,message.toString(),re.S):
+                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                if l:
+                                    asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
+                                break
 
             except:
                 if tc.print_exception:
