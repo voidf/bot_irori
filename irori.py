@@ -100,26 +100,26 @@ for k,v in allowGroup.items():chkcfg(int(k)+2**39).allow_cmd = set(v)
 
 SHELL = {}
 
-def sys_reload(member,player,s):importlib.reload(Callable);return '热重载完成'
+def sys_reload(member,player,s,extDict):importlib.reload(Callable);return '热重载完成'
 
-def sys_pull(member,player,s):
-    if '-f' in s:c = 'git fetch --all && git reset --hard origin/master'
+def sys_pull(member,player,s,extDict):
+    if '-f' in extDict:c = 'git fetch --all && git reset --hard origin/master'
     else:c = 'git pull'
     return os.popen(c).read()
 
-def sys_exec(member,player,s):return f"""{exec(' '.join(s[1:]))}"""
+def sys_exec(member,player,s,extDict):return f"""{exec(' '.join(s[1:]))}"""
 
-def sys_eval(member,player,s):return f"""{eval(' '.join(s[1:]))}"""
+def sys_eval(member,player,s,extDict):return f"""{eval(' '.join(s[1:]))}"""
 
-def sys_pexc(member,player,s):chkcfg(player).print_exception=True;return '异常时打印异常信息'
+def sys_pexc(member,player,s,extDict):chkcfg(player).print_exception=True;return '异常时打印异常信息'
 
-def sys_cexc(member,player,s):chkcfg(player).print_exception=False;return '异常时不打印异常信息'
+def sys_cexc(member,player,s,extDict):chkcfg(player).print_exception=False;return '异常时不打印异常信息'
 
-def sys_su(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~#'
+def sys_su(member,player,s,extDict):chkcfg(player).super_users.add(member);return 'irori:~#'
 
-def sys_exit(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~$'
+def sys_exit(member,player,s,extDict):chkcfg(player).super_users.add(member);return 'irori:~$'
 
-def sys_terminal(member,player,s):
+def sys_terminal(member,player,s,extDict):
     if platform.platform().find('Windows') != -1:
         for i in s[1:]:
             if i in ('ps','powershell'):
@@ -143,7 +143,7 @@ sys_dict = {
     'terminal':sys_terminal,
 }
 
-def systemcall(member,player:int,s) -> (bool,str):
+def systemcall(member,player:int,s,extDict) -> (bool,str):
     tc = chkcfg(player)
     if tc.enable_this:
         if member in SHELL:
@@ -167,7 +167,7 @@ def systemcall(member,player:int,s) -> (bool,str):
                     except UnicodeDecodeError:
                         patts.append(SHELL[member].before.decode('gbk'))
                 return True,'\n'.join(patts)
-        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s)
+        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s,extDict)
     if s[0] == 'instances':
         return True,f'{identifier}\n{platform.platform()} {locate}\n{tc.enable_this}'
     elif s[0] == 'use':
@@ -217,7 +217,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     if member not in botList:
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s)
+                is_called,output=systemcall(member,player,s,extDict)
                 if is_called:
                     await app.sendGroupMessage(group,compressMsg([Plain(output)],extDict))
                     return
@@ -287,7 +287,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
         
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s)
+                is_called,output=systemcall(member,player,s,extDict)
                 if is_called:
                     await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)],extDict))
                     return
