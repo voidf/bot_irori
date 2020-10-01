@@ -93,9 +93,9 @@ import Callable
 
 def getmem(mono):return mono.id if getattr(mono,'id',None) else int(mono)
 
-for k,v in banGroup.items():chkcfg(int(k)).restrict_cmd = set(v)
+for k,v in banGroup.items():chkcfg(int(k)+2**39).restrict_cmd = set(v)
 
-for k,v in allowGroup.items():chkcfg(int(k)).allow_cmd = set(v)
+for k,v in allowGroup.items():chkcfg(int(k)+2**39).allow_cmd = set(v)
 
 
 SHELL = {}
@@ -106,6 +106,8 @@ def sys_pull(member,player,s):
     if '-f' in s:c = 'git fetch --all && git reset --hard origin/master'
     else:c = 'git pull'
     return os.popen(c).read()
+
+def sys_exec(member,player,s):return f"""{exec(' '.join(s[1:]))}"""
 
 def sys_eval(member,player,s):return f"""{eval(' '.join(s[1:]))}"""
 
@@ -133,6 +135,7 @@ sys_dict = {
     'reload':sys_reload,
     'pull':sys_pull,
     'eval':sys_eval,
+    'exec':sys_exec,
     'pexc':sys_pexc,
     'cexc':sys_cexc,
     'su':sys_su,
