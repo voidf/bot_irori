@@ -93,31 +93,33 @@ import Callable
 
 def getmem(mono):return mono.id if getattr(mono,'id',None) else int(mono)
 
-for k,v in banGroup.items():chkcfg(int(k)).restrict_cmd = set(v)
+for k,v in banGroup.items():chkcfg(int(k)+2**39).restrict_cmd = set(v)
 
-for k,v in allowGroup.items():chkcfg(int(k)).allow_cmd = set(v)
+for k,v in allowGroup.items():chkcfg(int(k)+2**39).allow_cmd = set(v)
 
 
 SHELL = {}
 
-def sys_reload(member,player,s):importlib.reload(Callable);return '热重载完成'
+def sys_reload(member,player,s,extDict):importlib.reload(Callable);return '热重载完成'
 
-def sys_pull(member,player,s):
-    if '-f' in s:c = 'git fetch --all && git reset --hard origin/master'
+def sys_pull(member,player,s,extDict):
+    if '-f' in extDict:c = 'git fetch --all && git reset --hard origin/master'
     else:c = 'git pull'
     return os.popen(c).read()
 
-def sys_eval(member,player,s):return f"""{eval(' '.join(s[1:]))}"""
+def sys_exec(member,player,s,extDict):return f"""{exec(' '.join(s[1:]))}"""
 
-def sys_pexc(member,player,s):chkcfg(player).print_exception=True;return '异常时打印异常信息'
+def sys_eval(member,player,s,extDict):return f"""{eval(' '.join(s[1:]))}"""
 
-def sys_cexc(member,player,s):chkcfg(player).print_exception=False;return '异常时不打印异常信息'
+def sys_pexc(member,player,s,extDict):chkcfg(player).print_exception=True;return '异常时打印异常信息'
 
-def sys_su(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~#'
+def sys_cexc(member,player,s,extDict):chkcfg(player).print_exception=False;return '异常时不打印异常信息'
 
-def sys_exit(member,player,s):chkcfg(player).super_users.add(member);return 'irori:~$'
+def sys_su(member,player,s,extDict):chkcfg(player).super_users.add(member);return 'irori:~#'
 
-def sys_terminal(member,player,s):
+def sys_exit(member,player,s,extDict):chkcfg(player).super_users.add(member);return 'irori:~$'
+
+def sys_terminal(member,player,s,extDict):
     if platform.platform().find('Windows') != -1:
         for i in s[1:]:
             if i in ('ps','powershell'):
@@ -133,6 +135,7 @@ sys_dict = {
     'reload':sys_reload,
     'pull':sys_pull,
     'eval':sys_eval,
+    'exec':sys_exec,
     'pexc':sys_pexc,
     'cexc':sys_cexc,
     'su':sys_su,
@@ -140,7 +143,7 @@ sys_dict = {
     'terminal':sys_terminal,
 }
 
-def systemcall(member,player:int,s) -> (bool,str):
+def systemcall(member,player:int,s,extDict) -> (bool,str):
     tc = chkcfg(player)
     if tc.enable_this:
         if member in SHELL:
@@ -164,7 +167,7 @@ def systemcall(member,player:int,s) -> (bool,str):
                     except UnicodeDecodeError:
                         patts.append(SHELL[member].before.decode('gbk'))
                 return True,'\n'.join(patts)
-        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s)
+        if s[0] in sys_dict:return True,sys_dict[s[0]](member,player,s,extDict)
     if s[0] == 'instances':
         return True,f'{identifier}\n{platform.platform()} {locate}\n{tc.enable_this}'
     elif s[0] == 'use':
@@ -214,9 +217,9 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     if member not in botList:
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s)
+                is_called,output=systemcall(member,player,s,extDict)
                 if is_called:
-                    await app.sendGroupMessage(group,compressMsg([Plain(output)]))
+                    await app.sendGroupMessage(group,compressMsg([Plain(output)],extDict))
                     return
         except:
             if tc.print_exception:
@@ -238,7 +241,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         print(traceback.format_exc())
                     print(f"MESSAGESLENGTH ===> {len(l)}")
                     if l:
-                        await app.sendGroupMessage(group,(compressMsg(l)))
+                        await app.sendGroupMessage(group,compressMsg(l,extDict))
                 except:
                     if l is None:
                         l = []
@@ -246,25 +249,26 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if tc.print_exception:
                         l.append(Plain(traceback.format_exc()))
                     if l:
-                        await app.sendGroupMessage(group,(compressMsg(l)))
+                        await app.sendGroupMessage(group,compressMsg(l,extDict))
                 return
 
         if tc.quick_calls:
             print(tc.quick_calls)
             try:
                 for ev,mono in dict(tc.quick_calls).items():
-                    for sniffKey in mono['sniff']:
-                        if re.search(sniffKey,message.toString(),re.S):
-                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
-                            if l:
-                                asyncio.ensure_future(app.sendGroupMessage(group,(compressMsg(l))))
-                            break
+                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
+                        for sniffKey in mono['sniff']:
+                            if re.search(sniffKey,message.toString(),re.S):
+                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                if l:
+                                    asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
+                                break
 
             except:
                 if tc.print_exception:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendGroupMessage(group,(compressMsg(l)))
+                    await app.sendGroupMessage(group,compressMsg(l,extDict))
 
 @irori.receiver("FriendMessage")
 async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
@@ -283,9 +287,9 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
         
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s)
+                is_called,output=systemcall(member,player,s,extDict)
                 if is_called:
-                    await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)]))
+                    await app.sendFriendMessage(hurenzu,compressMsg([Plain(output)],extDict))
                     return
         except:
             if tc.print_exception:
@@ -299,35 +303,38 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
             a = Callable.shortMap[a]
         
         if a in Callable.functionMap: # 命令模块
-            try:
-                l = Callable.functionMap[a](*b, **extDict)
-                print(f"MESSAGESLENGTH ===> {len(l)}")
-                if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
-            except:
-                print(traceback.format_exc())
-                if tc.print_exception:
-                    l.append(Plain(traceback.format_exc()))
-                if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
-            return
+            if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
+                try:
+                    
+                    l = Callable.functionMap[a](*b, **extDict)
+                    print(f"MESSAGESLENGTH ===> {len(l)}")
+                    if l:
+                        await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
+                except:
+                    print(traceback.format_exc())
+                    if tc.print_exception:
+                        l.append(Plain(traceback.format_exc()))
+                    if l:
+                        await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
+                return
 
         if tc.quick_calls: # sniff模块
             print(tc.quick_calls)
             try:
                 for ev,mono in tc.quick_calls.items():
-                    for sniffKey in mono['sniff']:
-                        if re.search(sniffKey,message.toString(),re.S):
-                            l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
-                            if l:
-                                asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
-                            break
+                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
+                        for sniffKey in mono['sniff']:
+                            if re.search(sniffKey,message.toString(),re.S):
+                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                if l:
+                                    asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
+                                break
 
             except:
                 if tc.print_exception:
                     l.append(Plain(traceback.format_exc()))
                 if l:
-                    await app.sendFriendMessage(hurenzu,compressMsg(l))
+                    await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
 
 @irori.subroutine
 async def startup(bot: Mirai):
@@ -342,10 +349,11 @@ async def startup(bot: Mirai):
     try:
         global cfg
         print(cfg)
-        for _ in cfg.get('onlineMsg',[]): # 上线提醒
-            await bot.sendGroupMessage(_[0],[Plain(_[1])])
+        for k_,v_ in cfg.get('onlineMsg',{}).items(): # 上线提醒
+            await bot.sendGroupMessage(int(k_),[Plain(random.choice(v_))])
     except:
         print('未设置登录提醒（不太重要')
+        traceback.print_exc()
     try:
         if not os.path.exists('ddl/'):
             os.mkdir('ddl/')
