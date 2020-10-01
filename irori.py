@@ -349,8 +349,8 @@ async def startup(bot: Mirai):
     try:
         global cfg
         print(cfg)
-        for _ in cfg.get('onlineMsg',[]): # 上线提醒
-            await bot.sendGroupMessage(_[0],[Plain(_[1])])
+        for k_,v_ in cfg.get('onlineMsg',{}).items(): # 上线提醒
+            await bot.sendGroupMessage(k_,[Plain(random.choice(v_))])
     except:
         print('未设置登录提醒（不太重要')
     try:
