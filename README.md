@@ -191,3 +191,44 @@ env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
 
 [KutouAkira/bot_fufu](https://github.com/KutouAkira/bot_fufu)
 
+# 你群沙雕日常
+
+> 不会吧不会吧，不会真的有人什么都问答案之书吧？
+
+![](Assets/kusa/1.png)
+
+![](Assets/kusa/2.jpg)
+
+![](Assets/kusa/3.jpg)
+
+![](Assets/kusa/4.jpg)
+
+![](Assets/kusa/5.jpg)
+
+![](Assets/kusa/6.png)
+
+![](Assets/kusa/7.jpg)
+
+![](Assets/kusa/8.png)
+
+![](Assets/kusa/9.png)
+
+![](Assets/kusa/10.png)
+
+![](Assets/kusa/11.png)
+
+![](Assets/kusa/12.png)
+
+![](Assets/kusa/13.png)
+
+![](Assets/kusa/14.png)
+
+![](Assets/kusa/15.png)
+
+![](Assets/kusa/16.png)
+
+![](Assets/kusa/17.png)
+
+![](Assets/kusa/18.png)
+
+**欢迎投稿（**
