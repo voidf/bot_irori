@@ -87,6 +87,18 @@ async def SentenceSubscribeRoutiner():
             except:
                 print('每日一句挂了！',traceback.format_exc())
 
+async def JRRPclearRoutiner():
+    print('进入回环：清空人品（？）')
+    while 1:
+        print(f'JRRP clear waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
+        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400) 
+
+        try:
+            GLOBAL.JRRP_map.clear()
+            asyncio.ensure_future(msgDistributer(msg='你昨天的人品已经被清除了——',typ='P',player=550247773345)) #player号码暂时这么写，别打我
+        except:
+            print('人品清除失败')
+
 async def CFLoopRoutiner():
     print('进入回环(CF')
     if not os.path.exists('CF/'):

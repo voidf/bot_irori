@@ -6,6 +6,8 @@ OTNoticeQueueGlobal={}
 QuickCalls = {}
 proxy = {}
 DEKnowledge = {}
+JRRP_map = {}
+
 
 cfgs={}
 

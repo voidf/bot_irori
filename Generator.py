@@ -269,12 +269,34 @@ def 骰子(*attrs,**kwargs):
     else:
         return [Plain("我要怎么给你Roll哦")]
 
-
 def 军舰(*attrs,**kwargs):
     try:
         return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
     except Exception as e:
         return [Plain(str(e))]
+
+def 今日人品(*attrs,**kwargs):
+    player_id=kwargs['mem'].id
+    if player_id not in GLOBAL.JRRP_map: #已经存在信息直接读取，否则生成新数字
+        GLOBAL.JRRP_map[player_id]=random.randint(0,100)
+
+    rp_val=GLOBAL.JRRP_map[player_id]
+    ans='你今天的人品为：'+str(rp_val)+'\n评价：'
+    if rp_val==100:
+        ans+='心想事成'
+    elif 80<=rp_val<=99:
+        ans+='万事如意'
+    elif 60<=rp_val<=79:
+        ans+='修短随化'
+    elif 40<=rp_val<=59:
+        ans+='因祸得福'
+    elif 20<=rp_val<=39:
+        ans+='落魄不偶'
+    elif 1<=rp_val<=19:
+        ans+='有命无运'
+    elif rp_val==0:
+        ans+='危！'
+    return [Plain(ans)]
 
 GeneratorMap = {
     '#论证':这么臭的函数有必要定义吗,
@@ -290,13 +312,15 @@ GeneratorMap = {
     '#Trump':川普生成器,
     '#口罩':IPlay生成器,
     "#Roll":骰子,
-    "#军舰":军舰
+    "#军舰":军舰,
+    "#今日人品":今日人品
 }
 
 GeneratorShort = {
     '#pr':'#舔',
     '#trump':'#Trump',
-    '#jj': "#军舰"
+    '#jj': "#军舰",
+    "#jrrp": "#今日人品"
 }
 
 GeneratorDescript = {
@@ -311,6 +335,7 @@ GeneratorDescript = {
     '#口罩':'自己试试效果吧，例:#口罩 I play BanG Dream!',
     '#Roll':'44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(不包含)>',
     '#军舰':'重来！这么小声还想问"#军舰"怎么开?',
+    "#今日人品":'取得你今天的人品值（0~100）',
     '#Trump':'No one knows Trump Generator better than me!',
     '#拳':
 """
