@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -34,7 +33,7 @@ import urllib
 import mido
 import GLOBAL
 from Utils import *
-
+importMirai()
 
 def 没救了(*attrs,**kwargs):
     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)

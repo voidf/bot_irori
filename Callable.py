@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 import quine_mccluskey.qmccluskey
 from PIL import ImageFont,ImageDraw
@@ -33,7 +32,6 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 import importlib
 shortMap = {}
 functionMap = {}
@@ -51,7 +49,7 @@ GLOBAL.pingCtr = 0
 import Utils
 importlib.reload(Utils)
 from Utils import *
-
+importMirai()
 
 try:
     with open('hakushinAVG.txt','r') as jfr:
