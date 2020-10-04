@@ -169,9 +169,6 @@ class FindTruth:
     def _print(self):
         self.outPut.append(','.join(self.li))
 
-# def read_matrix(s):
-#     r = re.search(r"""[]"""))
-
 def read_matrix_matlab(s):
     row = s.split(';')
     if not row[-1]:
@@ -365,7 +362,7 @@ MathDescript = {
 ''',
     '#QM':
 """
-用QM法化简逻辑式，参数格式:原式 显示字母 无关项的最小项，例
+用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
 用法：
     #QM <原式的逗号隔开的最小项表示> [无关项的最小项表示] [化简后显示字母]
     #QM <原式的逻辑式表示> [无关项的最小项表示]
@@ -374,7 +371,7 @@ MathDescript = {
     #QM b'd+a'bc'+a'bcd' 1,2
 """,
     '#线代':
-"""
+"""线代工具箱，底层是numpy，能算一些矩阵相关
 用法：
     #线代 <操作命令> <矩阵1> <矩阵2>
     #线代 <操作命令> <矩阵1>

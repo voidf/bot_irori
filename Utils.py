@@ -94,6 +94,7 @@ def getMessageChainText(m:MessageChain) -> str:
     else: return m.asDisplay()
 
 def generateImageFromFile(fn:str) -> Image:
+    """v3和v4的本地文件兼容"""
     if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
     else: return Image.fromLocalFile(fn)
 
