@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -32,8 +31,8 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 from Utils import *
+importMirai()
 
 def BVCoder(*attrs,**kwargs):
     def dec(x):

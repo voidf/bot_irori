@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At,Source
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 import quine_mccluskey.qmccluskey
 from PIL import ImageFont,ImageDraw
@@ -34,11 +33,11 @@ import pexpect.popen_spawn
 import time
 import datetime
 import uuid
-import Test
 import argparse
+# from mirai import MessageChain
 from Utils import *
-import GLOBAL
-
+importMirai()
+import Test
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
@@ -58,9 +57,26 @@ locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.
 with open('authdata','r') as f:
     qq = int(f.readline().strip())
     authKey = f.readline().strip()
-    mirai_api_http_locate = f.readline().strip() # httpapi所在主机的地址端口,如果 setting.yml 文件里字段 "enableWebsocket" 的值为 "true" 则需要将 "/" 换成 "/ws", 否则将接收不到消息.
+    host = f.readline().strip() # httpapi所在主机的地址端口,如果 setting.yml 文件里字段 "enableWebsocket" 的值为 "true" 则需要将 "/" 换成 "/ws", 否则将接收不到消息.
 
-irori = Mirai(f"mirai://{mirai_api_http_locate}?authKey={authKey}&qq={qq}")
+# print(dir(MessageChain))
+
+if GLOBAL.py_mirai_version == 3:
+    mirai_api_http_locate = host.replace('https://','')
+    mirai_api_http_locate = mirai_api_http_locate.replace('http://','')
+    irori = Mirai(f"mirai://{mirai_api_http_locate}?authKey={authKey}&qq={qq}")
+else:
+    loop = asyncio.get_event_loop()
+    irori = Broadcast(loop=loop)
+    app = Mirai(
+        broadcast = irori,
+        connect_info = Session(
+            host = host,
+            authKey = authKey,
+            account = qq,
+            websocket = False
+        )
+    )
 
 try:
     with open('cfg.json','r',encoding='utf-8') as jfr:
@@ -179,12 +195,15 @@ def systemcall(member,player:int,s,extDict) -> (bool,str):
     return False,''
 
 def msgprework(message: MessageChain, extDict: dict) -> list:
+    """消息预处理，将特殊参数放进extDict"""
     tc = chkcfg(extDict['player'])
-    s = message.toString().split(' ')
-    pic = message.getFirstComponent(Image)
+    s = getMessageChainText(message).split(' ')
+    if GLOBAL.py_mirai_version == 3:pic = message.getAllofComponent(Image)
+    else:pic = message.get(Image)
 
     member:int = getmem(extDict['mem'])
-    if pic:extDict['pic'] = pic
+    if pic:extDict['pic'] = pic[0]
+    extDict['pics'] = pic
     if member in tc.super_users:extDict['sudo'] = True
     if s[0] == 'sudo':
         s.pop(0)
@@ -223,7 +242,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     return
         except:
             if tc.print_exception:
-                await app.sendGroupMessage(group,[Plain(traceback.format_exc())])
+                await app.sendGroupMessage(group,compressMsg([Plain(traceback.format_exc())],extDict))
             return
         if not tc.enable_this:
             return
@@ -239,7 +258,8 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     l = Callable.functionMap[a](*b, **extDict)
                     if l is None:
                         print(traceback.format_exc())
-                    print(f"MESSAGESLENGTH ===> {len(l)}")
+                    else:
+                        print(f"MESSAGESLENGTH ===> {len(l)}")
                     if l:
                         await app.sendGroupMessage(group,compressMsg(l,extDict))
                 except:
@@ -258,7 +278,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                 for ev,mono in dict(tc.quick_calls).items():
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
-                            if re.search(sniffKey,message.toString(),re.S):
+                            if re.search(sniffKey,getMessageChainText(message),re.S):
                                 l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
@@ -271,7 +291,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     await app.sendGroupMessage(group,compressMsg(l,extDict))
 
 @irori.receiver("FriendMessage")
-async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
+async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
     GLOBAL.app = app
     player = hurenzu.id
     tc = chkcfg(player)
@@ -293,7 +313,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                     return
         except:
             if tc.print_exception:
-                await app.sendFriendMessage(hurenzu,[Plain(traceback.format_exc())])
+                await app.sendFriendMessage(hurenzu,compressMsg([Plain(traceback.format_exc())],extDict))
             return
         if not tc.enable_this:
             return
@@ -324,7 +344,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 for ev,mono in tc.quick_calls.items():
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
-                            if re.search(sniffKey,message.toString(),re.S):
+                            if re.search(sniffKey,getMessageChainText(message),re.S):
                                 l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
@@ -336,8 +356,7 @@ async def FriendHandler(message: MessageChain,app: Mirai, hurenzu: Friend):
                 if l:
                     await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
 
-@irori.subroutine
-async def startup(bot: Mirai):
+async def hajime(bot):
     GLOBAL.app = bot
     try:
         if not os.path.exists('sniffer/'):
@@ -350,7 +369,7 @@ async def startup(bot: Mirai):
         global cfg
         print(cfg)
         for k_,v_ in cfg.get('onlineMsg',{}).items(): # 上线提醒
-            await bot.sendGroupMessage(int(k_),[Plain(random.choice(v_))])
+            await bot.sendGroupMessage(int(k_),compressMsg([Plain(random.choice(v_))],{'player':int(k_)+2**39}))
     except:
         print('未设置登录提醒（不太重要')
         traceback.print_exc()
@@ -380,7 +399,18 @@ async def startup(bot: Mirai):
         asyncio.ensure_future(Callable.SentenceSubscribeRoutiner())
     except:
         print('每日一句模块出现异常（不太重要：\n',traceback.format_exc())
+
+if GLOBAL.py_mirai_version == 3:
+    @irori.subroutine
+    async def startup(bot: Mirai):
+        await hajime(bot)
+else:
+    @irori.receiver(ApplicationLaunched)
+    async def startup(bot: Mirai):
+        await hajime(bot)
     
 if __name__ == '__main__':
-    irori.run()
+    print(f"============irori running with python-mirai version{GLOBAL.py_mirai_version}=============")
+    if GLOBAL.py_mirai_version == 3:irori.run()
+    else:app.launch_blocking()
     

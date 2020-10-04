@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL    
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -34,25 +33,22 @@ import urllib
 import mido
 import GLOBAL
 from Utils import *
+importMirai()
 
 def 表情符号查询姬(*attrs,**kwargs):
     return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
 
 def Unicode测试姬(*attrs,**kwargs):
-    try:
-        s = int(attrs[0])
-        e = int(attrs[1])
-        w = attrs[2]
-        asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
-    except Exception as e:
-        return [Plain(str(e))]
-    return []
+    s = int(attrs[0])
+    e = int(attrs[1])
+    s,e = min(s,e),max(s,e)
+    w = ' '.join(attrs[2:])
+    asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
+
 
 def 表情字典测试姬(*attrs,**kwargs):
-    try:
-        return [Face(QQFaces[attrs[0]])]
-    except Exception as e:
-        return [Plain(str(e))]
+    return [Face(QQFaces[attrs[0]])]
+
     
 def 乒乓球(*attrs,**kwargs):
     GLOBAL.pingCtr+=1

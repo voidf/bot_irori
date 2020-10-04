@@ -8,6 +8,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 ## ~~没用的~~features
 
++ 兼容kuriyama和graia（逃
 + 热重载 `sudo reload`
 + 拉库 `sudo pull`，强制拉库`sudo pull -f`
 + 多实例管理 `sudo use <uuid>`、`sudo instances`
