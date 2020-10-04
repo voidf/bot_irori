@@ -94,7 +94,7 @@ def printHelp(*attrs,**kwargs):
             l.append('使用#h 命令名（带井号）可以查询详细用法')
             l.append('使用#h #abb可以查询缩写表')
             l.append('注命令后需打空格，之后的参数如存在空格即以空格分开多个参数，如#qr 1 1 4 5 1 4')
-            img.append(Image.fromFileSystem('Assets/muzukashi.png'))
+            img.append(generateImageFromFile('Assets/muzukashi.png'))
         elif attrs[0] in Classes:
             l.append(f'分类：{attrs[0]}')
             for k in Classes[attrs[0]]:

@@ -311,7 +311,7 @@ def asobiPolyline(*attrs,**kwargs):
         with open(fn,'wb') as fw:
             renderedPng.save(fw)
         asyncio.ensure_future(rmTmpFile(fn))
-        return [Image.fromFileSystem(fn)]
+        return [generateImageFromFile(fn)]
     else:
         return [Plain(text='命令错误')]
 
@@ -395,7 +395,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
         numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
         return [
             Plain(f'移动拼图初始化完成\n{grids}'),
-            Image.fromFileSystem(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))
+            generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))
         ]
         
         
@@ -435,7 +435,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
-    return [Image.fromFileSystem(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
+    return [generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
 
 
 GameMap = {

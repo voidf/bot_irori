@@ -122,7 +122,7 @@ def 猫图生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 优质解答生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
@@ -138,7 +138,7 @@ def 优质解答生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def IPlay生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
@@ -154,7 +154,7 @@ def IPlay生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(Src,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p))
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
     
 def 希望没事生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
@@ -175,7 +175,7 @@ def 希望没事生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 希望工程(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
@@ -196,7 +196,7 @@ def 希望工程(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 打拳姬(*attrs,**kwargs):
     return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]

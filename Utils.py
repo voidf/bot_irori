@@ -83,15 +83,19 @@ youbi = {
 from GLOBAL import SessionConfigures
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
-def getPlainText(p:Plain):
+def getPlainText(p:Plain) -> str:
     """做v3和v4的Plain兼容"""
     if GLOBAL.py_mirai_version == 3: return p.toString()
     else: return p.asDisplay()
 
-def getMessageChainText(m:MessageChain):
+def getMessageChainText(m:MessageChain) -> str:
     """做v3和v4的MessageChain兼容"""
     if GLOBAL.py_mirai_version == 3: return m.toString()
     else: return m.asDisplay()
+
+def generateImageFromFile(fn:str) -> Image:
+    if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
+    else: return Image.fromLocalFile(fn)
 
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
@@ -219,7 +223,7 @@ async def CFProblemRender(g,cid,ti):
         base = 'https://codeforces.com/contest/'+cid+'/problems'
         l = renderHtml(base,FN)
         GLOBAL.CFRenderFlag.discard(ti)
-        l.append(Image.fromFileSystem(FN))
+        l.append(generateImageFromFile(FN))
         await msgDistributer(gp=g,list=l)
 
 async def fuzzT(g,s,e,w=''):
@@ -248,8 +252,8 @@ async def msgDistributer(**kwargs):
                 with open(f_n,'wb') as f:
                     f.write(base64.b64decode(kwargs['msg']))
                 asyncio.ensure_future(rmTmpFile(f_n))
-                seq = [Image.fromFileSystem(f_n)]
-                # seq = [Image.fromFileSystem(kwargs['msg'])]
+                seq = [generateImageFromFile(f_n)]
+                # seq = [generateImageFromFile(kwargs['msg'])]
             except:
                 if kwargs['msg'][:4] == 'http':
                     r = requests.get(kwargs['msg'])
@@ -257,9 +261,9 @@ async def msgDistributer(**kwargs):
                     with open(f_n,'wb') as f:
                         f.write(r.content)
                     asyncio.ensure_future(rmTmpFile(f_n))
-                    seq = [Image.fromFileSystem(f_n)]
+                    seq = [generateImageFromFile(f_n)]
                 else:
-                    seq = [Image.fromFileSystem(kwargs['msg'])]
+                    seq = [generateImageFromFile(kwargs['msg'])]
         else:
             seq = [Plain(kwargs['msg'])]
 
@@ -362,7 +366,7 @@ def compressMsg(l,extDict={}):
             draw.text((offset>>1,   column * ((offset)+GLOBAL.compressFontSize)), txt, (theme,theme,theme,255), font)
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
-        l = [Image.fromFileSystem(p)] + others
+        l = [generateImageFromFile(p)] + others
 
     if GLOBAL.py_mirai_version == 3:
         return l

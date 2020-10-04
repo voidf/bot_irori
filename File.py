@@ -279,7 +279,7 @@ def 电笔记(*attrs,**kwargs):
                     GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
                     if 'img' in v:
                         for vi in v['img']:
-                            GLOBAL.DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+vi))
+                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
                     for an in v['AN']:
                         GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
         return ret_msg
