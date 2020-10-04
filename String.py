@@ -103,7 +103,7 @@ def 二维码生成器(*attrs,**kwargs):
     q.save(fn)
     #threading.Thread(target=rmTmpFile).start()
     asyncio.ensure_future(rmTmpFile(fn),loop=None)
-    return [Image.fromFileSystem(fn)]
+    return [generateImageFromFile(fn)]
 
 def 字符串签名(*attrs,**kwargs):
     if 'pic' in kwargs and kwargs['pic']:
