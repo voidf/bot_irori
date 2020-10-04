@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -32,8 +31,8 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 from Utils import *
+importMirai()
 
 def 投票姬(*attrs,**kwargs):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
@@ -135,10 +134,11 @@ def ddl通知姬(*attrs,**kwargs):
         if delays<0:
             return
         await asyncio.sleep(delays)
+
         if g>=2**39:
-            await GLOBAL.app.sendGroupMessage(g-2**39,[At(mb),Plain(kotoba)])
+            await msgDistributer(player=g,list=[At(mb),Plain(kotoba)])
         else:
-            await GLOBAL.app.sendFriendMessage(g,[Plain(kotoba)])
+            await msgDistributer(player=g,list=[Plain(kotoba)])
 
     async def wipDDL(g,mb,tit,delays):
         print('delay:',delays)
@@ -153,14 +153,14 @@ def ddl通知姬(*attrs,**kwargs):
             if delays > -10:
                 if g>=2**39:
                     if random.randint(0,4):
-                        await GLOBAL.app.sendGroupMessage(g-2**39,[At(mb),Plain(tit+'大限已至，我扔掉了。')])
+                        await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
                     else:
-                        await GLOBAL.app.sendGroupMessage(g-2**39,[At(mb),Plain(tit+'变臭力，只能扔了（悲')])
+                        await msgDistributer(player=g,list=[At(mb),Plain(tit+'变臭力，只能扔了（悲')])
                 else:
                     if random.randint(0,4):
-                        await GLOBAL.app.sendFriendMessage(g,[Plain(tit+'大限已至，我扔掉了。')])
+                        await msgDistributer(player=g,list=[Plain(tit+'大限已至，我扔掉了。')])
                     else:
-                        await GLOBAL.app.sendFriendMessage(g,[Plain(tit+'变臭力，只能扔了（悲')])
+                        await msgDistributer(player=g,list=[Plain(tit+'变臭力，只能扔了（悲')])
         except Exception as e:
             print(e)
 
@@ -279,7 +279,7 @@ def 电笔记(*attrs,**kwargs):
                     GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
                     if 'img' in v:
                         for vi in v['img']:
-                            GLOBAL.DEKnowledge[k].append(Image.fromFileSystem('DigitalElectronicsTech/img/'+vi))
+                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
                     for an in v['AN']:
                         GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
         return ret_msg

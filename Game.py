@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -32,10 +31,9 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 import shutil
 from Utils import *
-
+importMirai()
 
 def asobi2048(*attrs,**kwargs):
     player = getPlayer(**kwargs)
@@ -313,7 +311,7 @@ def asobiPolyline(*attrs,**kwargs):
         with open(fn,'wb') as fw:
             renderedPng.save(fw)
         asyncio.ensure_future(rmTmpFile(fn))
-        return [Image.fromFileSystem(fn)]
+        return [generateImageFromFile(fn)]
     else:
         return [Plain(text='命令错误')]
 
@@ -362,7 +360,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
         os.mkdir('SlidingPuzzle/')
 
     if not os.path.exists(f'''SlidingPuzzle/{player}BG'''):
-        shutil.copy('default.png',f'''SlidingPuzzle/{player}BG''')
+        shutil.copy('Assets/default.png',f'''SlidingPuzzle/{player}BG''')
 
     
     if not os.path.exists(f'''SlidingPuzzle/{player}.txt''') or attrs and attrs[0] == 'init':
@@ -397,7 +395,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
         numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
         return [
             Plain(f'移动拼图初始化完成\n{grids}'),
-            Image.fromFileSystem(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))
+            generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))
         ]
         
         
@@ -437,7 +435,7 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
-    return [Image.fromFileSystem(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
+    return [generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
 
 
 GameMap = {

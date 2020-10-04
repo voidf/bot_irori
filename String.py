@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -32,8 +31,8 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 from Utils import *
+importMirai()
 
 def BVCoder(*attrs,**kwargs):
     def dec(x):
@@ -95,17 +94,16 @@ def rot_13(*attrs,**kwargs):
         ostr.append(Plain(text=''.join(dst)+'\n'))
     return ostr
 
-def 字符串反转(*attrs,**kwargs):
-    return [Plain(text=' '.join(attrs)[::-1])]
+def 字符串反转(*attrs,**kwargs):return [Plain(' '.join(attrs)[::-1])]
 
 def 二维码生成器(*attrs,**kwargs):
     s = ' '.join(attrs)
     q = qrcode.make(s)
-    fn = randstr(GLOBAL.randomStrLength)+'tmpqrcode'+str(kwargs['mem'].id)
+    fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)
     q.save(fn)
     #threading.Thread(target=rmTmpFile).start()
     asyncio.ensure_future(rmTmpFile(fn),loop=None)
-    return [Image.fromFileSystem(fn)]
+    return [generateImageFromFile(fn)]
 
 def 字符串签名(*attrs,**kwargs):
     if 'pic' in kwargs and kwargs['pic']:
@@ -121,10 +119,10 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
-with open('zh2morse.json','r') as f:
+with open('Assets/zh2morse.json','r') as f:
     z2m = json.load(f)
 
-with open('morse2zh.json','r') as f:
+with open('Assets/morse2zh.json','r') as f:
     m2z = json.load(f)
 
 k1 = """ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:,;?='/!-_"()$&@"""
@@ -244,9 +242,13 @@ book_of_answers = [
 
     '优质解答：我不知道',
 
+    '你可长点心吧',
+
     '问问爷爷','问问公公','问问44','问问ss','问问fufu',
 
     '不要这样，妈妈怕',
+
+    '冲，冲tmd',
 
     '下次一定','别吧','又不是不能用','人不能，至少不应该',
 

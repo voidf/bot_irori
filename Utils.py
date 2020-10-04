@@ -2,8 +2,7 @@ import os
 import requests
 import asyncio
 import datetime
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -17,6 +16,60 @@ from typing import *
 from PIL import Image as PImage
 from PIL import ImageFont,ImageDraw
 import base64
+import importlib
+import sys
+# from mirai.face import QQFaces
+# from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain, Group, Image, Member, At, Source
+
+# from graia.application import GraiaMiraiApplication as Mirai
+# from graia.application import Session
+# from graia.application.event.messages import FriendMessage,GroupMessage
+# from graia.application.event.lifecycle import ApplicationLaunched,ApplicationShutdowned
+# from graia.application.message.chain import MessageChain
+# from graia.application.message.elements.internal import Plain, Image, At, Face, Source
+# from graia.broadcast import Broadcast
+# from graia.application.group import Group,Member
+# from graia.application.friend import Friend
+
+def importMirai():
+    global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
+    global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
+    try:
+        if GLOBAL.py_mirai_version == 3:raise ImportError
+        Mirai = getattr(importlib.import_module("graia.application"),"GraiaMiraiApplication")
+        Session = getattr(importlib.import_module("graia.application"),"Session")
+        FriendMessage = getattr(importlib.import_module("graia.application.event.messages"),"FriendMessage")
+        GroupMessage = getattr(importlib.import_module("graia.application.event.messages"),"GroupMessage")
+        ApplicationLaunched = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationLaunched")
+        ApplicationShutdowned = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationShutdowned")
+        MessageChain = getattr(importlib.import_module("graia.application.message.chain"),"MessageChain")
+        Plain = getattr(importlib.import_module("graia.application.message.elements.internal"),"Plain")
+        Image = getattr(importlib.import_module("graia.application.message.elements.internal"),"Image")
+        At = getattr(importlib.import_module("graia.application.message.elements.internal"),"At")
+        Face = getattr(importlib.import_module("graia.application.message.elements.internal"),"Face")
+        Source = getattr(importlib.import_module("graia.application.message.elements.internal"),"Source")
+        Broadcast = getattr(importlib.import_module("graia.broadcast"),"Broadcast")
+        Group = getattr(importlib.import_module("graia.application.group"),"Group")
+        Member = getattr(importlib.import_module("graia.application.group"),"Member")
+        Friend = getattr(importlib.import_module("graia.application.friend"),"Friend")
+        GLOBAL.py_mirai_version = 4
+    except ImportError:
+        Mirai = getattr(importlib.import_module("mirai"),"Mirai")
+        Plain = getattr(importlib.import_module("mirai"),"Plain")
+        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
+        Friend = getattr(importlib.import_module("mirai"),"Friend")
+        Face = getattr(importlib.import_module("mirai"),"Face")
+        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
+        Group = getattr(importlib.import_module("mirai"),"Group")
+        Image = getattr(importlib.import_module("mirai"),"Image")
+        Member = getattr(importlib.import_module("mirai"),"Member")
+        At = getattr(importlib.import_module("mirai"),"At")
+        Source = getattr(importlib.import_module("mirai"),"Source")
+        QQFaces = getattr(importlib.import_module("GLOBAL"),"QQFaces")
+        GLOBAL.py_mirai_version = 3
+
+importMirai()
+
 youbi = {
     1:'月曜日',
     2:'火曜日',
@@ -28,8 +81,21 @@ youbi = {
 }
 
 from GLOBAL import SessionConfigures
-
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+
+def getPlainText(p:Plain) -> str:
+    """做v3和v4的Plain兼容"""
+    if GLOBAL.py_mirai_version == 3: return p.toString()
+    else: return p.asDisplay()
+
+def getMessageChainText(m:MessageChain) -> str:
+    """做v3和v4的MessageChain兼容"""
+    if GLOBAL.py_mirai_version == 3: return m.toString()
+    else: return m.asDisplay()
+
+def generateImageFromFile(fn:str) -> Image:
+    if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
+    else: return Image.fromLocalFile(fn)
 
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
@@ -153,7 +219,7 @@ async def contestsBeginNotice(g,contest,ti):
         return
     print('进入等待队列，阻塞%f秒'%ti)
     await asyncio.sleep(ti)
-    await GLOBAL.app.sendGroupMessage(g,[Plain(text='比赛%s还有不到一个小时就要开始了...'%contest)])
+    await msgDistributer(gp=g,msg=f'比赛{contest}还有不到一个小时就要开始了...')
 
 async def CFProblemRender(g,cid,ti):
     FN='CF/%s.png' % cid
@@ -162,41 +228,44 @@ async def CFProblemRender(g,cid,ti):
         await asyncio.sleep(ti)
         if not os.path.exists(FN):
             await asyncio.sleep(20)
-        await GLOBAL.app.sendGroupMessage(g,[Image.fromFileSystem(FN)])
+        await msgDistributer(gp=g,msg=FN,typ='I')
     else:
         GLOBAL.CFRenderFlag.add(cid)
         await asyncio.sleep(ti)
         base = 'https://codeforces.com/contest/'+cid+'/problems'
         l = renderHtml(base,FN)
         GLOBAL.CFRenderFlag.discard(ti)
-        l.append(Image.fromFileSystem(FN))
-        await GLOBAL.app.sendGroupMessage(g,l)
+        l.append(generateImageFromFile(FN))
+        await msgDistributer(gp=g,list=l)
 
-async def fuzzT(g,s,e,w):
+async def fuzzT(g,s,e,w=''):
     for _ in range(s,e):
         if _%10==0:
             await asyncio.sleep(0.2)
-        await GLOBAL.app.sendGroupMessage(g,[Plain(f'{chr(_)}{_}{w}')])
+        await msgDistributer(gp=g,msg=f'{chr(_)}{_}{w}')
 
 
 async def msgDistributer(**kwargs):
     """
     根据player号分发消息
     输入字典msg为源文本，typ标识其类型('E'表情,'I'图片文件目录,'P'普通文本)
+    扩展了也可以扔消息元素列表(list)进来的功能
     """
+    seq = []
+    
     if 'msg' in kwargs and kwargs['msg']:
         if kwargs.get('typ','P') == 'E':
             seq = [Face(QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
             # print(base64.b64decode(kwargs['msg']))
-            try:
+            try: # 这个try用来判断msg是不是可解码的b64
                 base64.b64decode(kwargs['msg'])
                 f_n = 'tmp'+randstr(8)
                 with open(f_n,'wb') as f:
                     f.write(base64.b64decode(kwargs['msg']))
                 asyncio.ensure_future(rmTmpFile(f_n))
-                seq = [Image.fromFileSystem(f_n)]
-                # seq = [Image.fromFileSystem(kwargs['msg'])]
+                seq = [generateImageFromFile(f_n)]
+                # seq = [generateImageFromFile(kwargs['msg'])]
             except:
                 if kwargs['msg'][:4] == 'http':
                     r = requests.get(kwargs['msg'])
@@ -204,30 +273,34 @@ async def msgDistributer(**kwargs):
                     with open(f_n,'wb') as f:
                         f.write(r.content)
                     asyncio.ensure_future(rmTmpFile(f_n))
-                    seq = [Image.fromFileSystem(f_n)]
+                    seq = [generateImageFromFile(f_n)]
                 else:
-                    seq = [Image.fromFileSystem(kwargs['msg'])]
+                    seq = [generateImageFromFile(kwargs['msg'])]
         else:
             seq = [Plain(kwargs['msg'])]
 
-        if 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
-        elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
-        elif 'player' in kwargs:
+    if 'list' in kwargs and kwargs['list']:
+        seq += kwargs['list']
+
+    if seq:
+        if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
                 await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),compressMsg(seq))
             else:
                 await GLOBAL.app.sendFriendMessage(kwargs['player'],compressMsg(seq))
+        elif 'gp' in kwargs:
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
+        elif 'mem' in kwargs:
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
+        
 
-def tnow():
-    return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:
-    return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
+def randstr(l:int) -> str:return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
 
-def renderHtml(dst_lnk,na):
+def renderHtml(dst_lnk,na) -> str:
+    """渲染dst_lnk的网页，保存为na，返回网页标题"""
     option = webdriver.ChromeOptions()
     option.add_argument('--headless')
     option.add_argument('--no-sandbox')
@@ -268,7 +341,7 @@ def generateTmpFileName(pref,ext='.png',**kwargs):
 
 def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
-    player = extDict.get("player")
+    player = extDict.get("player",0)
     tc = chkcfg(player)
     theme = int(extDict.get("-theme",255))
     offset = tc.font_size >> 1
@@ -277,7 +350,7 @@ def compressMsg(l,extDict={}):
     others = []
     for i in l:
         if isinstance(i,Plain):
-            nl.append(i.toString())
+            nl.append(getPlainText(i))
         else:
             others.append(i)
     print(others)
@@ -305,9 +378,12 @@ def compressMsg(l,extDict={}):
             draw.text((offset>>1,   column * ((offset)+GLOBAL.compressFontSize)), txt, (theme,theme,theme,255), font)
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
-        return [Image.fromFileSystem(p)] + others
-    else:
+        l = [generateImageFromFile(p)] + others
+
+    if GLOBAL.py_mirai_version == 3:
         return l
+    else:
+        return MessageChain.create(l).asSendable()
 
 def getPlayer(**kwargs):
     if 'gp' in kwargs:

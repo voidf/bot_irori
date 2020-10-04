@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -34,6 +33,7 @@ import urllib
 import mido
 import GLOBAL
 from Utils import *
+importMirai()
 from AVG import AVG
 
 def 不会吧(*attrs,**kwargs):
@@ -110,7 +110,7 @@ def 这么臭的函数有必要定义吗(*attrs,**kwargs):
 
 def 猫图生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
-    nyaSrc = PImage.open('nya.png').convert('RGBA')
+    nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -122,11 +122,11 @@ def 猫图生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 优质解答生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
-    nyaSrc = PImage.open('answer.jpg').convert('RGBA')
+    nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -138,11 +138,11 @@ def 优质解答生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def IPlay生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
-    Src = PImage.open('IPlayRhythmGame.png').convert('RGBA')
+    Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
     layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -154,11 +154,11 @@ def IPlay生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(Src,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p))
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
     
 def 希望没事生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
-    nyaSrc = PImage.open('wish.png').convert('RGBA')
+    nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -175,11 +175,11 @@ def 希望没事生成器(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 希望工程(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
-    nyaSrc = PImage.open('wish.jpg').convert('RGBA')
+    nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
     
@@ -196,10 +196,12 @@ def 希望工程(*attrs,**kwargs):
 
     PImage.alpha_composite(nyaSrc,layer2).save(p)
     asyncio.ensure_future(rmTmpFile(p),loop=None)
-    return [Image.fromFileSystem(p)]
+    return [generateImageFromFile(p)]
 
 def 打拳姬(*attrs,**kwargs):
     return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]
+
+def 懂的都懂(*attrs,**kwargs):return [Plain('这种事情见得多了，我只想说懂的都懂，不懂的我也不多解释，毕竟自己知道就好，细细品吧。你们也别来问我怎么了，利益牵扯太大，说了对你我都没好处，当不知道就行了，其余的我只能说这里面水很深，牵扯到很多东西。详细情况你们自己是很难找的，网上大部分已经删除干净了，所以我只能说懂的都懂。懂的人已经基本都获利上岸了，不懂的人永远不懂，关键懂的人都是自己悟的，你也不知道谁是懂的人也没法请教，大家都藏着掖着生怕别人知道自己懂的事，所以不懂的你甚至都不知道自己不懂。在有些时候，某些人对某些事情不懂装懂，还以为别人不懂。其实自己才是不懂的，别人懂的够多了，不仅懂，还懂的超越了这个范围，但是某些不懂的人让懂的人完全教不懂，所以不懂的人永远不懂，只能不懂装懂，别人说懂的都懂，只要点点头就行了。其实你我都懂，不懂没必要装懂，毕竟里面牵扯到很多懂不了的事，懂的人觉得没必要说出来，不懂的人看见又来问七问八，最后跟他说了他也不一定能懂，就算懂了以后也对他不好，毕竟懂的太多了不是好。懂了吗？')]
 
 def 舔狗生成器(*attrs,**kwargs):
     pat = ['太太','画','手','图']
@@ -313,7 +315,8 @@ GeneratorMap = {
     '#口罩':IPlay生成器,
     "#Roll":骰子,
     "#军舰":军舰,
-    "#今日人品":今日人品
+    "#今日人品":今日人品,
+    '#懂':懂的都懂
 }
 
 GeneratorShort = {
@@ -325,6 +328,7 @@ GeneratorShort = {
 
 GeneratorDescript = {
     '#论证':'这么臭的功能有必要解释吗',
+    '#懂':'懂的都懂,不懂的我也不多解释',
     '#nya':'生成猫表情，目前大概最多放4个中文字，例:#nya 要命',
     '#解答':'生成优质解答图片,例:#解答 自分で百度しろ',
     '#希望':'希望人没事生成器（莲华）,例:#希望 人别死我家门口',

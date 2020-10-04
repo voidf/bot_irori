@@ -1,6 +1,4 @@
-
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -8,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 from Utils import *
+importMirai()
 import re
 import asyncio
 import requests
@@ -33,7 +32,6 @@ import hashlib
 import zlib
 import time
 import datetime
-import GLOBAL
 
 
 class AVG():

@@ -1,5 +1,4 @@
-from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain,Group,Image,Member,At
-from mirai.face import QQFaces
+import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -34,7 +33,7 @@ import urllib
 import mido
 import GLOBAL
 from Utils import *
-
+importMirai()
 
 def 没救了(*attrs,**kwargs):
     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
@@ -136,7 +135,7 @@ def 爬OIWiki(*attrs,**kwargs):
     ostr += renderHtml(url,save_fn)
     
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
-    ostr.append(Image.fromFileSystem(save_fn))
+    ostr.append(generateImageFromFile(save_fn))
     return ostr
 
 def 爬萌娘(*attrs,**kwargs):
@@ -161,7 +160,7 @@ def 爬萌娘(*attrs,**kwargs):
     save_fn=randstr(GLOBAL.randomStrLength)+"tmpMoe"+str(kwargs['mem'].id)+'.png'
     l = renderHtml(lnk,save_fn)
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
-    return l+[Image.fromFileSystem(save_fn)]
+    return l+[generateImageFromFile(save_fn)]
 
 def 爬OEIS(*attrs,**kwargs):
     if attrs:
@@ -277,7 +276,7 @@ def 爬LaTeX(*attrs,**kwargs):
     with open(fn,'wb') as f:
         f.write(r.content)
     asyncio.ensure_future(rmTmpFile(fn))
-    return [Image.fromFileSystem(fn)]
+    return [generateImageFromFile(fn)]
 
 def 爬牛客(*attrs,**kwargs):
     try:
@@ -480,7 +479,7 @@ def 爬每日一句(*attrs,**kwargs):
     except:
         print(traceback.format_exc())
     if 'img' in output:
-        return [Image.fromFileSystem(output['img'])]+[Plain('\n'.join(output['plain']))]
+        return [generateImageFromFile(output['img'])]+[Plain('\n'.join(output['plain']))]
     else:
         return [Plain('\n'.join(output['plain']))]
 
