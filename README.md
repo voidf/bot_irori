@@ -60,9 +60,11 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 `pip install -r requirements.txt`
 
+**注意kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢**
+
 快速配置环境的话可以直接捣鼓一下release里的东西
 
-env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
+env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*虵*有关，%~~加急~~
 
 解压以后就是整个我自己用的环境了
 
@@ -74,13 +76,13 @@ env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
 
 （1）首先去搞[一键包](https://github.com/LXY1226/MiraiOK) 我记得一键包好像是给装Java运行环境的 也可能记错了 如果没有的话 方法二里有装Java的方法 搞完之后 请退出甚至卸载一切杀毒软件（哭 因为~~傻~~杀毒软件会误删你的exe 好的现在你有exe了 你去找一个文件夹把它放进去 然后双击 噼里啪啦出来了一堆 你只需要看最后一行 让你输入qq号 密码 照做就可以 之后你去plugins文件夹下看一下是否有APIHTTP 如果没有 下面有链接 自寻一下 下载下来放进去 然后重启mirai 看到生成一个文件夹 里面有setting.yml 那么就成功了
 
-（2）装java运行环境[Oracle jdk](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)或者[AdoptOpenJDK](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10.2/OpenJDK11U-jdk_x64_windows_hotspot_11.0.7_10.msi)或者[用我的](http://106.13.226.129/jdk-11.0.6_windows-x64_bin.exe)勾上**JAVA_HOME**（记得配置环境变量**Add to PATH**，不然就得去安装目录像`D:\java\bin\java.exe -jar mirai-console-wrapper-0.2.0-all.jar`这样才能用（
+（2）装java运行环境[Oracle jdk](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)或者[AdoptOpenJDK](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10.2/OpenJDK11U-jdk_x64_windows_hotspot_11.0.7_10.msi)勾上**JAVA_HOME**（记得配置环境变量**Add to PATH**，不然就得去安装目录像`D:\java\bin\java.exe -jar mirai-console-wrapper-0.2.0-all.jar`这样才能用（
 
-然后去找[mirai-console-wrapper](https://github.com/mamoe/mirai-console-wrapper),或者[用我的](http://106.13.226.129/mirai-console-wrapper-0.2.0-all.jar)
+然后去找[mirai-console-wrapper](https://github.com/mamoe/mirai-console-wrapper)
 
 然后在mirai-console-wrapper的jar文件同目录新建或者你运行一次它得到一个plugins这样的目录。
 
-在plugins文件夹里面放[mirai-api-http](https://github.com/mamoe/mirai-api-http/releases),或者[用我的](http://106.13.226.129/mirai-api-http-v1.6.1.jar)这么个jdk文件
+在plugins文件夹里面放[mirai-api-http](https://github.com/mamoe/mirai-api-http/releases)
 
 现在运行mirai-console-wrapper:
 
@@ -102,13 +104,13 @@ env本质上是一个zipx压缩包，密码是和*虵*有关，%~~加急~~
 
 `echo 1 > authdata`
 
-用记事本打开这个文件，（如果没有更好的编辑器的话）在文件第一行写你bot的QQ号，第二行写前面说到的authKey，第三行写上`localhost:`+你的port 之后要加上很重要的斜杠/
+用记事本打开这个文件，（如果没有更好的编辑器的话）在文件第一行写你bot的QQ号，第二行写前面说到的authKey，第三行写上`http://localhost:`+你的port 之后要加上很重要的斜杠/
 
 然后回到本项目目录
 
 `python irori.py`
 
-大概就能用了（如果炸了试试重启`mirai-console-wrapper-0.2.0-all.jar`,记得不要关掉这个cmd窗口啊
+大概就能用了（如果炸了试试重启`mirai-console-wrapper-0.2.0-all.jar`,记得千万别关掉这个cmd窗口（
 
 然后把bot所在qq和你自己拉一个群
 
