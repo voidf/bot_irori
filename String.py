@@ -99,7 +99,7 @@ def 字符串反转(*attrs,**kwargs):return [Plain(' '.join(attrs)[::-1])]
 def 二维码生成器(*attrs,**kwargs):
     s = ' '.join(attrs)
     q = qrcode.make(s)
-    fn = randstr(GLOBAL.randomStrLength)+'tmpqrcode'+str(kwargs['mem'].id)
+    fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)
     q.save(fn)
     #threading.Thread(target=rmTmpFile).start()
     asyncio.ensure_future(rmTmpFile(fn),loop=None)
