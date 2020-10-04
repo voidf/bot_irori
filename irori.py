@@ -399,6 +399,10 @@ async def hajime(bot):
         asyncio.ensure_future(Callable.SentenceSubscribeRoutiner())
     except:
         print('每日一句模块出现异常（不太重要：\n',traceback.format_exc())
+    try:
+        asyncio.ensure_future(Callable.JRRPclearRoutiner())
+    except:
+        print('清空人品模块异常',traceback.format_exc())
 
 if GLOBAL.py_mirai_version == 3:
     @irori.subroutine
