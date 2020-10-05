@@ -1,3 +1,7 @@
+.vscode/
+compile_commands.json
+
+
 2048/
 vote/
 CF/

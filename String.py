@@ -119,6 +119,8 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
+def 復讀(*attrs,**kwargs):return [Plain(' '.join(attrs))]
+
 with open('Assets/zh2morse.json','r') as f:
     z2m = json.load(f)
 
@@ -920,6 +922,7 @@ StringMap = {
     '#m2z':译中文电码,
     '#为什么':答案之书,
     '#为什么e':答案之书en,
+    '#repeat':復讀,
     '#KMP':KMP
 }
 
@@ -933,6 +936,7 @@ StringShort = {
 }
 
 StringDescript = {
+    '#repeat':'復讀消息，測試用',
     '#b64e':'base64编码,例：#b64e mirai',
     '#b64d':'base64解码,例：#b64d 114514==',
     '#rot13':'rot_13编码转换（仅大小写ascii字母）',
