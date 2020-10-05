@@ -29,7 +29,7 @@ import hashlib
 import zlib
 import time
 import datetime
-import urllib
+from urllib.parse import quote
 import mido
 from Utils import *
 importMirai()
@@ -834,8 +834,8 @@ def 答案之书(*attrs,**kwargs):
         elif attrs[-1] in GLOBAL.unsubscribes:
             removeSniffer(player,'#为什么')
             return [Plain('【答案之书】禁用sniffer')]
-
-    ans = random.choice(book_of_answers)
+    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers+dynamic_answers)
     return [Plain(ans.strip())]
 
 def 答案之书en(*attrs,**kwargs):
@@ -853,8 +853,8 @@ def 答案之书en(*attrs,**kwargs):
         elif attrs[-1] in GLOBAL.unsubscribes:
             removeSniffer(player,'#为什么e')
             return [Plain('【book of answers】sniff mode off')]
-
-    ans = random.choice(book_of_answers_en)
+    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers_en+dynamic_answers)
     return [Plain(ans.strip())]
 
 def KMP(*attrs,**kwargs):
