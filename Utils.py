@@ -605,10 +605,13 @@ def fetchSentences(d):
     d.setdefault('plain',[]).append(j['note'])
     
 
-def uploadToChaoXing(fn:str) -> str:
+def uploadToChaoXing(fn: Optional[(bytes,str)]) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'
-    with open(fn,'rb') as f:
-        r = requests.post(lnk,files = {'attrFile':f})
+    if isinstance(fn,bytes):
+        r = requests.post(lnk,files = {'attrFile':fn})
+    else:
+        with open(fn,'rb') as f:
+            r = requests.post(lnk,files = {'attrFile':f})
     j = json.loads(r.text)
     return j['att_file']['att_clouddisk']['downPath']
 
