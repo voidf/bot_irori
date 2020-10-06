@@ -234,4 +234,6 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 ![](Assets/kusa/18.png)
 
+![](Assets/kusa/19.png)
+
 **欢迎投稿（**
