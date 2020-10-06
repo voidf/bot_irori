@@ -254,8 +254,7 @@ def 打印真值表(*attrs,**kwargs):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs,**kwargs):
-    return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs,**kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
 def 孙子定理(*attrs,**kwargs):
     il = ' '.join(attrs).strip().split()
@@ -401,7 +400,7 @@ MathDescript = {
 例:
     #真值表 !A|(B^C)
 """,
-    '#inv':'求给定的x在模m意义下的逆元（exgcd',
+    '#inv':'求给定的x在模m意义下的逆元（exgcd\n用法：#inv <x> <m>',
     '#CRT':
 """
 用中国剩余定理解剩余方程

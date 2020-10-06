@@ -646,7 +646,7 @@ def exgcd(a,b):
 
 def getinv(a,m):
     x,y = exgcd(a,m)
-    return x%m
+    return -1 if x==1 else x%m
     
 # 树巨结垢相关
 
