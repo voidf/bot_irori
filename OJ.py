@@ -83,7 +83,7 @@ def 查看问题(*attrs,**kwargs):
 def 提交(*attrs,**kwargs):
     player = getPlayer(**kwargs)
     data = {
-        'problem_id':attrs[0],
+        'problem':attrs[0],
         'user':str(player),
         'lang':attrs[1],
         'file':' '.join(attrs[2:])
