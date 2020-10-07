@@ -387,6 +387,7 @@ def compressMsg(l,extDict={}):
         return MessageChain.create(l).asSendable()
 
 def getPlayer(**kwargs):
+    """根据不定字典拿player号"""
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
