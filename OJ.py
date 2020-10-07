@@ -72,7 +72,7 @@ def 查看问题(*attrs,**kwargs):
     {rsp['description']}
 
 
-{f'样例输入{p}：{ord(10)}{i}{ord(10)}样例输出{p}：{ord(10)}{rsp["sample_outputs"][p]}{ord(10)}{ord(10)}' for p,i in enumerate(rsp['sample_inputs'])}
+{*(f'样例输入{p}：{ord(10)}{i}{ord(10)}样例输出{p}：{ord(10)}{rsp["sample_outputs"][p]}{ord(10)}{ord(10)}' for p,i in enumerate(rsp['sample_inputs']))}
 
 时间限制：{rsp['time_limit']}s
 内存限制：{rsp['memory_limit']}kb"""
@@ -90,7 +90,7 @@ def 提交(*attrs,**kwargs):
     rsp = requester('submit', data)['data']['result']
     render = f"""
 测试点  状态    时间    内存
-{f'{p}  {i} {rsp["runtime"][p]/1000}ms {rsp["memory"][p]/1000}kb' for p,i in enumerate(rsp['verdict'])}
+{*(f'{p}  {i} {rsp["runtime"][p]/1000}ms {rsp["memory"][p]/1000}kb' for p,i in enumerate(rsp['verdict']))}
 
 """
     if rsp['score'] == 100:
@@ -118,7 +118,7 @@ OJDescript = {
     "#OJ.submit":"""想交题了？
 用法：
     #OJ.submit <题号> <语言> <代码...
-    
+
 由于是自己搭的开源灵车，语言目前只支持：
     gcc     (还没测试过)
     gccO2   (还没测试过)
