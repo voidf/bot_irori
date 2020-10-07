@@ -65,7 +65,7 @@ def requester(lnk,kw,tle=5,**kwargs):
 def 查看问题(*attrs,**kwargs):
     data = {'problem_id':attrs[0]}
     rsp = requester('problem/info',data)['data']['problem']
-    samples = f'样例输入{p}：{chr(10)}{i}{chr(10)}样例输出{p}：{chr(10)}{rsp["sample_outputs"][p]}{chr(10)}{chr(10)}' for p,i in enumerate(rsp['sample_inputs'])
+    samples = (f'样例输入{p}：{chr(10)}{i}{chr(10)}样例输出{p}：{chr(10)}{rsp["sample_outputs"][p]}{chr(10)}{chr(10)}' for p,i in enumerate(rsp['sample_inputs']))
     render = f"""
 {rsp['title']}
 {rsp['pdf']}
