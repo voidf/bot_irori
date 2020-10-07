@@ -52,7 +52,7 @@ def check_host(func):
             return [Plain('没有配置OJ后端主机！')]
     return decorator
 
-def requester(lnk,kw,tle=20,**kwargs):
+def requester(lnk,kw,tle=30,**kwargs):
     r = requests.post(f"{GLOBAL.OJHost}/{lnk}",json=kw,timeout=tle)
     j = json.loads(r.text)
     if not j['status']:
