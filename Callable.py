@@ -209,6 +209,7 @@ Classes = {
     'File':FileMap,
     'Game':GameMap,
     'AVG':AVGMap,
+    'OJ':OJMap,
 }
 
 functionMap['#h'] = printHelp
