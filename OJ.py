@@ -84,7 +84,7 @@ def 提交(*attrs,**kwargs):
     player = getPlayer(**kwargs)
     data = {
         'problem_id':attrs[0],
-        'qq':str(player),
+        'user':str(player),
         'lang':attrs[1],
         'file':' '.join(attrs[2:])
     }
