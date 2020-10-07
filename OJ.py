@@ -65,6 +65,7 @@ def requester(lnk,kw,tle=5,**kwargs):
 def 查看问题(*attrs,**kwargs):
     data = {'problem_id':attrs[0]}
     rsp = requester('problem/info',data)['data']['problem']
+    samples = f'样例输入{p}：{chr(10)}{i}{chr(10)}样例输出{p}：{chr(10)}{rsp["sample_outputs"][p]}{chr(10)}{chr(10)}' for p,i in enumerate(rsp['sample_inputs'])
     render = f"""
 {rsp['title']}
 {rsp['pdf']}
@@ -72,7 +73,7 @@ def 查看问题(*attrs,**kwargs):
     {rsp['description']}
 
 
-{*(f'样例输入{p}：{ord(10)}{i}{ord(10)}样例输出{p}：{ord(10)}{rsp["sample_outputs"][p]}{ord(10)}{ord(10)}' for p,i in enumerate(rsp['sample_inputs']))}
+{chr(10).join(samples)}
 
 时间限制：{rsp['time_limit']}s
 内存限制：{rsp['memory_limit']}kb"""
@@ -88,9 +89,10 @@ def 提交(*attrs,**kwargs):
         'file':' '.join(attrs[2:])
     }
     rsp = requester('submit', data)['data']['result']
+    cases = (f'{p}  {i} {rsp["runtime"][p]/1000}ms {rsp["memory"][p]/1000}kb' for p,i in enumerate(rsp['verdict']))
     render = f"""
 测试点  状态    时间    内存
-{*(f'{p}  {i} {rsp["runtime"][p]/1000}ms {rsp["memory"][p]/1000}kb' for p,i in enumerate(rsp['verdict']))}
+{chr(10).join(cases)}
 
 """
     if rsp['score'] == 100:
