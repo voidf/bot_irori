@@ -218,6 +218,18 @@ removeSniffer(114514,'#repeat')
 
 但注意超星网盘单个文件不能超过200M
 
+# 设置运行版本
+
+可以在GLOBAL文件中设置irori使用的python-mirai环境，默认是4（即graia
+
+可以调成3来在kuriyama下继续运行irori
+
+# 发送图片
+
+为了v3和v4的兼容，最好走Utils下的generateImageFromFile方法
+
+当然如果你自己特别想用v4特性我也不拦你就是了（
+
 # 全局变量
 
 由于到处都有import GLOBAL，所以尽管把需要的东西往GLOBAL里放

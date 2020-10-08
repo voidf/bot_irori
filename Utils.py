@@ -94,6 +94,7 @@ def getMessageChainText(m:MessageChain) -> str:
     else: return m.asDisplay()
 
 def generateImageFromFile(fn:str) -> Image:
+    """v3和v4的本地文件兼容"""
     if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
     else: return Image.fromLocalFile(fn)
 
@@ -386,6 +387,7 @@ def compressMsg(l,extDict={}):
         return MessageChain.create(l).asSendable()
 
 def getPlayer(**kwargs):
+    """根据不定字典拿player号"""
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
@@ -604,10 +606,13 @@ def fetchSentences(d):
     d.setdefault('plain',[]).append(j['note'])
     
 
-def uploadToChaoXing(fn:str) -> str:
+def uploadToChaoXing(fn: Union[bytes,str]) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'
-    with open(fn,'rb') as f:
-        r = requests.post(lnk,files = {'attrFile':f})
+    if isinstance(fn,bytes):
+        r = requests.post(lnk,files = {'attrFile':fn})
+    else:
+        with open(fn,'rb') as f:
+            r = requests.post(lnk,files = {'attrFile':f})
     j = json.loads(r.text)
     return j['att_file']['att_clouddisk']['downPath']
 
@@ -645,7 +650,7 @@ def exgcd(a,b):
 
 def getinv(a,m):
     x,y = exgcd(a,m)
-    return x%m
+    return -1 if x==1 else x%m
     
 # 树巨结垢相关
 

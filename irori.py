@@ -91,9 +91,12 @@ try:
         GLOBAL.lengthLim = cfg.get('lengthLim',500)
         GLOBAL.compressFontSize = cfg.get('fontSize',18)
         GLOBAL.echoMsg = cfg.get('echoMsg',False)
+        GLOBAL.AVGHost = cfg.get('AVGHost','')
+        GLOBAL.OJHost = cfg.get('OJHost','')
 
-except Exception as e:
-    print(e)
+
+except:
+    traceback.print_exc()
     banGroup = {}
     allowGroup={}
     botList = set()
@@ -104,6 +107,9 @@ except Exception as e:
     GLOBAL.lengthLim = 500
     GLOBAL.compressFontSize = 18
     GLOBAL.echoMsg = False
+    GLOBAL.AVGHost = ''
+    GLOBAL.OJHost = ''
+
 
 import Callable
 

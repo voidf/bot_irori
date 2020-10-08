@@ -100,7 +100,7 @@ class AVG():
 
 
     def __requestValidater__(lnk,kw,tle=5,**kwargs):
-        r = requests.post(f"http://{GLOBAL.AVGHost}:{GLOBAL.AVGPort}/api/v1/domain/{lnk}",json=kw,timeout=tle)
+        r = requests.post(f"{GLOBAL.AVGHost}/api/v1/domain/{lnk}",json=kw,timeout=tle)
         j = json.loads(r.text)
         if not j['status']:
             print(j)

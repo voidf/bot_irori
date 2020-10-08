@@ -29,7 +29,7 @@ import hashlib
 import zlib
 import time
 import datetime
-import urllib
+from urllib.parse import quote
 import mido
 from Utils import *
 importMirai()
@@ -119,6 +119,8 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
+def 復讀(*attrs,**kwargs):return [Plain(' '.join(attrs))]
+
 with open('Assets/zh2morse.json','r') as f:
     z2m = json.load(f)
 
@@ -832,8 +834,8 @@ def 答案之书(*attrs,**kwargs):
         elif attrs[-1] in GLOBAL.unsubscribes:
             removeSniffer(player,'#为什么')
             return [Plain('【答案之书】禁用sniffer')]
-
-    ans = random.choice(book_of_answers)
+    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers+dynamic_answers)
     return [Plain(ans.strip())]
 
 def 答案之书en(*attrs,**kwargs):
@@ -851,8 +853,8 @@ def 答案之书en(*attrs,**kwargs):
         elif attrs[-1] in GLOBAL.unsubscribes:
             removeSniffer(player,'#为什么e')
             return [Plain('【book of answers】sniff mode off')]
-
-    ans = random.choice(book_of_answers_en)
+    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers_en+dynamic_answers)
     return [Plain(ans.strip())]
 
 def KMP(*attrs,**kwargs):
@@ -920,6 +922,7 @@ StringMap = {
     '#m2z':译中文电码,
     '#为什么':答案之书,
     '#为什么e':答案之书en,
+    '#repeat':復讀,
     '#KMP':KMP
 }
 
@@ -933,6 +936,7 @@ StringShort = {
 }
 
 StringDescript = {
+    '#repeat':'復讀消息，測試用',
     '#b64e':'base64编码,例：#b64e mirai',
     '#b64d':'base64解码,例：#b64d 114514==',
     '#rot13':'rot_13编码转换（仅大小写ascii字母）',

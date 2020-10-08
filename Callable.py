@@ -51,16 +51,6 @@ importlib.reload(Utils)
 from Utils import *
 importMirai()
 
-try:
-    with open('hakushinAVG.txt','r') as jfr:
-        GLOBAL.AVGHost = jfr.readline().strip()
-        GLOBAL.AVGPort = int(jfr.readline().strip())
-        
-except Exception as e:
-    print(e)
-    GLOBAL.AVGHost = ''
-    GLOBAL.AVGPort = 0
-
 
 def printHelp(*attrs,**kwargs):
     l = []
@@ -69,6 +59,7 @@ def printHelp(*attrs,**kwargs):
     if not attrs:
         l.append('命令分类：')
         l.append('\tAVG 正在开发的文字冒险游戏类')
+        l.append('\tOJ 灵车在线测评系统')
         l.append('\tGame 小游戏类')
         l.append('\tString 字符串处理类')
         l.append('\tFile 异步与文件读写类')
@@ -107,7 +98,15 @@ def printHelp(*attrs,**kwargs):
             ext = printHelp()
         
     return [Plain('\n'.join(l))] + img + ext
-
+"""
+OJ用
+"""
+import OJ
+importlib.reload(OJ)
+from OJ import *
+functionDescript.update(OJDescript)
+functionMap.update(OJMap)
+shortMap.update(OJShort)
 
 """
 AVG用
@@ -210,6 +209,7 @@ Classes = {
     'File':FileMap,
     'Game':GameMap,
     'AVG':AVGMap,
+    'OJ':OJMap,
 }
 
 functionMap['#h'] = printHelp

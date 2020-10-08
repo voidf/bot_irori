@@ -140,6 +140,8 @@ def 优质解答生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [generateImageFromFile(p)]
 
+def 自己不會百度嗎(*attrs,**kwargs):return [Plain(f"http://iwo.im/?q={quote(' '.join(attrs))}")]
+
 def IPlay生成器(*attrs,**kwargs):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
     Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
@@ -316,18 +318,21 @@ GeneratorMap = {
     "#Roll":骰子,
     "#军舰":军舰,
     "#今日人品":今日人品,
-    '#懂':懂的都懂
+    '#懂':懂的都懂,
+    '#百度':自己不會百度嗎
 }
 
 GeneratorShort = {
     '#pr':'#舔',
     '#trump':'#Trump',
     '#jj': "#军舰",
-    "#jrrp": "#今日人品"
+    "#jrrp": "#今日人品",
+    '#baidu':'#百度'
 }
 
 GeneratorDescript = {
     '#论证':'这么臭的功能有必要解释吗',
+    '#百度':'自己不會百度嗎?那我來幫你百度一下',
     '#懂':'懂的都懂,不懂的我也不多解释',
     '#nya':'生成猫表情，目前大概最多放4个中文字，例:#nya 要命',
     '#解答':'生成优质解答图片,例:#解答 自分で百度しろ',

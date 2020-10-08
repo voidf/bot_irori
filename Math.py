@@ -169,9 +169,6 @@ class FindTruth:
     def _print(self):
         self.outPut.append(','.join(self.li))
 
-# def read_matrix(s):
-#     r = re.search(r"""[]"""))
-
 def read_matrix_matlab(s):
     row = s.split(';')
     if not row[-1]:
@@ -257,8 +254,7 @@ def 打印真值表(*attrs,**kwargs):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs,**kwargs):
-    return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs,**kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
 def 孙子定理(*attrs,**kwargs):
     il = ' '.join(attrs).strip().split()
@@ -365,7 +361,7 @@ MathDescript = {
 ''',
     '#QM':
 """
-用QM法化简逻辑式，参数格式:原式 显示字母 无关项的最小项，例
+用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
 用法：
     #QM <原式的逗号隔开的最小项表示> [无关项的最小项表示] [化简后显示字母]
     #QM <原式的逻辑式表示> [无关项的最小项表示]
@@ -374,7 +370,7 @@ MathDescript = {
     #QM b'd+a'bc'+a'bcd' 1,2
 """,
     '#线代':
-"""
+"""线代工具箱，底层是numpy，能算一些矩阵相关
 用法：
     #线代 <操作命令> <矩阵1> <矩阵2>
     #线代 <操作命令> <矩阵1>
@@ -404,7 +400,7 @@ MathDescript = {
 例:
     #真值表 !A|(B^C)
 """,
-    '#inv':'求给定的x在模m意义下的逆元（exgcd',
+    '#inv':'求给定的x在模m意义下的逆元（exgcd\n用法：#inv <x> <m>',
     '#CRT':
 """
 用中国剩余定理解剩余方程

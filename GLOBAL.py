@@ -23,7 +23,8 @@ pingCtr = 0
 sudo_su = {}
 
 AVGHost = ''
-AVGPort = 0
+OJHost = ''
+
 
 AtCoderHeaders = {
 	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -37,11 +38,18 @@ AtCoderHeaders = {
 }
 
 moeGirlHeaders={
-	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+	"accept-encoding":"gzip, deflate, br",
 	"accept-language":"zh-CN,zh;q=0.9",
+	"cookie":"ztdh-touhou=hide",
 	"dnt":"1",
+	"referer":"https://zh.moegirl.org.cn/index.php?search=%E4%BD%A0%E4%BB%AC%E8%BF%99%E4%B8%AA%E6%98%AF%E4%BB%80%E4%B9%88%E7%BE%A4%E5%95%8A&title=Special:%E6%90%9C%E7%B4%A2&profile=default&fulltext=1&searchToken=azim03dx52gd943sdeji1njgr",
+	"sec-fetch-mode":"navigate",
+	"sec-fetch-site":"same-origin",
+	"sec-fetch-user":"?1",
 	"upgrade-insecure-requests":"1",
-	"user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+	"user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+
 }
 
 OIWikiHeaders ={
