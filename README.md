@@ -180,7 +180,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] 完善暂时闭源的AVG然后一起开源
 + [ ] ai棋牌
 + [ ] TRPG
-+ [ ] irori-OpenJudge
++ [x] irori-OpenJudge（但是自建果然不如对接
 
 ## 引用项目:
 
