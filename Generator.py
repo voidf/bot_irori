@@ -282,25 +282,51 @@ def 军舰(*attrs,**kwargs):
 def 今日人品(*attrs,**kwargs):
     player_id=kwargs['mem'].id
     if player_id not in GLOBAL.JRRP_map: #已经存在信息直接读取，否则生成新数字
-        GLOBAL.JRRP_map[player_id]=random.randint(0,100)
+        temp_rpval=random.randint(0,100)
+        GLOBAL.JRRP_map[player_id]=[temp_rpval]
+        #随机抽取字典值
+        b=list(GLOBAL.JRRP_words)
+        random.shuffle(b)
+        if temp_rpval==100:
+            GLOBAL.JRRP_map[player_id].extend([['诸事皆宜'],['-']])
+        elif 80<=temp_rpval<=99:
+            GLOBAL.JRRP_map[player_id].extend([b[0:5],b[5:6]])
+        elif 60<=temp_rpval:
+            GLOBAL.JRRP_map[player_id].extend([b[0:4],b[4:6]])
+        elif 40<=temp_rpval:
+            GLOBAL.JRRP_map[player_id].extend([b[0:3],b[3:6]])
+        elif 20<=temp_rpval:
+            GLOBAL.JRRP_map[player_id].extend([b[0:2],b[2:6]])
+        elif 1<=temp_rpval:
+            GLOBAL.JRRP_map[player_id].extend([b[0:1],b[1:6]])
+        elif temp_rpval==0:
+            GLOBAL.JRRP_map[player_id].extend([['-'],['诸事不宜']])
 
-    rp_val=GLOBAL.JRRP_map[player_id]
-    ans='你今天的人品为：'+str(rp_val)+'\n评价：'
-    if rp_val==100:
-        ans+='心想事成'
-    elif 80<=rp_val<=99:
-        ans+='万事如意'
-    elif 60<=rp_val<=79:
-        ans+='修短随化'
-    elif 40<=rp_val<=59:
-        ans+='因祸得福'
-    elif 20<=rp_val<=39:
-        ans+='落魄不偶'
-    elif 1<=rp_val<=19:
-        ans+='有命无运'
-    elif rp_val==0:
-        ans+='危！'
+    rp_val=GLOBAL.JRRP_map[player_id][0]
+    print(rp_val)
+    print(GLOBAL.JRRP_map[player_id])
+    ans='你今天的人品为：'+str(rp_val)+'\n'
+    ans+='宜：'+','.join(GLOBAL.JRRP_map[player_id][1])+'\n'
+    ans+='忌：'+','.join(GLOBAL.JRRP_map[player_id][2])+'\n'
+
     return [Plain(ans)]
+    #rp_val=GLOBAL.JRRP_map[player_id]
+    #ans='你今天的人品为：'+str(rp_val)+'\n评价：'
+    #if rp_val==100:
+    #    ans+='心想事成'
+    #elif 80<=rp_val<=99:
+    #    ans+='万事如意'
+    #elif 60<=rp_val<=79:
+    #    ans+='修短随化'
+    #elif 40<=rp_val<=59:
+    #    ans+='因祸得福'
+    #elif 20<=rp_val<=39:
+    #    ans+='落魄不偶'
+    #elif 1<=rp_val<=19:
+    #    ans+='有命无运'
+    #elif rp_val==0:
+    #    ans+='危！'
+    #return [Plain(ans)]
 
 GeneratorMap = {
     '#论证':这么臭的函数有必要定义吗,
