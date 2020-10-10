@@ -176,6 +176,7 @@ async def CFLoopRoutiner():
             for _ in os.listdir('CF/'):
                 try:
                     if _[-4:]!='.png':
+                        print(f'EXECUTING{_}')
                         CFNoticeManager(j,gp=int(_))
                 except:
                     print('CF爬虫挂了！',traceback.format_exc())
