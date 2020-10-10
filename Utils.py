@@ -437,16 +437,21 @@ def appendSniffer(player,event,pattern): # 注意捕捉exc
 def clearCFFuture(G,key,src):
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(src,{})
     try:
-        print('清除成功',CFNoticeQueue.pop(key))
+        c = CFNoticeQueue.pop(key)
+        c.cancel()
+        print('清除成功',c)
     except:
+        traceback.print_exc()
         print('无',G)
 
 def clearOTFuture(G,key,src):
-
     t = GLOBAL.OTNoticeQueueGlobal.setdefault(src,{})
     try:
-        print('清除成功',t.pop(key))
+        routine = t.pop(key)
+        routine.cancel()
+        print('清除成功',routine)
     except:
+        traceback.print_exc()
         print('无',G)
 
 def CFNoticeManager(j,**kwargs):
@@ -458,7 +463,7 @@ def CFNoticeManager(j,**kwargs):
     with open(fn,'r') as f:
         feat = f.readline().strip()
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
-    print(j)
+    print(f"INITING {gp} FOR {CFNoticeQueue}")
     for k,v in j.items():
         timew = None
         if k not in CFNoticeQueue:
