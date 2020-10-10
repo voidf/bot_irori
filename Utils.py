@@ -434,25 +434,29 @@ def appendSniffer(player,event,pattern): # 注意捕捉exc
     with open(f'sniffer/{player}','w') as f:
         json.dump(j,f)
 
-def clearCFFuture(G,key,src):
-    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(src,{})
-    try:
-        c = CFNoticeQueue.pop(key)
-        c.cancel()
-        print('清除成功',c)
+def clearCFFuture(key,G,src):
+    """
+    第一个参数是比赛唯一标号，第二个是群组号用于在dict中确认
+    第三个参数是来源函数，因为这个函数是在来源callback调用的，
+    那么在这之前来源已经被执行完了，因此不用cancel，直接从dict中删去即可
+    """
+    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(G,{})
+    try:print('清除成功',CFNoticeQueue.pop(key))
     except:
         traceback.print_exc()
-        print('无',G)
+        print(f'{key}中无比赛{G}的提醒日程')
 
-def clearOTFuture(G,key,src):
-    t = GLOBAL.OTNoticeQueueGlobal.setdefault(src,{})
-    try:
-        routine = t.pop(key)
-        routine.cancel()
-        print('清除成功',routine)
+def clearOTFuture(key,G,src):
+    """
+    第一个参数是比赛唯一标号，第二个是群组号用于在dict中确认
+    第三个参数是来源函数，因为这个函数是在来源callback调用的，
+    那么在这之前来源已经被执行完了，因此不用cancel，直接从dict中删去即可
+    """
+    t = GLOBAL.OTNoticeQueueGlobal.setdefault(G,{})
+    try:print('清除成功',t.pop(key))
     except:
         traceback.print_exc()
-        print('无',G)
+        print(f'{key}中无比赛{G}的提醒日程')
 
 def CFNoticeManager(j,**kwargs):
     try:
@@ -467,7 +471,6 @@ def CFNoticeManager(j,**kwargs):
     for k,v in j.items():
         timew = None
         if k not in CFNoticeQueue:
-            
             if 'routine' in v:
                 timew = v['routine'] - tnow() - datetime.timedelta(hours=1)
                 asy = asyncio.ensure_future(contestsBeginNotice(gp,v['title'],timew.total_seconds()))
@@ -486,9 +489,7 @@ def OTNoticeManager(j,**kwargs):
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-
     OtherOJNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
-
     for k in j:
         if k['title'] not in OtherOJNoticeQueue:
             timew = k['begin'] - tnow() - datetime.timedelta(hours=1)
