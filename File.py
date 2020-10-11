@@ -348,10 +348,10 @@ def 仿洛谷每日签到(*attrs,**kwargs):
         t忌.pop(y[1][0],(0,False))
         j = random.sample(t忌.items(),2) # 防重
         if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
-        if fortune in ('大凶'): y = [('诸事不宜','')]
-        for p,i in enumerate(y): y[p] = '\t'.join(i)
-        for p,i in enumerate(j): j[p] = '\t'.join(i)
-        ans = f"{fortune}\n\n宜:\n{(chr(9)+chr(10)).join(y)}\n\n忌:\n{(chr(9)+chr(10)).join(j)}\n\n您已连续求签{current_user['combo']}天"
+        if fortune in ('大凶','大凶'): y = [('诸事不宜','')]
+        for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
+        for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
+        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
         current_user['info'] = ans
         current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
     return [Plain(current_user['info'])]
