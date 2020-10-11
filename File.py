@@ -327,7 +327,7 @@ def 在线P歌(*attrs,**kwargs):
     return [Plain(uploadToChaoXing(fn))]
 
 def 仿洛谷每日签到(*attrs,**kwargs):
-    mem = kwargs['mem']
+    mem = int(kwargs['mem'])
     fn = f'DailySign/{mem}'
     from Assets.洛谷签到语料 import 宜, 忌, 运势
     if not os.path.exists('DailySign'): os.mkdir('DailySign')
