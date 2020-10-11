@@ -355,6 +355,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
         current_user['info'] = ans
         current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
         with open(fn,'w') as f: json.dump(current_user,f)
+    else: current_user['info'] = '您今天已经求过签啦！以下是求签结果：\n' + current_user['info']
     return [Plain(current_user['info'])]
 
 FileMap = {
