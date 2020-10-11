@@ -346,7 +346,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
         t忌 = copy.deepcopy(忌)
         t忌.pop(y[0][0],(0,False))
         t忌.pop(y[1][0],(0,False))
-        j = random.sample(t忌,2) # 防重
+        j = random.sample(t忌.items(),2) # 防重
         if fortune in ('大吉','特大吉'): j = [('万事皆宜')]
         if fortune in ('大凶'): y = [('诸事不宜')]
         for p,i in enumerate(y): y[p] = '\t'.join(i)
