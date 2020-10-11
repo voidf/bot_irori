@@ -299,7 +299,7 @@ async def msgDistributer(**kwargs):
 
 def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
+def randstr(l:int) -> str:return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
 
 def renderHtml(dst_lnk,na) -> str:
     """渲染dst_lnk的网页，保存为na，返回网页标题"""

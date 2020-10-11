@@ -326,11 +326,40 @@ def 在线P歌(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(fn))
     return [Plain(uploadToChaoXing(fn))]
 
+def 仿洛谷每日签到(*attrs,**kwargs):
+    mem = kwargs['mem']
+    fn = f'DailySign/{mem}'
+    from Assets.洛谷签到语料 import 宜, 忌, 运势
+    if not os.path.exists('DailySign'): os.mkdir('DailySign')
+    if not os.path.exists(fn): 
+        with open(fn,'w') as f: json.dump({},f)
+    with open(fn,'r') as f: current_user = json.load(f)
+    def to_datetime(s): return datetime.datetime.strptime('%Y-%m-%d', s)
+    if current_user.get('last_sign','1919-8-10') != datetime.datetime.now().strftime('%Y-%m-%d'):
+        if to_datetime(current_user.get('last_sign','1919-8-10')) != to_datetime(datetime.datetime.now().strftime('%Y-%m-%d')) - datetime.timedelta(days=1):
+            current_user['combo'] = 0
+        current_user['combo'] = current_user.get('combo', 0) + 1
+        fortune = random.choice(运势)
+        y = random.sample(宜.items(),2)
+        t忌 = copy.deepcopy(忌)
+        t忌.pop(y[0][0],(0,False))
+        t忌.pop(y[1][0],(0,False))
+        j = random.sample(t忌,2) # 防重
+        if fortune in ('大吉','特大吉'): j = [('万事皆宜')]
+        if fortune in ('大凶'): y = [('诸事不宜')]
+        for p,i in enumerate(y): y[p] = '\t'.join(i)
+        for p,i in enumerate(j): j[p] = '\t'.join(i)
+        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
+        current_user['info'] = ans
+        current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
+    return [Plain(current_user['info'])]
+
 FileMap = {
     '#ddl':ddl通知姬,
     '#vote':投票姬,
     '#i电':电笔记,
     '#P歌':在线P歌,
+    '#求签':仿洛谷每日签到
 }
 
 FileShort = {
@@ -339,6 +368,7 @@ FileShort = {
 }
 
 FileDescript = {
+    '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
     '#vote':
 """
 因为群投票限制15个选项所以整了这个计票姬
