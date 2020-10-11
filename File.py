@@ -354,6 +354,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
         ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
         current_user['info'] = ans
         current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        with open(fn,'w') as f: json.dump(current_user,f)
     return [Plain(current_user['info'])]
 
 FileMap = {
