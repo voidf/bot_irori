@@ -336,7 +336,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
     if not os.path.exists(fn): 
         with open(fn,'w') as f: json.dump({},f)
     with open(fn,'r') as f: current_user = json.load(f)
-    def to_datetime(s): return datetime.datetime.strptime('%Y-%m-%d', s)
+    def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
     if current_user.get('last_sign','1919-8-10') != datetime.datetime.now().strftime('%Y-%m-%d'):
         if to_datetime(current_user.get('last_sign','1919-8-10')) != to_datetime(datetime.datetime.now().strftime('%Y-%m-%d')) - datetime.timedelta(days=1):
             current_user['combo'] = 0
