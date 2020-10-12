@@ -37,7 +37,7 @@ import argparse
 # from mirai import MessageChain
 from Utils import *
 importMirai()
-import Test
+import plugins.Test
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
