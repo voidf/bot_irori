@@ -1,3 +1,5 @@
+"""翻译类"""
+
 import sys
 import GLOBAL
 from bs4 import BeautifulSoup

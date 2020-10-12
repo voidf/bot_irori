@@ -1,3 +1,5 @@
+"""异步与文件读写类"""
+
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw

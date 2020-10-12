@@ -51,6 +51,16 @@ importlib.reload(Utils)
 from Utils import *
 importMirai()
 
+pluginsdir = 'plugins/'
+plugindocs = {}
+
+for plugin in os.listdir(pluginsdir):
+    module = importlib.import_module(pluginsdir+plugin)
+    module.reload()
+    from module import *
+    no_ext = os.path.splitext(plugin)[0]
+    plugindocs[no_ext] = module.__doc__
+    
 
 def printHelp(*attrs,**kwargs):
     l = []

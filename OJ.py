@@ -1,3 +1,5 @@
+"""灵车在线测评系统"""
+
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw

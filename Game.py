@@ -1,3 +1,5 @@
+"""小游戏类"""
+
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw

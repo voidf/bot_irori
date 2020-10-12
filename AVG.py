@@ -1,3 +1,5 @@
+"""正在开发的文字冒险游戏类"""
+
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
