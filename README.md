@@ -38,7 +38,17 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + 知道如何用电脑浏览器下载文件
 + 具有一定的英文基础
 
-## 使用
+## 快速部署（精简版）
+
+1. 克隆本仓库
+2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`http或s://mirai-http-api实例host:端口/`
+3. 安装python3，然后`pip3 install -r requirements.txt`
+4. 安装java，记得配好环境变量
+5. 将release里的env文件解压
+6. 在解压目录里面`java -jar mirai-console-wrapper-1.3.0-all.jar --update=KEEP`
+7. `python3 irori.py`
+
+## 安装使用（啰嗦版）
 
 先装[python](https://www.python.org/downloads/)最好是3.7左右这样的版本,最好是64位，即安装包上写有AMD64字样的exe包
 
@@ -60,7 +70,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 `pip install -r requirements.txt`
 
-**注意kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢**
+> 其实kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢
 
 快速配置环境的话可以直接捣鼓一下release里的东西
 
