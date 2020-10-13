@@ -4,8 +4,7 @@ FROM alpine:latest
 #代码添加到code文件夹，后面可以通过进入容器中看的
 COPY ./ /irori
 
-RUN mkdir /irori && \
-sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
 apk update && apk add python3 && apk add py3-pip && \
 apk add make automake gcc g++ subversion python3-dev && \
 apk add curl bash openjdk8-jre-base && \
