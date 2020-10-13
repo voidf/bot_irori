@@ -11,6 +11,7 @@ proxy = {}
 DEKnowledge = {}
 JRRP_map = {}
 
+RUSHRATE = {}
 
 cfgs={}
 

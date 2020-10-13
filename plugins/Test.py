@@ -60,8 +60,7 @@ def 乒乓球(*attrs,**kwargs):
         s = f'pong {GLOBAL.pingCtr}Xcombo'
     return [Plain(s)]
 
-def 废话生成器(*attrs,**kwargs):
-    return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
+def 废话生成器(*attrs,**kwargs): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
 def 重设渲染图片阈值(*attrs,**kwargs):
     player = getPlayer(**kwargs)
@@ -70,41 +69,12 @@ def 重设渲染图片阈值(*attrs,**kwargs):
     return [Plain(f'消息长度大于等于{attrs[0]}时转为图片发送')]
     
 
-def 清空嗅探器(*attrs,**kwargs):
-    player = getPlayer(**kwargs)
-    tc = chkcfg(player)
-    print('clearing')
-    try:
-        tc.quick_calls = {}
-    except:
-        print('可能是内存里没有这个嗅探器引起的：')
-        print(traceback.format_exc())
-    if not os.path.exists(f'sniffer/{player}'):
-        return [Plain('没有储存sniffer，无需清空')]
-    else:
-        os.remove(f'sniffer/{player}')
-        return [Plain('已清除sniffer')]
+def 清空嗅探器(*attrs,**kwargs): return [Plain(clearSniffer(getPlayer(**kwargs)))]
 
-def 同步嗅探器(*attrs,**kwargs):
-    if 'player' in kwargs:
-        player = kwargs['player']
-    else:
-        player = getPlayer(**kwargs)
-    tc = chkcfg(player)
-    if not os.path.exists(f'sniffer/{player}'):
-        try:
-            tc.quick_calls = {}
-        except:
-            print(traceback.format_exc())
-        return [Plain('同步完毕，没有活动的嗅探器')]
-    else:
-        with open(f'sniffer/{player}','r') as f:
-            j = json.load(f)
-        tc.quick_calls = j
-    return [Plain(f'同步完毕，现有{len(tc.quick_calls)}个已经激活的嗅探器')]
+def 同步嗅探器(*attrs,**kwargs): return [Plain(syncSniffer(getPlayer(**kwargs)))]
 
 
-TestMap = {
+functionMap = {
     '#fuzz':Unicode测试姬,
     '#EMJ':表情字典测试姬,
     '#ping':乒乓球,
@@ -115,11 +85,11 @@ TestMap = {
     r'%sync':同步嗅探器
 }
 
-TestShort = {
+shortMap = {
 
 }
 
-TestDescript = {
+functionDescript = {
     '#fuzz':
 """
 【测试用】基本上是用来测试unicode的

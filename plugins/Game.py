@@ -440,14 +440,14 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
     return [generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
 
 
-GameMap = {
+functionMap = {
     '#2048':asobi2048,
     '#折线':asobiPolyline,
     '#华容道':asobiSlidingPuzzle
 }
-GameShort = {'#zx':'#折线','#hdpt':'#华容道'}
+shortMap = {'#zx':'#折线','#hdpt':'#华容道'}
 
-GameDescript = {
+functionDescript = {
     '#2048':
 """
 开始2048游戏，wasd控制移动方向，init用于初始化，传参gamestart进入快速操作模式（慎用

@@ -360,7 +360,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
     else: current_user['info'] = '您今天已经求过签啦！以下是求签结果：\n' + current_user['info']
     return [Plain(current_user['info'])]
 
-FileMap = {
+functionMap = {
     '#ddl':ddl通知姬,
     '#vote':投票姬,
     '#i电':电笔记,
@@ -368,12 +368,12 @@ FileMap = {
     '#求签':仿洛谷每日签到
 }
 
-FileShort = {
+shortMap = {
     '#iee':'#i电',
     '#P':'#P歌'
 }
 
-FileDescript = {
+functionDescript = {
     '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
     '#vote':
 """

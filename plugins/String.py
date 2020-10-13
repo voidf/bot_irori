@@ -911,7 +911,7 @@ def KMP(*attrs,**kwargs):
     return [Plain(f'KMP-Fail:{fail}\nKMP-Fval:{fval}\nEXKMP-next:{EX_next}\nEXKMP-extent:{EX_extent}')]
 
 
-StringMap = {
+functionMap = {
     '#BV':BVCoder,
     '#b64e':编码base64,
     '#b64d':解码base64,
@@ -928,7 +928,7 @@ StringMap = {
     '#KMP':KMP
 }
 
-StringShort = {
+shortMap = {
     '#ans':'#为什么',
     '#why':'#为什么',
     '#wsm':'#为什么',
@@ -937,7 +937,7 @@ StringShort = {
     '#wsme':'#为什么e'
 }
 
-StringDescript = {
+functionDescript = {
     '#repeat':'復讀消息，測試用',
     '#b64e':'base64编码,例：#b64e mirai',
     '#b64d':'base64解码,例：#b64d 114514==',

@@ -37,7 +37,6 @@ import argparse
 # from mirai import MessageChain
 from Utils import *
 importMirai()
-import plugins.Test
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
@@ -368,7 +367,7 @@ async def hajime(bot):
         if not os.path.exists('sniffer/'):
             os.mkdir('sniffer/')
         for _ in os.listdir('sniffer/'):
-            Test.同步嗅探器(player=int(_))
+            print(int(_),syncSniffer(player=int(_)))
     except:
         print('嗅探器爆炸了，有点严重\n',traceback.format_exc())
     try:
@@ -420,7 +419,7 @@ else:
         await hajime(bot)
     
 if __name__ == '__main__':
-    print(f"============irori running with python-mirai version{GLOBAL.py_mirai_version}=============")
+    print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version}=============")
     if GLOBAL.py_mirai_version == 3:irori.run()
     else:app.launch_blocking()
     

@@ -164,6 +164,7 @@ async def JRRPclearRoutiner():
             GLOBAL.JRRP_map.clear()
             asyncio.ensure_future(msgDistributer(msg='你昨天的人品已经被清除了——',typ='P',player=550247773345)) #player号码暂时这么写，别打我
         except:
+            traceback.print_exc()
             print('人品清除失败')
 
 async def CFLoopRoutiner():
@@ -296,6 +297,28 @@ async def msgDistributer(**kwargs):
         elif 'mem' in kwargs:
             await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
         
+async def msgSerializer(_i, **kwargs):
+    p = getPlayer(**kwargs)
+    rate = GLOBAL.RUSHRATE.get(p,1)
+    print(_i)
+    if 'note' in _i:
+        await msgDistributer(msg=_i['note'], **kwargs)
+    if 'msg' in _i:
+        if _i.get('typ', 'P') != 'I':
+            await asyncio.sleep(len(_i['msg'])/5/rate)
+        await msgDistributer(**_i, **kwargs)
+    if 'MORE' in _i and 'note' in _i['MORE']:
+        await msgDistributer(typ='P',msg=_i['MORE']['note'],**kwargs)
+
+                
+def smart_decorator(decorator):
+    def decorator_proxy(func=None, **kwargs):
+        if func is not None:
+            return decorator(func=func, **kwargs)
+        def decorator_proxy(func):
+            return decorator(func=func, **kwargs)
+        return decorator_proxy
+    return decorator_proxy
 
 def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
@@ -389,6 +412,7 @@ def compressMsg(l,extDict={}):
 
 def getPlayer(**kwargs):
     """根据不定字典拿player号"""
+    if 'player' in kwargs: return kwargs['player']
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
@@ -433,6 +457,34 @@ def appendSniffer(player,event,pattern): # 注意捕捉exc
     j[event]['sniff'].append(pattern)
     with open(f'sniffer/{player}','w') as f:
         json.dump(j,f)
+
+def clearSniffer(player) -> str:
+    tc = chkcfg(player)
+    print('clearing')
+    try:
+        tc.quick_calls = {}
+    except:
+        print('可能是内存里没有这个嗅探器引起的：')
+        traceback.print_exc()
+    if not os.path.exists(f'sniffer/{player}'):
+        return '没有储存sniffer，无需清空'
+    else:
+        os.remove(f'sniffer/{player}')
+        return '已清除sniffer'
+
+def syncSniffer(player) -> str:
+    tc = chkcfg(player)
+    if not os.path.exists(f'sniffer/{player}'):
+        try:
+            tc.quick_calls = {}
+        except:
+            print(traceback.format_exc())
+        return '同步完毕，没有活动的嗅探器'
+    else:
+        with open(f'sniffer/{player}','r') as f:
+            j = json.load(f)
+        tc.quick_calls = j
+    return f'同步完毕，现有{len(tc.quick_calls)}个已经激活的嗅探器'
 
 def clearCFFuture(key,G,src):
     """

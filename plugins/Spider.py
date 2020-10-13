@@ -518,7 +518,7 @@ def 反爬ip(*attrs,**kwargs):
 
 
 
-SpiderMap = {
+functionMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
     '#什么值得学':爬OIWiki,
@@ -535,7 +535,7 @@ SpiderMap = {
     '#每日一句':爬每日一句
 }
 
-SpiderShort = {
+shortMap = {
     '#xx':'#什么值得学',
     '#moe':'#什么值得娘',
     '#什么值得d':'#什么值得娘',
@@ -551,7 +551,7 @@ SpiderShort = {
 
 }
 
-SpiderDescript = {
+functionDescript = {
     '#LaTeX':'爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看',
     '#肛道理':'请求一言app，加某些参数会黑化',
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',

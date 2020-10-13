@@ -332,7 +332,7 @@ def 老线代bot了(*attrs,**kwargs):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-MathMap = {
+functionMap = {
     '#QM':QM化简器,
     '#C':CalC,
     '#A':CalA,
@@ -344,11 +344,11 @@ MathMap = {
     '#真值表':打印真值表
 }
 
-MathShort = {
+shortMap = {
     '#stat':'#统计',
 }
 
-MathDescript = {
+functionDescript = {
     '#K':'计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)',
     '#A':'计算排列数，例:#A 3 3',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
