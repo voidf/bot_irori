@@ -418,8 +418,7 @@ else:
     async def startup(bot: Mirai):
         await hajime(bot)
     
-if __name__ == '__main__':
-    print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version}=============")
-    if GLOBAL.py_mirai_version == 3:irori.run()
-    else:app.launch_blocking()
-    
+
+print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version}=============")
+if GLOBAL.py_mirai_version == 3:irori.run()
+else:app.launch_blocking()

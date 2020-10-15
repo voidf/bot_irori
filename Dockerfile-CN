@@ -23,4 +23,4 @@ ENV JAVA_HOME /usr/lib/jvm/default-jvm
 ENV PATH ${PATH}:${JAVA_HOME}/bin
 
 #当容器启动时，使用python3执行指定路径的py脚本
-# CMD ["python3", "irori.py"]
+CMD ["python3", "config.py"]
