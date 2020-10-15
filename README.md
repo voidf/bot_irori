@@ -48,7 +48,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`http或s://mirai-http-api实例host:端口/`
 3. 安装python3，然后`pip3 install -r requirements.txt`
 4. 安装java，记得配好环境变量
-5. 将release里的env文件解压
+5. 将[release里的env](http://d0.ananas.chaoxing.com/download/aad7ee20c57d3b402b7f254b4f3373de)文件解压
 6. 在解压目录里面`./run.sh`
 7. `python3 irori.py`
 
