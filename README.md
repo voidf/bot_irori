@@ -38,6 +38,10 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + 知道如何用电脑浏览器下载文件
 + 具有一定的英文基础
 
+## docker一句话部署
+
+`docker run -it voidf/irori`
+
 ## 快速部署（精简版）
 
 1. 克隆本仓库
@@ -45,7 +49,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 3. 安装python3，然后`pip3 install -r requirements.txt`
 4. 安装java，记得配好环境变量
 5. 将release里的env文件解压
-6. 在解压目录里面`java -jar mirai-console-wrapper-1.3.0-all.jar --update=KEEP`
+6. 在解压目录里面`./run.sh`
 7. `python3 irori.py`
 
 ## 安装使用（啰嗦版）
@@ -164,7 +168,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 ## 参与开发
 
-参见[DEV.md](DEV.md)
+参见[DEV.md](DEV.md)或者本仓库的Wiki
 
 ## 老版本kuriyama(0.2.3)留下来的坑
 
@@ -190,6 +194,8 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] 实现Fygon计算复杂度
 + [ ] 求二次剩余
 + [ ] 选课
++ [ ] 对接屑站转发抽奖
++ [ ] 自用本校工具箱
 
 + 大坑
   
@@ -197,6 +203,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] ai棋牌
 + [ ] TRPG
 + [x] irori-OpenJudge（但是自建果然不如对接
++ [ ] irori农场（
 
 ## 引用项目:
 
