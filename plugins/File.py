@@ -1,8 +1,11 @@
 """异步与文件读写类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 
 import GLOBAL
 from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
+from PIL import ImageFont, ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -13,7 +16,7 @@ import json5
 import json
 import numpy
 import random
-import os
+
 import base64
 import qrcode
 import io
@@ -333,7 +336,7 @@ def 仿洛谷每日签到(*attrs,**kwargs):
     print(dir(kwargs['mem']))
     mem = int(getattr(kwargs['mem'],'id',kwargs['mem']))
     fn = f'DailySign/{mem}'
-    from Assets.洛谷签到语料 import 宜, 忌, 运势
+    from Assets.签到语料 import 宜, 忌, 运势
     if not os.path.exists('DailySign'): os.mkdir('DailySign')
     if not os.path.exists(fn): 
         with open(fn,'w') as f: json.dump({},f)
