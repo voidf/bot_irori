@@ -332,6 +332,7 @@ def 在线P歌(*attrs, **kwargs):
     return [Plain(uploadToChaoXing(fn))]
 
 def 仿洛谷每日签到(*attrs, **kwargs):
+    generate_key_count = random.randint(2,5)
     print(kwargs['mem'])
     print(dir(kwargs['mem']))
     mem = int(getattr(kwargs['mem'],'id',kwargs['mem']))
@@ -347,13 +348,12 @@ def 仿洛谷每日签到(*attrs, **kwargs):
             current_user['combo'] = 0
         current_user['combo'] = current_user.get('combo', 0) + 1
         fortune = random.choice(运势)
-        y = random.sample(宜.items(),2)
+        y = random.sample(宜.items(),generate_key_count)
         t忌 = copy.deepcopy(忌)
-        t忌.pop(y[0][0],(0,False))
-        t忌.pop(y[1][0],(0,False))
-        j = random.sample(t忌.items(),2) # 防重
+        for yi in y: t忌.pop(yi[0],(0,False))
+        j = random.sample(t忌.items(),generate_key_count) # 防重
         if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
-        if fortune in ('大凶','大凶'): y = [('诸事不宜','')]
+        if fortune in ('大凶','危'): y = [('诸事不宜','')]
         for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
         ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
