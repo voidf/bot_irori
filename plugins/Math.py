@@ -353,7 +353,7 @@ def 离散闭包用工具(*attrs, **kwargs):
         addval(f)
         addval(t)
         conn.append((r[f], r[t]))
-    mat = np.zeros((len(m), len(m)), dtype=bool)
+    mat = numpy.zeros((len(m), len(m)), dtype=bool)
     for f, t in conn:
         mat[f][t] = 1
     rmat = copy.deepcopy(mat) # 自反
