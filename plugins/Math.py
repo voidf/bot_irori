@@ -345,7 +345,7 @@ def 离散闭包用工具(*attrs, **kwargs):
             for j, jj in enumerate(ii):
                 if jj:
                     ans.append(f'{m[i]},{m[j]}')
-        return f'{mt}\n{" ".join(ans)}'
+        return f'{mt.astype(numpy.int16)}\n{" ".join(ans)}'
 
     conn = []
     for i in attrs:
