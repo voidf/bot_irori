@@ -332,6 +332,81 @@ def 老线代bot了(*attrs,**kwargs):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
+def 离散闭包用工具(*attrs, **kwargs):
+    m = {} # 数转名
+    r = {} # 名转数
+    def addval(v):
+        if v not in r:
+            r[v] = len(m)
+            m[len(m)] = v
+    def rendermatrix(mt: numpy.array) -> str:
+        ans = []
+        for i, ii in enumerate(mt):
+            for j, jj in enumerate(ii):
+                if jj:
+                    ans.append(f'{m[i]},{m[j]}')
+        return f'{mt}\n{" ".join(ans)}'
+
+    conn = []
+    for i in attrs:
+        f, t = i.split(',')
+        addval(f)
+        addval(t)
+        conn.append((r[f], r[t]))
+    mat = np.zeros((len(m), len(m)), dtype=bool)
+    for f, t in conn:
+        mat[f][t] = 1
+    rmat = copy.deepcopy(mat) # 自反
+    smat = copy.deepcopy(mat) # 对称
+    tmat = copy.deepcopy(mat) # 传递
+
+    自反 = True
+    反自反 = True
+    对称 = True
+    反对称 = True
+    传递 = True
+
+    for i, ii in enumerate(mat):
+        for j, jj in enumerate(ii):
+            if i == j:
+                if jj: 反自反 = False
+                else: 自反 = False
+                rmat[i][j] = 1
+            else:
+                if mat[j][i]: 反对称 = False
+                else: 对称 = False
+                smat[j][i] = 1
+    tmp = copy.deepcopy(mat)
+    powerlist = []
+    s = set()
+    while tmp.tostring() not in s:
+        s.add(tmp.tostring())
+        powerlist.append(tmp)
+        tmp = tmp.dot(mat)
+    for i in powerlist:
+        tmat |= i
+    if not (tmat == mat).any(): 传递 = False
+    renderer = f"""基本性质：
+    自反:{自反}
+    反自反:{反自反}
+    对称:{对称}
+    反对称:{反对称}
+    传递:{传递}
+
+{rendermatrix(mat)}
+
+r(R)即自反闭包：
+{rendermatrix(rmat)}
+
+s(R)即对称闭包：
+{rendermatrix(smat)}
+
+t(R)即传递闭包：
+{rendermatrix(tmat)}
+"""
+    return [Plain(renderer)]
+
+
 functionMap = {
     '#QM':QM化简器,
     '#C':CalC,
@@ -341,7 +416,8 @@ functionMap = {
     '#inv':逆元,
     '#CRT':孙子定理,
     '#线代':老线代bot了,
-    '#真值表':打印真值表
+    '#真值表':打印真值表,
+    '#encap':离散闭包用工具
 }
 
 shortMap = {
@@ -351,6 +427,7 @@ shortMap = {
 functionDescript = {
     '#K':'计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)',
     '#A':'计算排列数，例:#A 3 3',
+    '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
     '#C':
 '''
