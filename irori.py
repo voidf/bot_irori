@@ -61,8 +61,8 @@ with open('authdata','r') as f:
 # print(dir(MessageChain))
 
 if GLOBAL.py_mirai_version == 3:
-    mirai_api_http_locate = host.replace('https://','')
-    mirai_api_http_locate = mirai_api_http_locate.replace('http://','')
+    mirai_api_http_locate = host.replace('https://', '')
+    mirai_api_http_locate = mirai_api_http_locate.replace('http://', '')
     irori = Mirai(f"mirai://{mirai_api_http_locate}?authKey={authKey}&qq={qq}")
 else:
     loop = asyncio.get_event_loop()

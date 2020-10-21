@@ -229,7 +229,7 @@ def CalKatalan(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(*attrs,**kwargs):
+def 统计姬from104(*attrs, **kwargs):
     l=[float(x) for x in attrs]
     ostr = []
     ostr.append(Plain(f"Mean 平均数:{statistics.mean(l)}\n"))
@@ -242,7 +242,7 @@ def 统计姬from104(*attrs,**kwargs):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(*attrs,**kwargs):
+def QM化简器(*attrs, **kwargs):
     v = list(attrs)
     if len(v[0].split(',')) > 1: # 最小项输入
         if len(v) == 1:
@@ -252,13 +252,13 @@ def QM化简器(*attrs,**kwargs):
     else:
         return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
 
-def 打印真值表(*attrs,**kwargs):
+def 打印真值表(*attrs, **kwargs):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs,**kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs, **kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 孙子定理(*attrs,**kwargs):
+def 孙子定理(*attrs, **kwargs):
     il = ' '.join(attrs).strip().split()
     li = []
     for i in il:
@@ -274,7 +274,7 @@ def 孙子定理(*attrs,**kwargs):
             M1 = li.pop()
             M2 = f
             C2 = r
-            G = math.gcd(M2,M1)
+            G = math.gcd(M2, M1)
             L = M1*M2//G
             if (C1-C2)%G:
                 return [Plain('输入数据无解')]
@@ -283,7 +283,7 @@ def 孙子定理(*attrs,**kwargs):
         return [Plain(str(r))]
             
 
-def 老线代bot了(*attrs,**kwargs):
+def 老线代bot了(*attrs, **kwargs):
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
