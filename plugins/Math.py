@@ -385,7 +385,7 @@ def 离散闭包用工具(*attrs, **kwargs):
         tmp = tmp.dot(mat)
     for i in powerlist:
         tmat |= i
-    if not (tmat == mat).any(): 传递 = False
+    if not (tmat == mat).all(): 传递 = False
     renderer = f"""基本性质：
     自反:{自反}
     反自反:{反自反}
