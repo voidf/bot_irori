@@ -373,9 +373,10 @@ def 离散闭包用工具(*attrs, **kwargs):
                 else: 自反 = False
                 rmat[i][j] = 1
             else:
-                if mat[j][i]: 反对称 = False
-                else: 对称 = False
-                smat[j][i] = 1
+                if jj:
+                    if mat[j][i]: 反对称 = False
+                    else: 对称 = False
+                    smat[j][i] = 1
     tmp = copy.deepcopy(mat)
     powerlist = []
     s = set()
