@@ -48,6 +48,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 `docker run -it voidf/irori`
 
 或者如果你嫌国外镜像下载不够快的话：
+
 `docker run -it voidf/irori --registry-mirror=https://docker.mirrors.ustc.edu.cn`
 
 ## 快速部署（精简版）
