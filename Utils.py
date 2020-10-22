@@ -368,7 +368,8 @@ def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     player = extDict.get("player",0)
     tc = chkcfg(player)
-    theme = int(extDict.get("-theme",255))
+    theme = int(extDict.get("-theme", 255))
+    theme = int(extDict.get("-t", theme))
     offset = tc.font_size >> 1
     print(offset)
     nl = []
@@ -380,7 +381,7 @@ def compressMsg(l,extDict={}):
             others.append(i)
     print(others)
     s = ''.join(nl)
-    if len(s) >tc.compress_threshold or "-force-image" in extDict:
+    if len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
         
         font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
         
@@ -699,6 +700,20 @@ def quickpow(x,p,m = -1):
             x = x * x % m
             p>>=1
     return res
+
+def A000110_list(m, mod=0): # 集合的划分数
+    A = [0 for i in range(m)]
+    m -= 1
+    A[0] = 1
+    # R = [1, 1]
+    for n in range(1, m):
+        A[n] = A[0]
+        for k in range(n, 0, -1):
+            A[k-1] += A[k]
+            if mod: A[k-1] %= mod
+        # R.append(A[0])
+    # return R
+    return A[0]
 
 def exgcd(a,b):
     if not b:

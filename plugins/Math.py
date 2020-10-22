@@ -339,6 +339,7 @@ def 离散闭包用工具(*attrs, **kwargs):
         if v not in r:
             r[v] = len(m)
             m[len(m)] = v
+        return r[v]
     def rendermatrix(mt: numpy.array) -> str:
         ans = []
         for i, ii in enumerate(mt):
@@ -348,11 +349,16 @@ def 离散闭包用工具(*attrs, **kwargs):
         return f'{mt.astype(numpy.int16)}\n{" ".join(ans)}'
 
     conn = []
+    input_char = []
     for i in attrs:
         f, t = i.split(',')
-        addval(f)
-        addval(t)
+        input_char.append(f)
+        input_char.append(t)
+    for i in sorted(input_char): addval(i) # 搞成字典序可能好一些
+    for i in attrs:
+        f, t = i.split(',')
         conn.append((r[f], r[t]))
+
     mat = numpy.zeros((len(m), len(m)), dtype=bool)
     for f, t in conn:
         mat[f][t] = 1
@@ -394,6 +400,8 @@ def 离散闭包用工具(*attrs, **kwargs):
     反对称:{反对称}
     传递:{传递}
 
+{m}
+
 {rendermatrix(mat)}
 
 r(R)即自反闭包：
@@ -407,7 +415,8 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-
+def 划分数个数(*attrs, **kwargs): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+    
 functionMap = {
     '#QM':QM化简器,
     '#C':CalC,
@@ -418,7 +427,8 @@ functionMap = {
     '#CRT':孙子定理,
     '#线代':老线代bot了,
     '#真值表':打印真值表,
-    '#encap':离散闭包用工具
+    '#encap':离散闭包用工具,
+    '#B': 排列数个数
 }
 
 shortMap = {
@@ -430,6 +440,7 @@ functionDescript = {
     '#A':'计算排列数，例:#A 3 3',
     '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
+    '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
     '#C':
 '''
 两个参数计算组合数，一个参数计算阶乘
