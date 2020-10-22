@@ -366,6 +366,7 @@ def generateTmpFileName(pref,ext='.png',**kwargs):
 
 def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
+    print(extDict)
     player = extDict.get("player",0)
     tc = chkcfg(player)
     theme = int(extDict.get("-theme", 255))
