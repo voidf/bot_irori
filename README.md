@@ -40,9 +40,15 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 ## docker一句话部署
 
-> 没有docker并且用debian的可以复制然后运行本仓库的安装脚本[install_docker.sh](install_docker.sh)里面的命令
+> 没有docker的可以根据自己的linux发行版复制然后运行本仓库的安装脚本
+>  + [install_docker_debian.sh](install_docker_debian.sh)
+>  + [install_docker_centos.sh](install_docker_centos.sh)
+> 里面的命令
 
 `docker run -it voidf/irori`
+
+或者如果你嫌国外镜像下载不够快的话：
+`docker run -it voidf/irori --registry-mirror=https://docker.mirrors.ustc.edu.cn`
 
 ## 快速部署（精简版）
 
