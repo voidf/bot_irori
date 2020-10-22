@@ -702,6 +702,7 @@ def quickpow(x,p,m = -1):
     return res
 
 def A000110_list(m, mod=0): # 集合的划分数
+    mod = int(mod)
     A = [0 for i in range(m)]
     m -= 1
     A[0] = 1
