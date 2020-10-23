@@ -705,7 +705,7 @@ def quickpow(x,p,m = -1):
 def A000110_list(m, mod=0): # 集合的划分数
     mod = int(mod)
     A = [0 for i in range(m)]
-    m -= 1
+    # m -= 1
     A[0] = 1
     # R = [1, 1]
     for n in range(1, m):
