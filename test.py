@@ -15,6 +15,20 @@ import time
 import copy
 import datetime
 
+# class GroupMessage(MiraiEvent):
+#     type: str = "GroupMessage"
+#     messageChain: MessageChain
+#     sender: Member
+
+#     class Dispatcher(BaseDispatcher):
+#         mixin = [MessageChainCatcher, ApplicationDispatcher]
+
+#         @staticmethod
+#         def catch(interface: DispatcherInterface):
+#             if interface.annotation is Group:
+#                 return interface.event.sender.group
+#             elif interface.annotation is Member:
+#                 return interface.event.sender
 
 class parseminus(BaseDispatcher):
     @staticmethod

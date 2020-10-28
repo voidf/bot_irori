@@ -1,5 +1,8 @@
 """小游戏类"""
-
+import os
+if __name__ == '__main__':
+    os.chdir('..')
+    
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -13,7 +16,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -35,9 +37,10 @@ import urllib
 import mido
 import shutil
 from Utils import *
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 importMirai()
 
-def asobi2048(*attrs,**kwargs):
+def asobi2048(*attrs, **kwargs):
     player = getPlayer(**kwargs)
     f = False
     n = 4

@@ -1,5 +1,7 @@
 """翻译类"""
-
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import sys
 import GLOBAL
 from bs4 import BeautifulSoup
@@ -34,6 +36,7 @@ import datetime
 import urllib
 import mido
 import GLOBAL
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
 
