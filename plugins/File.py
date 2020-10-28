@@ -16,7 +16,6 @@ import json5
 import json
 import numpy
 import random
-
 import base64
 import qrcode
 import io

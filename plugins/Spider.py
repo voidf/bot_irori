@@ -1,5 +1,7 @@
 """爬虫类"""
-
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -13,7 +15,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -454,9 +455,8 @@ def 爬天气(*attrs,**kwargs):
             with open(f'weather/{player}','a') as f:
                 f.write(attrs[0]+'\n')
             output.append(f'成功订阅城市{attrs[0]}的天气推送,取消请用cancel')
-        
-    except:
-        print(traceback.format_exc())
+    except: #还是别报错了我心慌
+        pass
     return [Plain('\n'.join(output))]
 
 def 爬每日一句(*attrs,**kwargs):

@@ -1,5 +1,7 @@
 """字符串处理类"""
-
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -33,6 +35,7 @@ import time
 import datetime
 from urllib.parse import quote
 import mido
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
 
