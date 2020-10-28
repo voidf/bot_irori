@@ -38,21 +38,10 @@ class D2(BaseDispatcher):
             r = await interface.execute_with(interface.name, "123", interface.default)
             return r
 
-class TestEvent(BaseEvent):
-    extDict: dict
+class Routiner7(BaseEvent):
+    pass
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [D2]
-
-        @staticmethod
-        def catch(interface: DispatcherInterface):
-            # print(interface.parameter_contexts)
-            if interface.name == "u":
-                yield 1
-            elif interface.annotation == str:
-                yield 12
-
-event = TestEvent()
+event = Routiner7()
 loop = asyncio.get_event_loop()
 broadcast = Broadcast(loop=loop, debug_flag=True)
 
@@ -65,12 +54,12 @@ async def r(extDict: dict):
         i += 1
 
 # for _ in range(15):
-@broadcast.receiver(TestEvent, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
+@broadcast.receiver(Routiner7, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
 async def test():
     print(datetime.datetime.now())
         # print(extDict)
 
-@broadcast.receiver(TestEvent, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
+@broadcast.receiver(Routiner7, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
 async def test2(extDict: dict):
     print(extDict)
 
