@@ -32,43 +32,10 @@ from Fetcher import *
 # from graia.application.group import Group,Member
 # from graia.application.friend import Friend
 
-def importMirai():
-    global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
-    global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
-    try:
-        if GLOBAL.py_mirai_version == 3:raise ImportError
-        Mirai = getattr(importlib.import_module("graia.application"),"GraiaMiraiApplication")
-        Session = getattr(importlib.import_module("graia.application"),"Session")
-        FriendMessage = getattr(importlib.import_module("graia.application.event.messages"),"FriendMessage")
-        GroupMessage = getattr(importlib.import_module("graia.application.event.messages"),"GroupMessage")
-        ApplicationLaunched = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationLaunched")
-        ApplicationShutdowned = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationShutdowned")
-        MessageChain = getattr(importlib.import_module("graia.application.message.chain"),"MessageChain")
-        Plain = getattr(importlib.import_module("graia.application.message.elements.internal"),"Plain")
-        Image = getattr(importlib.import_module("graia.application.message.elements.internal"),"Image")
-        At = getattr(importlib.import_module("graia.application.message.elements.internal"),"At")
-        Face = getattr(importlib.import_module("graia.application.message.elements.internal"),"Face")
-        Source = getattr(importlib.import_module("graia.application.message.elements.internal"),"Source")
-        Broadcast = getattr(importlib.import_module("graia.broadcast"),"Broadcast")
-        Group = getattr(importlib.import_module("graia.application.group"),"Group")
-        Member = getattr(importlib.import_module("graia.application.group"),"Member")
-        Friend = getattr(importlib.import_module("graia.application.friend"),"Friend")
-        GLOBAL.py_mirai_version = 4
-    except ImportError:
-        Mirai = getattr(importlib.import_module("mirai"),"Mirai")
-        Plain = getattr(importlib.import_module("mirai"),"Plain")
-        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
-        Friend = getattr(importlib.import_module("mirai"),"Friend")
-        Face = getattr(importlib.import_module("mirai"),"Face")
-        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
-        Group = getattr(importlib.import_module("mirai"),"Group")
-        Image = getattr(importlib.import_module("mirai"),"Image")
-        Member = getattr(importlib.import_module("mirai"),"Member")
-        At = getattr(importlib.import_module("mirai"),"At")
-        Source = getattr(importlib.import_module("mirai"),"Source")
-        QQFaces = getattr(importlib.import_module("GLOBAL"),"QQFaces")
-        GLOBAL.py_mirai_version = 3
 
+from GLOBAL import importMirai
+from GLOBAL import Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
+from GLOBAL import MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
 importMirai()
 
 youbi = {
@@ -82,7 +49,10 @@ youbi = {
 }
 
 from GLOBAL import SessionConfigures
+
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+
+def getmem(mono): return mono.id if getattr(mono, 'id', None) else int(mono)
 
 def getPlainText(p:Plain) -> str:
     """做v3和v4的Plain兼容"""
@@ -99,120 +69,6 @@ def generateImageFromFile(fn:str) -> Image:
     if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
     else: return Image.fromLocalFile(fn)
 
-async def WeatherSubscribeRoutiner():
-    print('进入回环(天气预报')
-    if not os.path.exists('weather/'):
-        os.mkdir('weather/')
-    while 1:
-
-        print(f'weather report waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400)
-
-        for _ in os.listdir('weather/'):
-            try:
-                with open('weather/'+_,'r') as f:
-                    dt = datetime.datetime.now()
-                    ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{youbi[dt.isoweekday()]}']
-
-                    try:
-                        bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
-                        res = bs('div',attrs={'id':'jie_guo'})
-                        ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
-                        ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
-                    except:
-                        ans.append('我忘了今天农历几号了')
-                        print(traceback.format_exc())
-
-                    if random.randint(0,3):
-                        ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
-
-                    for city in f.readlines():
-                        if city.strip():
-                            j = fetchWeather(city.strip())
-                            ans += j[:3]
-                asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=_))
-
-            except:
-                print('天气预报姬挂了！',traceback.format_exc())
-
-async def SentenceSubscribeRoutiner():
-    print('进入回环(每日一句')
-    if not os.path.exists('sentence/'):
-        os.mkdir('sentence/')
-    while 1:
-
-        print(f'sentence report waiting for {86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400)
-
-        for _ in os.listdir('sentence/'):
-            try:
-                d={}
-                fetchSentences(d)
-                if 'img' in d:
-                    asyncio.ensure_future(msgDistributer(msg=d['img'],typ='I',player=_))
-                asyncio.ensure_future(msgDistributer(msg='\n'.join(d['plain']),typ='P',player=_))
-
-            except:
-                print('每日一句挂了！',traceback.format_exc())
-
-async def JRRPclearRoutiner():
-    print('进入回环：清空人品（？）')
-    while 1:
-        print(f'JRRP clear waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400) 
-
-        try:
-            GLOBAL.JRRP_map.clear()
-            asyncio.ensure_future(msgDistributer(msg='你昨天的人品已经被清除了——',typ='P',player=550247773345)) #player号码暂时这么写，别打我
-        except:
-            traceback.print_exc()
-            print('人品清除失败')
-
-async def CFLoopRoutiner():
-    print('进入回环(CF')
-    if not os.path.exists('CF/'):
-        os.mkdir('CF/')
-    while 1:
-        if any([_ for _ in os.listdir('CF/') if _[-4:]!='.png']):
-            j = fetchCodeForcesContests()
-            for _ in os.listdir('CF/'):
-                try:
-                    if _[-4:]!='.png':
-                        print(f'EXECUTING{_}')
-                        CFNoticeManager(j,gp=int(_))
-                except:
-                    print('CF爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
-
-async def ATLoopRoutiner():
-    print('进入回环(AT')
-    if not os.path.exists('AtCoder/'):
-        os.mkdir('AtCoder/')
-    while 1:
-        if any([_ for _ in os.listdir('AtCoder/') if _[-4:]!='.png']):
-            j = fetchAtCoderContests()
-            for _ in os.listdir('AtCoder/'):
-                try:
-                    if _[-4:]!='.png':
-                        OTNoticeManager(j['upcoming'],gp=int(_))
-                except:
-                    print('AT爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
-
-async def NCLoopRoutiner():
-    print('进入回环(NC')
-    if not os.path.exists('NowCoder/'):
-        os.mkdir('NowCoder/')
-    while 1:
-        if any([_ for _ in os.listdir('NowCoder/') if _[-4:]!='.png']):
-            j = fetchNowCoderContests()
-            for _ in os.listdir('NowCoder/'):
-                try:
-                    if _[-4:]!='.png':
-                        OTNoticeManager(j,gp=int(_))
-                except:
-                    print('NC爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
 
 async def rmTmpFile(fi:str):
     await asyncio.sleep(60)
@@ -321,13 +177,26 @@ def smart_decorator(decorator):
         return decorator_proxy
     return decorator_proxy
 
-def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+def tnow(): return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
+def randstr(l: int) -> str: return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
 
+def getCredit(user: int):
+    if not os.path.exists(f'credits/{user}'):        
+        return 500
+    else:
+        with open(f'credits/{user}', 'r') as f:
+            return int(f.read().strip())
 
+def updateCredit(user: int, operator: str, val: int): # 危
+    if operator not in GLOBAL.credit_operators: return False
+    c = getCredit(user)
+    c = eval(f'{c}{operator}{int(val)}')
+    with open(f'credits/{user}', 'w') as f:
+        f.write(f'{c}')
+    return True
 
-def generateTmpFileName(pref,ext='.png',**kwargs):
+def generateTmpFileName(pref, ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
 def compressMsg(l,extDict={}):
@@ -378,9 +247,9 @@ def compressMsg(l,extDict={}):
     else:
         return MessageChain.create(l).asSendable()
 
-def getPlayer(**kwargs):
+def getPlayer(**kwargs) -> int:
     """根据不定字典拿player号"""
-    if 'player' in kwargs: return kwargs['player']
+    if 'player' in kwargs: return int(kwargs['player'])
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
@@ -391,7 +260,8 @@ def getPlayer(**kwargs):
             player = kwargs['mem'].id
         except:
             player = kwargs['mem']
-    return player
+    return int(player)
+
 
 
 def clearCFFuture(key,G,src):
@@ -502,10 +372,6 @@ def renderHtml(dst_lnk, na) -> str:
 
 
 
-
-
-    
-
 def uploadToChaoXing(fn: Union[bytes,str]) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'
     if isinstance(fn,bytes):
@@ -593,3 +459,5 @@ def calcinvs(array:list):
         invs += treearray_getsum(len(treearray)-1, treearray) - treearray_getsum(d[i], treearray)
         treearray_update(d[i],1,treearray)
     return invs
+
+

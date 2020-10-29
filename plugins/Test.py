@@ -34,6 +34,7 @@ import datetime
 import urllib
 import mido
 import GLOBAL
+from Sniffer import *
 from Utils import *
 importMirai()
 
