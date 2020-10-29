@@ -10,12 +10,14 @@ ddl/
 Polyline/
 SlidingPuzzle/
 BinarySearchGame/
+DailySign/
 NowCoder/
 NimGame/
 __pycache__/
 weather/
 sniffer/
 sentence/
+credits/
 *.pyc
 tmp*
 temp*
