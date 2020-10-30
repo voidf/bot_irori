@@ -261,6 +261,8 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         print(traceback.format_exc())
                     else:
                         print(f"MESSAGESLENGTH ===> {len(l)}")
+                    if a in GLOBAL.credit_cmds:
+                        updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
                         await app.sendGroupMessage(group,compressMsg(l,extDict))
                 except:
@@ -305,7 +307,6 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
     s = msgprework(message,extDict)
 
     if hurenzu.id not in muteList:
-        
         try:
             if 'sudo' in extDict:
                 is_called,output=systemcall(member,player,s,extDict)
@@ -326,9 +327,10 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
         if a in Callable.funs: # 命令模块
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
-                    
                     l = Callable.funs[a](*b, **extDict)
                     print(f"MESSAGESLENGTH ===> {len(l)}")
+                    if a in GLOBAL.credit_cmds:
+                        updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
                         await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
                 except:
