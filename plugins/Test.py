@@ -33,7 +33,6 @@ import time
 import datetime
 import urllib
 import mido
-from GLOBAL import QQFaces
 from Sniffer import *
 from Utils import *
 importMirai()
@@ -48,11 +47,8 @@ def Unicode测试姬(*attrs,**kwargs):
     w = ' '.join(attrs[2:])
     asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
 
+def 表情字典测试姬(*attrs,**kwargs): return [Face(faceId=QQFaces[attrs[0]])]
 
-def 表情字典测试姬(*attrs,**kwargs):
-    return [Face(QQFaces[attrs[0]])]
-
-    
 def 乒乓球(*attrs,**kwargs):
     GLOBAL.pingCtr+=1
     if GLOBAL.pingCtr-1==0:

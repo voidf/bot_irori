@@ -1,5 +1,5 @@
 py_mirai_version = 4 # 在这里改版本号哦！3或者4
-
+# from graia.application.message.elements.internal
 import asyncio, importlib, traceback
 def importMirai():
 	global py_mirai_version
