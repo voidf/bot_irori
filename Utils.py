@@ -35,7 +35,7 @@ from Fetcher import *
 
 from GLOBAL import importMirai
 from GLOBAL import Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
-from GLOBAL import MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
+from GLOBAL import MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice
 importMirai()
 
 youbi = {

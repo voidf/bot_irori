@@ -4,7 +4,7 @@ import asyncio, importlib, traceback
 def importMirai():
 	global py_mirai_version
 	global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
-	global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
+	global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice
 	try:
 		if py_mirai_version == 3:raise ImportError
 		Mirai = getattr(importlib.import_module("graia.application"),"GraiaMiraiApplication")
@@ -19,6 +19,7 @@ def importMirai():
 		At = getattr(importlib.import_module("graia.application.message.elements.internal"),"At")
 		Face = getattr(importlib.import_module("graia.application.message.elements.internal"),"Face")
 		Source = getattr(importlib.import_module("graia.application.message.elements.internal"),"Source")
+		Voice = getattr(importlib.import_module("graia.application.message.elements.internal"),"Voice")
 		Broadcast = getattr(importlib.import_module("graia.broadcast"),"Broadcast")
 		Group = getattr(importlib.import_module("graia.application.group"),"Group")
 		Member = getattr(importlib.import_module("graia.application.group"),"Member")

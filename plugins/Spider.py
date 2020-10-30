@@ -322,6 +322,7 @@ def 爬牛客(*attrs,**kwargs):
 def 爬歌(*attrs,**kwargs):
     keyword = urllib.parse.quote(''.join(attrs))
     ans = []
+    lnks = []
     try:
         kuwolnk = f'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord?key={keyword}&pn=1&rn=30'
 
@@ -342,12 +343,13 @@ def 爬歌(*attrs,**kwargs):
             'user-agent': 'okhttp/3.10.0'
         })
         print(r.text)
-        ans.append('来自酷我的检索：')
+        ans.append('酷我：')
         ans.append(j['data']['list'][0]['name']+' '+j['data']['list'][0]['artist'])
         ans.append(r.text)
+        lnks.append(ans[-1])
         ans.append('')
     except:
-        ans.append('酷我爬虫炸了')
+        ans.append('酷我炸了')
         print(traceback.format_exc())
 
     try:
@@ -358,12 +360,13 @@ def 爬歌(*attrs,**kwargs):
         fid = j['data']['lists'][0]['FileHash']
         lnk2 = f'http://trackercdn.kugou.com/i/v2/?key={hashlib.md5(bytes(fid+"kgcloudv2","utf-8")).hexdigest()}&hash={fid}&br=hq&appid=1005&pid=2&cmd=25&behavior=play'
         rr = ses.get(lnk2)
-        ans.append('来自酷狗的检索：')
+        ans.append('酷狗：')
         ans.append(j['data']['lists'][0]['FileName'])
         ans.append(json.loads(rr.text)['url'][0])
+        lnks.append(ans[-1])
         ans.append('')
     except:
-        ans.append('酷狗爬虫炸了')
+        ans.append('酷狗炸了')
         print(traceback.format_exc())
 
     try:
@@ -381,12 +384,13 @@ def 爬歌(*attrs,**kwargs):
         rr = ses.get(lnk2,headers=xiamihds)
         print(rr.text)
         print(json.loads(rr.text)['data']['song']['listen_file'])
-        ans.append('来自虾米的检索：')
+        ans.append('虾米：')
         ans.append(fname)
         ans.append(json.loads(rr.text)['data']['song']['listen_file'])
+        lnks.append(ans[-1])
         ans.append('')
     except:
-        ans.append('虾米爬虫炸了')
+        ans.append('虾米炸了')
         print(traceback.format_exc())
     try:
         hds = {
@@ -424,17 +428,19 @@ def 爬歌(*attrs,**kwargs):
         sip = jj['sip'][0]
 
         if jj['midurlinfo'][0]['purl']:
-            ans.append('来自QQ的检索：')
+            ans.append('QQ：')
             ans.append(fname)
             ans.append(sip+jj['midurlinfo'][0]['purl'])
+            lnks.append(ans[-1])
             ans.append('')
         else:
             raise NameError('QQ没权限拿歌')
     except:
-        ans.append('QQ爬虫炸了')
+        ans.append('mhtsl')
         print(traceback.format_exc())
     print(ans)
-    return [Plain('\n'.join(ans))]
+    print(lnks)
+    return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
 def 爬天气(*attrs,**kwargs):
     player = getPlayer(**kwargs)
