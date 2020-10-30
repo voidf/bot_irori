@@ -1,5 +1,7 @@
 """测试类（开发用"""
-
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL    
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -13,7 +15,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io

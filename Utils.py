@@ -115,7 +115,7 @@ async def msgDistributer(**kwargs):
     
     if 'msg' in kwargs and kwargs['msg']:
         if kwargs.get('typ','P') == 'E':
-            seq = [Face(QQFaces[kwargs['msg']])]
+            seq = [Face(faceId=QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
             # print(base64.b64decode(kwargs['msg']))
             try: # 这个try用来判断msg是不是可解码的b64
