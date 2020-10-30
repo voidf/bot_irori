@@ -33,7 +33,7 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
+from GLOBAL import QQFaces
 from Sniffer import *
 from Utils import *
 importMirai()

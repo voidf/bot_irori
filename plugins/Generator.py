@@ -8,6 +8,7 @@ from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from urllib.parse import quote
 import re
 import asyncio
 import requests
