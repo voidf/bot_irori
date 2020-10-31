@@ -440,6 +440,11 @@ def 爬歌(*attrs,**kwargs):
         print(traceback.format_exc())
     print(ans)
     print(lnks)
+    if 'gp' in kwargs:
+        voices = [
+            GLOBAL.app.uploadVoice(getFileBytes(i)) for i in lnks
+        ]
+        return [Plain('\n'.join(ans))]+voices
     return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
 def 爬天气(*attrs,**kwargs):

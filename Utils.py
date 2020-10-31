@@ -247,6 +247,15 @@ def compressMsg(l,extDict={}):
     else:
         return MessageChain.create(l).asSendable()
 
+def getFileBytes(s):
+    if s[:4] == 'http':
+        ret = requests.get(s).content
+        print(len(ret))
+        return ret
+    else:
+        with open(s, 'rb') as f:
+            return f.read()
+
 def getPlayer(**kwargs) -> int:
     """根据不定字典拿player号"""
     if 'player' in kwargs: return int(kwargs['player'])

@@ -5,7 +5,7 @@ if __name__ == '__main__':
     
 import GLOBAL
 from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
+from PIL import ImageFont, ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
