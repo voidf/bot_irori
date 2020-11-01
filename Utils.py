@@ -146,13 +146,13 @@ async def msgDistributer(**kwargs):
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
-                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),compressMsg(seq))
+                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),await compressMsg(seq))
             else:
-                await GLOBAL.app.sendFriendMessage(kwargs['player'],compressMsg(seq))
+                await GLOBAL.app.sendFriendMessage(kwargs['player'],await compressMsg(seq))
         elif 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'],await compressMsg(seq))
         elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'],await compressMsg(seq))
         
 async def msgSerializer(_i, **kwargs):
     p = getPlayer(**kwargs)
@@ -199,7 +199,7 @@ def updateCredit(user: int, operator: str, val: int): # 危
 def generateTmpFileName(pref, ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
-def compressMsg(l,extDict={}):
+async def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     print(extDict)
     player = extDict.get("player",0)
@@ -241,10 +241,14 @@ def compressMsg(l,extDict={}):
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
         l = [generateImageFromFile(p)] + others
-
+    
     if GLOBAL.py_mirai_version == 3:
         return l
     else:
+        if "-voice" in extDict and "voices" in extDict:
+            for i in extDict['voices']:
+                voi = await GLOBAL.app.uploadVoice(getFileBytes(i))
+                l.append(voi)
         return MessageChain.create(l).asSendable()
 
 def getFileBytes(s):

@@ -99,7 +99,7 @@ def __requestValidater__(lnk,kw,tle=5,**kwargs):
     return j
 
 @check_host
-def AVGDatabaseMonitor(*attrs, **kwargs):
+def AVGDatabaseMonitor(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if len(attrs):
         api = attrs[0]
@@ -120,7 +120,7 @@ def AVGDatabaseMonitor(*attrs, **kwargs):
         return [Plain('【成功】没消息就是好消息')]
 
 @check_host
-def AVGHandler(*attrs, **kwargs):
+def AVGHandler(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     pro, qst, req, wat = __getLocks__(player)
     if len(pro)==0:
@@ -134,7 +134,7 @@ def AVGHandler(*attrs, **kwargs):
     return []
 
 @check_host
-def AVGStoryTeller(*attrs, **kwargs):
+def AVGStoryTeller(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     if len(pro) == 0:
@@ -146,7 +146,7 @@ def AVGStoryTeller(*attrs, **kwargs):
             return [Plain('您要读哪块数据？看看$view里面有没有感兴趣的')]
 
 @check_host
-def AVGGamer(*attrs, **kwargs):
+def AVGGamer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     print(f'【杀虫】进入Gamer:{pro},{qst}')
@@ -188,7 +188,7 @@ def AVGGamer(*attrs, **kwargs):
         else:
             return [Plain('害没到可以解谜的时候')]
 
-def AVGGameClearer(*attrs, **kwargs):
+def AVGGameClearer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     if qst:
@@ -198,10 +198,10 @@ def AVGGameClearer(*attrs, **kwargs):
             asyncio.ensure_future(__requestMaker__(player))
         qst.pop()
         
-def AVGDEBUGGER(*attrs, **kwargs): return [Plain(f'PROGRESS => {GLOBAL.PROGRESS}\nQUEST => {GLOBAL.QUESTING}\nREQUESTS => {GLOBAL.REQUESTS}\nAWAITING => {GLOBAL.AWAITING}')]
+def AVGDEBUGGER(*attrs, kwargs={}): return [Plain(f'PROGRESS => {GLOBAL.PROGRESS}\nQUEST => {GLOBAL.QUESTING}\nREQUESTS => {GLOBAL.REQUESTS}\nAWAITING => {GLOBAL.AWAITING}')]
 
 @check_host
-def AVGRecover(*attrs, **kwargs):
+def AVGRecover(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     for i in __getLocks__(player):
         while i:
@@ -213,7 +213,7 @@ def AVGRecover(*attrs, **kwargs):
     else:
         return [Plain('【读档成功】没消息就是好消息')]
 
-def AVGAccelerater(*attrs, **kwargs):
+def AVGAccelerater(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     try:
         if float(attrs[0]) < 0.1:
@@ -224,7 +224,7 @@ def AVGAccelerater(*attrs, **kwargs):
         return [Plain('【错误】加速的倍率得是正经的浮点yo')]
 
 @check_host
-def AVGStatusViewer(*attrs, **kwargs):
+def AVGStatusViewer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     pro, qst, req, wat = __getLocks__(player)
     l = []
@@ -248,7 +248,7 @@ def AVGStatusViewer(*attrs, **kwargs):
     return l
 
 @check_host
-def AVGSaver(*attrs, **kwargs):
+def AVGSaver(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         js = __requestValidater__('save', {'qq':player, 'chkp':' '.join(attrs)}, **kwargs)

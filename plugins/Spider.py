@@ -38,7 +38,7 @@ import GLOBAL
 from Utils import *
 importMirai()
 
-def 没救了(*attrs,**kwargs):
+def 没救了(*attrs,kwargs={}):
     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
     if r.status_code==404:
         print('没有今天的')
@@ -76,7 +76,7 @@ def 没救了(*attrs,**kwargs):
 
     return [Plain('\n\n'.join(s))]
 
-def 爬一言(*attrs,**kwargs):
+def 爬一言(*attrs,kwargs={}):
     dst = ' '.join(attrs)
     for _ in ('f','sl','nm','cao','你妈','屌','mmp','傻逼','妈逼','操'):
         if _ in dst.lower():
@@ -87,7 +87,7 @@ def 爬一言(*attrs,**kwargs):
     j = json.loads(tmp.text)
     return [Plain(text=j['hitokoto'])]
 
-def 爬OIWiki(*attrs,**kwargs):
+def 爬OIWiki(*attrs,kwargs={}):
     lnk = 'https://oi-wiki.org/'
     if len(attrs):
         query = ' '.join(attrs)
@@ -141,7 +141,7 @@ def 爬OIWiki(*attrs,**kwargs):
     ostr.append(generateImageFromFile(save_fn))
     return ostr
 
-def 爬萌娘(*attrs,**kwargs):
+def 爬萌娘(*attrs,kwargs={}):
     lnk = 'https://zh.moegirl.org/Special:%E9%9A%8F%E6%9C%BA%E9%A1%B5%E9%9D%A2'
     if len(attrs):
         keyWord = ' '.join(attrs)
@@ -165,7 +165,7 @@ def 爬萌娘(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
     return l+[generateImageFromFile(save_fn)]
 
-def 爬OEIS(*attrs,**kwargs):
+def 爬OEIS(*attrs,kwargs={}):
     if attrs:
         for i in attrs[0].split(','):
             if not i.isdigit():
@@ -187,7 +187,7 @@ def 爬OEIS(*attrs,**kwargs):
     else:
         return [Plain('输入格式需为半角逗号分隔的整数')]
 
-def 爬CF(*attrs,**kwargs):
+def 爬CF(*attrs,kwargs={}):
     try:
         gp = kwargs['gp'].id
     except:
@@ -230,7 +230,7 @@ def 爬CF(*attrs,**kwargs):
                 li.append(Plain(v['countdown']+'\n'))  
     return li
 
-def 爬AtCoder(*attrs,**kwargs):
+def 爬AtCoder(*attrs,kwargs={}):
     try:
         gp = kwargs['gp'].id
     except:
@@ -272,7 +272,7 @@ def 爬AtCoder(*attrs,**kwargs):
         li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
     return li
 
-def 爬LaTeX(*attrs,**kwargs):
+def 爬LaTeX(*attrs,kwargs={}):
     base = r'\dpi{150} \bg_white \large ' + ' '.join(attrs).replace('+','&plus;')
     r = requests.get('https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base)))
     fn = f"tmpLaTeX{randstr(3)}.png"
@@ -281,7 +281,7 @@ def 爬LaTeX(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(fn))
     return [generateImageFromFile(fn)]
 
-def 爬牛客(*attrs,**kwargs):
+def 爬牛客(*attrs,kwargs={}):
     try:
         gp = kwargs['gp'].id
     except:
@@ -319,7 +319,7 @@ def 爬牛客(*attrs,**kwargs):
 
     return li
         
-def 爬歌(*attrs,**kwargs):
+def 爬歌(*attrs,kwargs={}):
     keyword = urllib.parse.quote(''.join(attrs))
     ans = []
     lnks = []
@@ -440,14 +440,15 @@ def 爬歌(*attrs,**kwargs):
         print(traceback.format_exc())
     print(ans)
     print(lnks)
-    if 'gp' in kwargs:
-        voices = [
-            GLOBAL.app.uploadVoice(getFileBytes(i)) for i in lnks
-        ]
-        return [Plain('\n'.join(ans))]+voices
+    kwargs['voices'] = lnks
+    # if 'gp' in kwargs:
+    #     voices = [
+    #         GLOBAL.app.uploadVoice(getFileBytes(i)) for i in lnks
+    #     ]
+    #     return [Plain('\n'.join(ans))]+voices
     return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
-def 爬天气(*attrs,**kwargs):
+def 爬天气(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if not attrs:
         return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
@@ -470,7 +471,7 @@ def 爬天气(*attrs,**kwargs):
         pass
     return [Plain('\n'.join(output))]
 
-def 爬每日一句(*attrs,**kwargs):
+def 爬每日一句(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
@@ -496,7 +497,7 @@ def 爬每日一句(*attrs,**kwargs):
     else:
         return [Plain('\n'.join(output['plain']))]
 
-def 爬ip(*attrs,**kwargs):
+def 爬ip(*attrs,kwargs={}):
     if not attrs:
         return [Plain('没有输入ip哦\n'+SpiderDescript['#ip'])]
     ip = attrs[0]
@@ -512,7 +513,7 @@ def 爬ip(*attrs,**kwargs):
     ans = [' '.join(i) for i in rr]
     return [Plain('\n'.join(ans))]
 
-def 反爬ip(*attrs,**kwargs):
+def 反爬ip(*attrs,kwargs={}):
     if not attrs:
         return [Plain('没有输入地址哦\n'+SpiderDescript['#addr'])]
     kw = ' '.join(attrs)

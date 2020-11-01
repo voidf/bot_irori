@@ -39,7 +39,7 @@ from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, ove
 from Utils import *
 importMirai()
 
-def BVCoder(*attrs,**kwargs):
+def BVCoder(*attrs,kwargs={}):
     def dec(x):
         r=0
         for i in range(6):
@@ -68,19 +68,19 @@ def BVCoder(*attrs,**kwargs):
         ostr = [Plain(text=str(e))]
     return ostr
         
-def 编码base64(*attrs,**kwargs):
+def 编码base64(*attrs,kwargs={}):
     try:
         return [Plain(text=str(base64.b64encode(bytes(i,'utf-8')))+'\n') for i in attrs]
     except Exception as e:
         return [Plain(text=str(e))]
 
-def 解码base64(*attrs,**kwargs):
+def 解码base64(*attrs,kwargs={}):
     try:
         return [Plain(text=str(base64.b64decode(i))+'\n') for i in attrs]
     except Exception as e:
         return [Plain(text=str(e))]
 
-def rot_13(*attrs,**kwargs):
+def rot_13(*attrs,kwargs={}):
     upperdict = {'A': 'N', 'B': 'O', 'C': 'P', 'D': 'Q', 'E': 'R', 'F': 'S', 'G': 'T', 'H': 'U', 'I': 'V', 'J': 'W', 'K': 'X', 'L': 'Y',
 			 'M': 'Z', 'N': 'A', 'O': 'B', 'P': 'C', 'Q': 'D', 'R': 'E', 'S': 'F', 'T': 'G', 'U': 'H', 'V': 'I', 'W': 'J', 'X': 'K', 'Y': 'L', 'Z': 'M'}
 
@@ -99,9 +99,9 @@ def rot_13(*attrs,**kwargs):
         ostr.append(Plain(text=''.join(dst)+'\n'))
     return ostr
 
-def 字符串反转(*attrs,**kwargs):return [Plain(' '.join(attrs)[::-1])]
+def 字符串反转(*attrs,kwargs={}):return [Plain(' '.join(attrs)[::-1])]
 
-def 二维码生成器(*attrs,**kwargs):
+def 二维码生成器(*attrs,kwargs={}):
     s = ' '.join(attrs)
     q = qrcode.make(s)
     fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)
@@ -110,7 +110,7 @@ def 二维码生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(fn),loop=None)
     return [generateImageFromFile(fn)]
 
-def 字符串签名(*attrs,**kwargs):
+def 字符串签名(*attrs,kwargs={}):
     if 'pic' in kwargs and kwargs['pic']:
         src = requests.get(kwargs['pic'].url).content
     elif attrs:
@@ -124,7 +124,7 @@ def 字符串签名(*attrs,**kwargs):
         Plain(f"CRC32:{hex(zlib.crc32(src))}\n")
         ]
     
-def 復讀(*attrs,**kwargs):return [Plain(' '.join(attrs))]
+def 復讀(*attrs,kwargs={}):return [Plain(' '.join(attrs))]
 
 with open('Assets/zh2morse.json','r') as f:
     z2m = json.load(f)
@@ -152,7 +152,7 @@ k2 = """.- -... -.-. -..
 a2m = dict(zip(k1,k2.split()))
 m2a = dict(zip(k2.split(),k1))
 
-def 转电码(*attrs,**kwargs):
+def 转电码(*attrs,kwargs={}):
     global z2m,a2m
     msg = ' '.join(attrs).upper()
 
@@ -187,7 +187,7 @@ def 转电码(*attrs,**kwargs):
     
     return [Plain(split_symbol.join(ans))]
 
-def 译电码(*attrs,**kwargs):
+def 译电码(*attrs,kwargs={}):
     global m2a
     msg = ' '.join(attrs).upper()
 
@@ -214,7 +214,7 @@ def 译电码(*attrs,**kwargs):
         ans.append(m2a[i])
     return [Plain(''.join(ans))]
 
-def 译中文电码(*attrs,**kwargs):
+def 译中文电码(*attrs,kwargs={}):
     global m2z
     msg = ' '.join(attrs).upper()
 
@@ -824,7 +824,7 @@ book_of_answers_en = [
 
 book_of_answers_en = list(set(book_of_answers_en))
 
-def 答案之书(*attrs,**kwargs):
+def 答案之书(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
@@ -843,7 +843,7 @@ def 答案之书(*attrs,**kwargs):
     ans = random.choice(book_of_answers+dynamic_answers)
     return [Plain(ans.strip())]
 
-def 答案之书en(*attrs,**kwargs):
+def 答案之书en(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
@@ -862,7 +862,7 @@ def 答案之书en(*attrs,**kwargs):
     ans = random.choice(book_of_answers_en+dynamic_answers)
     return [Plain(ans.strip())]
 
-def KMP(*attrs,**kwargs):
+def KMP(*attrs,kwargs={}):
     pat,s = ' '.join(attrs).split(',')
     fail = [-1]
     fval = [-1]

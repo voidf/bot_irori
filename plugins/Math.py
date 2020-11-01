@@ -186,7 +186,7 @@ def read_matrix_matlab(s):
                 li[i][j] = float(li[i][j])
     return numpy.matrix(li)
 
-def CalC(*attrs,**kwargs):
+def CalC(*attrs,kwargs={}):
     try:
         if len(attrs)==3:
             a,b=(int(i) for i in attrs[1:3])
@@ -215,10 +215,10 @@ def CalC(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def CalA(*attrs,**kwargs):
+def CalA(*attrs,kwargs={}):
     return CalC('A',*attrs,**kwargs)
 
-def CalKatalan(*attrs,**kwargs):
+def CalKatalan(*attrs,kwargs={}):
     try:
         if len(attrs):
             a = int(attrs[0])
@@ -230,7 +230,7 @@ def CalKatalan(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(*attrs, **kwargs):
+def 统计姬from104(*attrs, kwargs={}):
     l=[float(x) for x in attrs]
     ostr = []
     ostr.append(Plain(f"Mean 平均数:{statistics.mean(l)}\n"))
@@ -243,7 +243,7 @@ def 统计姬from104(*attrs, **kwargs):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(*attrs, **kwargs):
+def QM化简器(*attrs, kwargs={}):
     v = list(attrs)
     if len(v[0].split(',')) > 1: # 最小项输入
         if len(v) == 1:
@@ -253,13 +253,13 @@ def QM化简器(*attrs, **kwargs):
     else:
         return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
 
-def 打印真值表(*attrs, **kwargs):
+def 打印真值表(*attrs, kwargs={}):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs, **kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs, kwargs={}):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 孙子定理(*attrs, **kwargs):
+def 孙子定理(*attrs, kwargs={}):
     il = ' '.join(attrs).strip().split()
     li = []
     for i in il:
@@ -284,7 +284,7 @@ def 孙子定理(*attrs, **kwargs):
         return [Plain(str(r))]
             
 
-def 老线代bot了(*attrs, **kwargs):
+def 老线代bot了(*attrs, kwargs={}):
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
@@ -333,7 +333,7 @@ def 老线代bot了(*attrs, **kwargs):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-def 离散闭包用工具(*attrs, **kwargs):
+def 离散闭包用工具(*attrs, kwargs={}):
     m = {} # 数转名
     r = {} # 名转数
     def addval(v):
@@ -416,7 +416,7 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-def 划分数个数(*attrs, **kwargs): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
     
 functionMap = {
     '#QM':QM化简器,

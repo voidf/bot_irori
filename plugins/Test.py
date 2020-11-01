@@ -38,19 +38,19 @@ from Sniffer import *
 from Utils import *
 importMirai()
 
-def 表情符号查询姬(*attrs,**kwargs):
+def 表情符号查询姬(*attrs,kwargs={}):
     return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
 
-def Unicode测试姬(*attrs,**kwargs):
+def Unicode测试姬(*attrs,kwargs={}):
     s = int(attrs[0])
     e = int(attrs[1])
     s,e = min(s,e),max(s,e)
     w = ' '.join(attrs[2:])
     asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
 
-def 表情字典测试姬(*attrs,**kwargs): return [Face(faceId=QQFaces[attrs[0]])]
+def 表情字典测试姬(*attrs,kwargs={}): return [Face(faceId=QQFaces[attrs[0]])]
 
-def 乒乓球(*attrs,**kwargs):
+def 乒乓球(*attrs,kwargs={}):
     GLOBAL.pingCtr+=1
     if GLOBAL.pingCtr-1==0:
         s = 'pong'
@@ -58,18 +58,24 @@ def 乒乓球(*attrs,**kwargs):
         s = f'pong {GLOBAL.pingCtr}Xcombo'
     return [Plain(s)]
 
-def 废话生成器(*attrs,**kwargs): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
+def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
-def 重设渲染图片阈值(*attrs,**kwargs):
+def 重设渲染图片阈值(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     tc = chkcfg(player)
     tc.compress_threshold = int(attrs[0])
     return [Plain(f'消息长度大于等于{attrs[0]}时转为图片发送')]
     
 
-def 清空嗅探器(*attrs,**kwargs): return [Plain(clearSniffer(getPlayer(**kwargs)))]
+def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
 
-def 同步嗅探器(*attrs,**kwargs): return [Plain(syncSniffer(getPlayer(**kwargs)))]
+def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
+
+def 音乐测试(*attrs, kwargs={}):
+    print('test')
+    print(kwargs)
+    kwargs['voices'] = ['Assets/wf.amr']
+    return [Plain('MusicTesting')]
 
 
 functionMap = {
@@ -79,6 +85,7 @@ functionMap = {
     '#废话':废话生成器,
     '#echo':表情符号查询姬,
     '#lim':重设渲染图片阈值,
+    '#mu':音乐测试,
     r'%clear':清空嗅探器,
     r'%sync':同步嗅探器
 }
@@ -88,6 +95,7 @@ shortMap = {
 }
 
 functionDescript = {
+    'mu':'',
     '#fuzz':
 """
 【测试用】基本上是用来测试unicode的
