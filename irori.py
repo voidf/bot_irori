@@ -159,6 +159,7 @@ sys_dict = {
     'terminal':sys_terminal,
 }
 
+@sync_to_async
 def systemcall(member,player:int,s,extDict) -> (bool,str):
     tc = chkcfg(player)
     if tc.enable_this:
@@ -199,7 +200,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
     """消息预处理，将特殊参数放进extDict"""
     tc = chkcfg(extDict['player'])
     s = getMessageChainText(message).split(' ')
-    if GLOBAL.py_mirai_version == 3:pic = message.getAllofComponent(Image)
+    if GLOBAL.py_mirai_version == 3: pic = message.getAllofComponent(Image)
     else:pic = message.get(Image)
 
     member:int = getmem(extDict['mem'])
@@ -237,7 +238,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     if member not in botList:
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s,extDict)
+                is_called,output = await systemcall(member,player,s,extDict)
                 if is_called:
                     await app.sendGroupMessage(group,await compressMsg([Plain(output)],extDict))
                     return
@@ -256,7 +257,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
-                    l = Callable.funs[a](*b, kwargs=extDict)
+                    l = await Callable.funs[a](*b, kwargs=extDict)
                     if l is None:
                         print(traceback.format_exc())
                     else:
@@ -282,7 +283,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
                             if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
+                                l = await Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendGroupMessage(group,await compressMsg(l,extDict)))
                                 break
@@ -309,7 +310,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
     if hurenzu.id not in muteList:
         try:
             if 'sudo' in extDict:
-                is_called,output=systemcall(member,player,s,extDict)
+                is_called,output = await systemcall(member, player, s, extDict)
                 if is_called:
                     await app.sendFriendMessage(hurenzu,await compressMsg([Plain(output)],extDict))
                     return
@@ -327,7 +328,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
         if a in Callable.funs: # 命令模块
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
-                    l = Callable.funs[a](*b, kwargs=extDict)
+                    l = await Callable.funs[a](*b, kwargs=extDict)
                     print(f"MESSAGESLENGTH ===> {len(l)}")
                     if a in GLOBAL.credit_cmds:
                         updateCredit(member, *GLOBAL.credit_cmds[a])
@@ -348,7 +349,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
                             if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
+                                l = await Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendFriendMessage(hurenzu,await compressMsg(l)))
                                 break

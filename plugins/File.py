@@ -38,7 +38,7 @@ import mido
 from Utils import *
 importMirai()
 
-def 信用点命令更新订阅姬(*attrs, kwargs={}):
+async def 信用点命令更新订阅姬(*attrs, kwargs={}):
     if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
     if attrs and attrs[0] in GLOBAL.unsubscribes:
         os.remove(f'credits/sub/{getPlayer(**kwargs)}')
@@ -50,7 +50,7 @@ def 信用点命令更新订阅姬(*attrs, kwargs={}):
     return [Plain('\n'.join(ret))]
 
 
-def 信用点查询(*attrs, kwargs={}):
+async def 信用点查询(*attrs, kwargs={}):
     crdmap = [
         (0, ('大祸患', '拯救一下')),
         (100, ('高危份子', '抢救一下')),
@@ -119,7 +119,7 @@ def 信用点查询(*attrs, kwargs={}):
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
 
-def 投票姬(*attrs, kwargs={}):
+async def 投票姬(*attrs, kwargs={}):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
@@ -213,7 +213,7 @@ def 投票姬(*attrs, kwargs={}):
         json.dump(j,fw)
     return ostr
 
-def ddl通知姬(*attrs, kwargs={}):
+async def ddl通知姬(*attrs, kwargs={}):
     async def Noticer(g,mb,kotoba,delays):
         print('delay:',delays)
         if delays<0:
@@ -351,7 +351,7 @@ def ddl通知姬(*attrs, kwargs={}):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-def 电笔记(*attrs, kwargs={}):
+async def 电笔记(*attrs, kwargs={}):
     ins = ' '.join(attrs)
     if ins == 'reload':
         ret_msg = [Plain('知识库已更新,现有词条：\n')]
@@ -373,7 +373,7 @@ def 电笔记(*attrs, kwargs={}):
     else:
         return [Plain('不存在此条目')]
 
-def 在线P歌(*attrs, kwargs={}):
+async def 在线P歌(*attrs, kwargs={}):
     m = mido.MidiFile()
     t = mido.MidiTrack()
     m.tracks.append(t)
@@ -411,7 +411,7 @@ def 在线P歌(*attrs, kwargs={}):
     asyncio.ensure_future(rmTmpFile(fn))
     return [Plain(uploadToChaoXing(fn))]
 
-def 仿洛谷每日签到(*attrs, kwargs={}):
+async def 仿洛谷每日签到(*attrs, kwargs={}):
     generate_key_count = random.randint(2,5)
     print(kwargs['mem'])
     print(dir(kwargs['mem']))

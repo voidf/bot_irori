@@ -12,3 +12,4 @@ mido
 pexpect
 graia-application-mirai
 graia-broadcast
+asgiref

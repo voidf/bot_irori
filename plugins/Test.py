@@ -36,21 +36,23 @@ import urllib
 import mido
 from Sniffer import *
 from Utils import *
+from asgiref.sync import async_to_sync, sync_to_async
+
 importMirai()
 
-def 表情符号查询姬(*attrs,kwargs={}):
+async def 表情符号查询姬(*attrs,kwargs={}):
     return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
 
-def Unicode测试姬(*attrs,kwargs={}):
+async def Unicode测试姬(*attrs,kwargs={}):
     s = int(attrs[0])
     e = int(attrs[1])
     s,e = min(s,e),max(s,e)
     w = ' '.join(attrs[2:])
     asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
 
-def 表情字典测试姬(*attrs,kwargs={}): return [Face(faceId=QQFaces[attrs[0]])]
+async def 表情字典测试姬(*attrs,kwargs={}): return [Face(faceId=QQFaces[attrs[0]])]
 
-def 乒乓球(*attrs,kwargs={}):
+async def 乒乓球(*attrs,kwargs={}):
     GLOBAL.pingCtr+=1
     if GLOBAL.pingCtr-1==0:
         s = 'pong'
@@ -58,22 +60,26 @@ def 乒乓球(*attrs,kwargs={}):
         s = f'pong {GLOBAL.pingCtr}Xcombo'
     return [Plain(s)]
 
-def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
+async def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
-def 重设渲染图片阈值(*attrs,kwargs={}):
+async def 重设渲染图片阈值(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     tc = chkcfg(player)
     tc.compress_threshold = int(attrs[0])
     return [Plain(f'消息长度大于等于{attrs[0]}时转为图片发送')]
     
 
-def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
+async def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
 
-def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
+async def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
 
-def 音乐测试(*attrs, kwargs={}):
+async def 音乐测试(*attrs, kwargs={}):
     print('test')
     print(kwargs)
+    # loop = asyncio.get_running_loop()
+    # voi = loop.run_until_complete(GLOBAL.app.uploadVoice(getFileBytes('Assets/wf.amr')))
+    # voi = getFileBytes('Assets/wf.amr')
+    # return [voi]
     kwargs['voices'] = ['Assets/wf.amr']
     return [Plain('MusicTesting')]
 

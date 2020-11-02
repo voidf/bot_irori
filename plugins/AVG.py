@@ -81,7 +81,7 @@ async def __requestMaker__(pl, dl=0):
         while len(req):
             print(f'【信息】在做{req[-1]}的请求')
             kw,kwargs = req.pop(0)
-            j = __requestValidater__("asobi",kw,**kwargs)
+            j = await __requestValidater__("asobi",kw,**kwargs)
             pro.append(asyncio.ensure_future(__msgSerializer__(j['data'],**kwargs)))
             extra_msg = j['msg']
             await msgDistributer(msg=extra_msg,typ='P',**kwargs)
@@ -89,7 +89,7 @@ async def __requestMaker__(pl, dl=0):
         print('【错误】有解谜')
         req.pop()
 
-def __requestValidater__(lnk,kw,tle=5,**kwargs):
+async def __requestValidater__(lnk,kw,tle=5,**kwargs):
     r = requests.post(f"{GLOBAL.AVGHost}/api/v1/domain/{lnk}", json=kw, timeout=tle)
     j = json.loads(r.text)
     if not j['status']:
@@ -99,7 +99,7 @@ def __requestValidater__(lnk,kw,tle=5,**kwargs):
     return j
 
 @check_host
-def AVGDatabaseMonitor(*attrs, kwargs={}):
+async def AVGDatabaseMonitor(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if len(attrs):
         api = attrs[0]
@@ -108,7 +108,7 @@ def AVGDatabaseMonitor(*attrs, kwargs={}):
     kw = {'qq':player}
     kw['args'] = ' '.join(attrs[1:])
 
-    j = __requestValidater__(api, kw, **kwargs)
+    j = await __requestValidater__(api, kw, **kwargs)
     l = []
     if j['data']:
         l.append(Plain(f"数据 => {json.dumps(j['data'], sort_keys=True, indent=2)}"))
@@ -120,7 +120,7 @@ def AVGDatabaseMonitor(*attrs, kwargs={}):
         return [Plain('【成功】没消息就是好消息')]
 
 @check_host
-def AVGHandler(*attrs, kwargs={}):
+async def AVGHandler(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     pro, qst, req, wat = __getLocks__(player)
     if len(pro)==0:
@@ -134,19 +134,19 @@ def AVGHandler(*attrs, kwargs={}):
     return []
 
 @check_host
-def AVGStoryTeller(*attrs, kwargs={}):
+async def AVGStoryTeller(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     if len(pro) == 0:
         if attrs:
-            j = __requestValidater__('story',{'qq':player,'storyid':attrs[0]},**kwargs)
+            j = await __requestValidater__('story',{'qq':player,'storyid':attrs[0]},**kwargs)
             pro.append(asyncio.ensure_future(__msgSerializer__(j['data'],**kwargs)))
             return []
         else:
             return [Plain('您要读哪块数据？看看$view里面有没有感兴趣的')]
 
 @check_host
-def AVGGamer(*attrs, kwargs={}):
+async def AVGGamer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     print(f'【杀虫】进入Gamer:{pro},{qst}')
@@ -161,7 +161,7 @@ def AVGGamer(*attrs, kwargs={}):
                         print('【杀虫】过关')
                         t = qst.pop()
                         kw = {'qq':player,'questid':t[1]}
-                        js = __requestValidater__('solve',kw,**kwargs)
+                        js = await __requestValidater__('solve',kw,**kwargs)
                         asyncio.ensure_future(msgDistributer(msg=js['data']['note'],typ='P',**kwargs))
                         asyncio.ensure_future(msgDistributer(msg=f"获得了{js['data']['score']}单位计算能力",typ='P',**kwargs))
                         asyncio.ensure_future(msgDistributer(msg=f"获得了{js['data']['bitcoin']}单位电子货币",typ='P',**kwargs))
@@ -169,14 +169,14 @@ def AVGGamer(*attrs, kwargs={}):
                     print('没有参数')
                     return [Plain('没指定是哪关？！')]
             else:
-                js = __requestValidater__('status',kw,**kwargs)
+                js = await __requestValidater__('status',kw,**kwargs)
                 print(f'【杀虫】 js==>{js}')
                 if '$quest' in js['data']['menus']:
                     if attrs:
                         if attrs[0] in js['data']['quests']:
                             qid = attrs[0]
                             kw = {'qq':player,'questid':qid}
-                            js = __requestValidater__('quest',kw,**kwargs)
+                            js = await __requestValidater__('quest',kw,**kwargs)
                             pro.append(asyncio.ensure_future(__msgSerializer__(js['data'],**kwargs)))
                             qst.append((questsMap[qid](**kwargs),qid))
                         else:
@@ -188,7 +188,7 @@ def AVGGamer(*attrs, kwargs={}):
         else:
             return [Plain('害没到可以解谜的时候')]
 
-def AVGGameClearer(*attrs, kwargs={}):
+async def AVGGameClearer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     pro, qst, req, wat = __getLocks__(player)
     if qst:
@@ -198,22 +198,22 @@ def AVGGameClearer(*attrs, kwargs={}):
             asyncio.ensure_future(__requestMaker__(player))
         qst.pop()
         
-def AVGDEBUGGER(*attrs, kwargs={}): return [Plain(f'PROGRESS => {GLOBAL.PROGRESS}\nQUEST => {GLOBAL.QUESTING}\nREQUESTS => {GLOBAL.REQUESTS}\nAWAITING => {GLOBAL.AWAITING}')]
+async def AVGDEBUGGER(*attrs, kwargs={}): return [Plain(f'PROGRESS => {GLOBAL.PROGRESS}\nQUEST => {GLOBAL.QUESTING}\nREQUESTS => {GLOBAL.REQUESTS}\nAWAITING => {GLOBAL.AWAITING}')]
 
 @check_host
-def AVGRecover(*attrs, kwargs={}):
+async def AVGRecover(*attrs, kwargs={}):
     player = getPlayer(**kwargs)    
     for i in __getLocks__(player):
         while i:
             print(i.pop())
     kw = {'qq':player, 'progress':attrs[0]}
-    j = __requestValidater__('recover', kw, **kwargs)
+    j = await __requestValidater__('recover', kw, **kwargs)
     if j['msg']:
         return [Plain(j['msg'])]
     else:
         return [Plain('【读档成功】没消息就是好消息')]
 
-def AVGAccelerater(*attrs, kwargs={}):
+async def AVGAccelerater(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     try:
         if float(attrs[0]) < 0.1:
@@ -224,12 +224,12 @@ def AVGAccelerater(*attrs, kwargs={}):
         return [Plain('【错误】加速的倍率得是正经的浮点yo')]
 
 @check_host
-def AVGStatusViewer(*attrs, kwargs={}):
+async def AVGStatusViewer(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     pro, qst, req, wat = __getLocks__(player)
     l = []
     if len(pro) == 0:
-        js = __requestValidater__('status',{'qq':player},**kwargs)
+        js = await __requestValidater__('status',{'qq':player},**kwargs)
         l.append(Plain(f'''实例名称：{js['data']["player_name"]}\n\n'''))
         l.append(Plain(f'''持有货币：{js['data']["bitcoin"]}\n'''))
         l.append(Plain(f'''计算资源：{js['data']["score"]}\n'''))
@@ -248,10 +248,10 @@ def AVGStatusViewer(*attrs, kwargs={}):
     return l
 
 @check_host
-def AVGSaver(*attrs, kwargs={}):
+async def AVGSaver(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
-        js = __requestValidater__('save', {'qq':player, 'chkp':' '.join(attrs)}, **kwargs)
+        js = await __requestValidater__('save', {'qq':player, 'chkp':' '.join(attrs)}, **kwargs)
     else:
         return [Plain('得告诉我你想存在哪个档（')]
     if js['status']:

@@ -56,7 +56,7 @@ def requester(lnk,kw,tle=30,**kwargs):
     return j
 
 @check_host
-def 查看问题(*attrs,kwargs={}):
+async def 查看问题(*attrs,kwargs={}):
     data = {'problem_id':attrs[0]}
     rsp = requester('problem/info',data)['data']['problem']
     samples = (f'样例输入{p}：{chr(10)}{i}{chr(10)}样例输出{p}：{chr(10)}{rsp["sample_outputs"][p]}{chr(10)}{chr(10)}' for p,i in enumerate(rsp['sample_inputs']))
@@ -74,7 +74,7 @@ def 查看问题(*attrs,kwargs={}):
     return [Plain(render)]
 
 @check_host
-def 提交(*attrs,kwargs={}):
+async def 提交(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     data = {
         'problem':attrs[0],

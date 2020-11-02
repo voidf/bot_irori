@@ -19,6 +19,8 @@ import base64
 import importlib
 import sys
 from Fetcher import *
+from asgiref.sync import async_to_sync, sync_to_async
+
 # from mirai.face import QQFaces
 # from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain, Group, Image, Member, At, Source
 
@@ -104,6 +106,22 @@ async def fuzzT(g,s,e,w=''):
             await asyncio.sleep(0.2)
         await msgDistributer(gp=g,msg=f'{chr(_)}{_}{w}')
 
+async def MessageChainSpliter(chain: list, **kwargs):
+    if chain:
+        if 'player' in kwargs:
+            kwargs['player'] = int(kwargs['player'])
+            if kwargs['player'] > 1<<39:
+                for seq in chain:
+                    await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39), MessageChain.create([seq]).asSendable())
+            else:
+                for seq in chain:
+                    await GLOBAL.app.sendFriendMessage(kwargs['player'], MessageChain.create([seq]).asSendable())
+        elif 'gp' in kwargs:
+            for seq in chain:
+                await GLOBAL.app.sendGroupMessage(kwargs['gp'], MessageChain.create([seq]).asSendable())
+        elif 'mem' in kwargs:
+            for seq in chain:
+                await GLOBAL.app.sendFriendMessage(kwargs['mem'], MessageChain.create([seq]).asSendable())
 
 async def msgDistributer(**kwargs):
     """
@@ -248,11 +266,14 @@ async def compressMsg(l,extDict={}):
         if "-voice" in extDict and "voices" in extDict:
             for i in extDict['voices']:
                 voi = await GLOBAL.app.uploadVoice(getFileBytes(i))
-                l.append(voi)
+                # l.append(voi)
+                asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         return MessageChain.create(l).asSendable()
 
 def getFileBytes(s):
-    if s[:4] == 'http':
+    if isinstance(s, bytes):
+        return s
+    elif s[:4] == 'http':
         ret = requests.get(s).content
         print(len(ret))
         return ret
