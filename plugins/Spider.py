@@ -135,7 +135,7 @@ async def 爬OIWiki(*attrs,kwargs={}):
     print(url)
 
     save_fn=randstr(GLOBAL.randomStrLength)+"tmpLearn"+str(kwargs['gp'].id)+'.png'
-    ostr += renderHtml(url,save_fn)
+    ostr += await renderHtml(url,save_fn)
     
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
     ostr.append(generateImageFromFile(save_fn))
@@ -161,7 +161,7 @@ async def 爬萌娘(*attrs,kwargs={}):
         else:
             lnk = 'https://zh.moegirl.org'+res.find('a')['href']
     save_fn=randstr(GLOBAL.randomStrLength)+"tmpMoe"+str(kwargs['mem'].id)+'.png'
-    l = renderHtml(lnk,save_fn)
+    l = await renderHtml(lnk, save_fn)
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
     return l+[generateImageFromFile(save_fn)]
 

@@ -95,7 +95,7 @@ async def CFProblemRender(g,cid,ti):
         GLOBAL.CFRenderFlag.add(cid)
         await asyncio.sleep(ti)
         base = 'https://codeforces.com/contest/'+cid+'/problems'
-        l = renderHtml(base,FN)
+        l = await renderHtml(base, FN)
         GLOBAL.CFRenderFlag.discard(ti)
         l.append(generateImageFromFile(FN))
         await msgDistributer(gp=g,list=l)
@@ -365,7 +365,7 @@ def OTNoticeManager(j,**kwargs):
 
 
 
-def renderHtml(dst_lnk, na) -> str:
+async def renderHtml(dst_lnk, na) -> str:
     """渲染dst_lnk的网页，保存为na，返回网页标题"""
     option = webdriver.ChromeOptions()
     option.add_argument('--headless')
