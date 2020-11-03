@@ -248,6 +248,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             return
         if not tc.enable_this:
             return
+        print(s)
         a,*b = s
         l = []
         if a in Callable.shorts:
@@ -257,6 +258,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
+                    print(b)
                     l = await Callable.funs[a](*b, kwargs=extDict)
                     if l is None:
                         print(traceback.format_exc())
