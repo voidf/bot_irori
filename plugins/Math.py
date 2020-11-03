@@ -285,6 +285,7 @@ async def 孙子定理(*attrs, kwargs={}):
             
 
 async def 老线代bot了(*attrs, kwargs={}):
+    print(attrs)
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
