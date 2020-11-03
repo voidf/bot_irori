@@ -186,17 +186,21 @@ def WaitFormula(s: str) -> float:
 
 def RoutinerLoop():
     async def R0():
-        await asyncio.sleep(WaitFormula('0:00'))
-        irori.postEvent(Routiner0())
+        while True:
+            await asyncio.sleep(WaitFormula('0:00'))
+            irori.postEvent(Routiner0())
     async def R7():
-        await asyncio.sleep(WaitFormula('7:00'))
-        irori.postEvent(Routiner7())
+        while True:
+            await asyncio.sleep(WaitFormula('7:00'))
+            irori.postEvent(Routiner7())
     async def R17():
-        await asyncio.sleep(WaitFormula('17:00'))
-        irori.postEvent(Routiner17())
+        while True:
+            await asyncio.sleep(WaitFormula('17:00'))
+            irori.postEvent(Routiner17())
     async def RI():
-        await asyncio.sleep(86400)
-        irori.postEvent(RoutinerIma())
+        while True:
+            await asyncio.sleep(86400)
+            irori.postEvent(RoutinerIma())
     irori.postEvent(RoutinerIma())
     asyncio.ensure_future(R0())
     asyncio.ensure_future(R7())
