@@ -212,6 +212,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         if member in masterID:
             extDict['sudo'] = True
     if GLOBAL.echoMsg:print(f"""{message}""")
+    print('s:', s)
     ns = []
     for i in s:
         if i[:2] == "--":
@@ -221,6 +222,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
             arg,*val = i[1:].split("=")
             extDict["-"+arg] = "".join(val)
         else: ns.append(i)
+    print('ns:', ns)
     return ns
 
 @irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
@@ -388,7 +390,7 @@ async def hajime(bot):
             print(jj)
             for j,v in jj.items(): # j是title，v是(时间,发送成员)
                 t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
-                Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
+                await Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
     except:
         print('ddl模块收到异常（不太重要：\n',traceback.format_exc())
     
