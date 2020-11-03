@@ -218,9 +218,9 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         if i[:2] == "--":
             arg,*val = i[2:].split("=")
             extDict["-"+arg] = "".join(val)
-        elif i[:1] == "-":
-            arg,*val = i[1:].split("=")
-            extDict["-"+arg] = "".join(val)
+        # elif i[:1] == "-":
+            # arg,*val = i[1:].split("=")
+            # extDict["-"+arg] = "".join(val)
         else: ns.append(i)
     print('ns:', ns)
     return ns
@@ -390,7 +390,14 @@ async def hajime(bot):
             print(jj)
             for j,v in jj.items(): # j是title，v是(时间,发送成员)
                 t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
-                await Callable.ddl通知姬(recover=True,gp=int(_),mb=v[1],tit=j,dtime=t-datetime.datetime.now())
+                dic = {
+                    'recover':True,
+                    'gp':int(_),
+                    'mb':v[1],
+                    'tit':j,
+                    'dtime':t-datetime.datetime.now()
+                }
+                await Callable.ddl通知姬(kwargs=dic)
     except:
         print('ddl模块收到异常（不太重要：\n',traceback.format_exc())
     
