@@ -70,7 +70,7 @@ for plugin in os.listdir(pluginsdir):
     plugindocs[pkgname] = module.__doc__
 
 
-def printHelp(*attrs,**kwargs):
+async def printHelp(*attrs,**kwargs):
     l = []
     img = []
     ext = []
