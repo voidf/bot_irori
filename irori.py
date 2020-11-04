@@ -212,7 +212,6 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         if member in masterID:
             extDict['sudo'] = True
     if GLOBAL.echoMsg:print(f"""{message}""")
-    print('s:', s)
     ns = []
     for i in s:
         if i[:2] == "--":
@@ -222,7 +221,6 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
             # arg,*val = i[1:].split("=")
             # extDict["-"+arg] = "".join(val)
         else: ns.append(i)
-    print('ns:', ns)
     return ns
 
 @irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
@@ -250,7 +248,6 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             return
         if not tc.enable_this:
             return
-        print(s)
         a,*b = s
         l = []
         if a in Callable.shorts:
@@ -260,7 +257,6 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
-                    print(b)
                     l = await Callable.funs[a](*b, kwargs=extDict)
                     if l is None:
                         print(traceback.format_exc())
