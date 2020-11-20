@@ -257,9 +257,14 @@ async def 打印真值表(*attrs, kwargs={}):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-async def 逆元(*attrs, kwargs={}):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+async def 逆元(*attrs, kwargs={}): return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
 async def 欧拉函数(*attrs, kwargs={}):
+    """求给定值的欧拉函数
+    :param x: 待求值x
+    :return:
+        int: φ(x)
+    """
     x = int(attrs[0])
     res = x
     upp = x**0.5

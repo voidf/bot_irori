@@ -333,13 +333,13 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                     if a in GLOBAL.credit_cmds:
                         updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
-                        await app.sendFriendMessage(hurenzu,await compressMsg(l,extDict))
+                        await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
                 except:
                     print(traceback.format_exc())
                     if tc.print_exception:
                         l.append(Plain(traceback.format_exc()))
                     if l:
-                        await app.sendFriendMessage(hurenzu,await compressMsg(l,extDict))
+                        await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
                 return
 
         if tc.quick_calls: # sniff模块
