@@ -69,8 +69,11 @@ for plugin in os.listdir(pluginsdir):
     desc.update(getattr(module, "functionDescript"))
     plugindocs[pkgname] = module.__doc__
 
-for k, v in desc.items():
-    if not funs[k].__doc__:
+for k, v in list(desc.items()):
+    if k not in funs:
+        print(f'Unused description for {k}, remove it.')
+        desc.pop(k)
+    elif not funs[k].__doc__:
         funs[k].__doc__ = v
 
 async def printHelp(*attrs,**kwargs):

@@ -101,7 +101,7 @@ shortMap = {
 }
 
 functionDescript = {
-    'mu':'',
+    '#mu':'',
     '#fuzz':
 """
 【测试用】基本上是用来测试unicode的
