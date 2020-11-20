@@ -69,6 +69,9 @@ for plugin in os.listdir(pluginsdir):
     desc.update(getattr(module, "functionDescript"))
     plugindocs[pkgname] = module.__doc__
 
+for k, v in desc.items():
+    if not funs[k].__doc__:
+        funs[k].__doc__ = v
 
 async def printHelp(*attrs,**kwargs):
     l = []

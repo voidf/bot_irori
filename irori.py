@@ -116,7 +116,7 @@ for k,v in allowGroup.items(): chkcfg(int(k)+2**39).allow_cmd = set(v)
 
 SHELL = {}
 
-def sys_reload(member,player,s,extDict):importlib.reload(Callable);return '热重载完成'
+def sys_reload(member,player,s,extDict): importlib.reload(Callable); return '热重载完成'
 
 def sys_pull(member,player,s,extDict):
     if '-f' in extDict:c = 'git fetch --all && git reset --hard origin/master'
