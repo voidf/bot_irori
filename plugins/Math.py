@@ -216,7 +216,7 @@ async def CalC(*attrs, kwargs={}):
         return [Plain(str(e))]
 
 async def CalA(*attrs,kwargs={}):
-    return CalC('A',*attrs,kwargs=kwargs)
+    return await CalC('A',*attrs,kwargs=kwargs)
 
 async def CalKatalan(*attrs,kwargs={}):
     try:
@@ -258,6 +258,19 @@ async def 打印真值表(*attrs, kwargs={}):
     return [Plain('\n'.join(s.outPut))]
 
 async def 逆元(*attrs, kwargs={}):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+
+async def 欧拉函数(*attrs, kwargs={}):
+    x = int(attrs[0])
+    res = x
+    upp = x**0.5
+    for i in range(2, int(upp)+1):
+        if x % i == 0:
+            res = (res // i) * (i - 1)
+            while x % i == 0:
+                x //= i
+    if x > 1:
+        res = (res // x) * (x - 1)
+    return [Plain(f'{res}')]
 
 async def 孙子定理(*attrs, kwargs={}):
     il = ' '.join(attrs).strip().split()
@@ -426,6 +439,7 @@ functionMap = {
     '#K':CalKatalan,
     '#统计':统计姬from104,
     '#inv':逆元,
+    '#phi':欧拉函数,
     '#CRT':孙子定理,
     '#线代':老线代bot了,
     '#真值表':打印真值表,
@@ -443,6 +457,7 @@ functionDescript = {
     '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
     '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
+    '#phi': '算欧拉函数',
     '#C':
 '''
 两个参数计算组合数，一个参数计算阶乘
