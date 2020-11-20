@@ -216,7 +216,7 @@ async def CalC(*attrs, kwargs={}):
         return [Plain(str(e))]
 
 async def CalA(*attrs,kwargs={}):
-    return CalC('A',*attrs,**kwargs)
+    return CalC('A',*attrs,kwargs=kwargs)
 
 async def CalKatalan(*attrs,kwargs={}):
     try:

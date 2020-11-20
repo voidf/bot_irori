@@ -13,3 +13,4 @@ pexpect
 graia-application-mirai
 graia-broadcast
 asgiref
+graia.broadcast

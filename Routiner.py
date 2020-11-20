@@ -1,8 +1,6 @@
 from graia.broadcast.entities.event import BaseEvent
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from graia.broadcast.protocols.executor import ExecutorProtocol
-from graia.broadcast.entities.listener import Listener
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorater import Decorater
 from graia.broadcast.builtin.decoraters import Depend, Middleware
