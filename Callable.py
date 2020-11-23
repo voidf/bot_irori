@@ -64,16 +64,36 @@ for plugin in os.listdir(pluginsdir):
     importlib.reload(module)
     names = module.__dict__.get("__all__", [x for x in module.__dict__ if x[:1] != '_'])
     globals().update({k: getattr(module, k) for k in names})
+    funmap = getattr(module, "functionMap", {})
+    shomap = getattr(module, 'shortMap', {})
+    decmap = getattr(module, "functionDescript", {})
+    for k, v in funmap.items():
+        if not hasattr(v, 'CALLCMD'): # compatible for current version
+            v.CALLCMD = k
+
+
+        
     for n, f in inspect.getmembers(module): # 判断这是个可以加进QQ消息调用表的函数
         if not inspect.isbuiltin(f) and inspect.iscoroutinefunction(f):
             argsinfo = inspect.getfullargspec(f)
             if argsinfo.varargs == 'attrs' and argsinfo.kwonlyargs == ['kwargs'] and not argsinfo.args and not argsinfo.varkw and not argsinfo.defaults:
-                pass
+                ccmd = getattr(f, 'CALLCMD', '#'+n)
+                # if f not in funmap.values():
+                funmap.update({ccmd: f})
+                csho = getattr(f, 'SHORTS', [])
+                for ss in csho:
+                    if ss not in shorts and ss not in funmap:
+                        shorts.update({ss: ccmd})
+
+    for k, v in decmap.items():
+        if not funmap[k].__doc__:
+            funmap[k].__doc__ = v
     
-    pluginfuns[pkgname] = getattr(module, "functionMap")
-    funs.update(getattr(module, "functionMap"))
-    shorts.update(getattr(module, "shortMap"))
-    desc.update(getattr(module, "functionDescript"))
+    pluginfuns[pkgname] = funmap
+    funs.update(funmap)
+    shorts.update(shomap)
+
+    # desc.update(getattr(module, "functionDescript"))
     plugindocs[pkgname] = module.__doc__
 
 for k, v in list(desc.items()):
@@ -84,6 +104,7 @@ for k, v in list(desc.items()):
         funs[k].__doc__ = v
 
 async def printHelp(*attrs,**kwargs):
+    """不传参打印命令表，传参则解释命令"""
     l = []
     img = []
     ext = []
@@ -98,9 +119,10 @@ async def printHelp(*attrs,**kwargs):
     else:
         if attrs[0] in shorts:
             attrs = [shorts[attrs[0]],*attrs[1:]]
-        if attrs[0] in desc:
-            l.append(desc[attrs[0]])
-
+        if attrs[0] in funs:
+            l.append(funs[attrs[0]].__doc__)
+        elif attrs[0] == '#abb':
+            l.append(f'可用缩写表:{shorts}')
         elif attrs[0] in ('all', 'old'):
             l.append('可用命令表：')
             for k in funs:
@@ -111,11 +133,11 @@ async def printHelp(*attrs,**kwargs):
             img.append(generateImageFromFile('Assets/muzukashi.png'))
         elif attrs[0] in pluginfuns:
             l.append(f'分类：{attrs[0]}')
-            for k in pluginfuns[attrs[0]]:
-                print(f'descLen = {len(desc[k].strip()[:20])}')
-                l.append(f'''\t{k}\t{desc[k].strip()[:20] 
-                if len(desc[k].strip()[:20])<=20
-                else desc[k].strip()[:20]+'...'}\n''' )
+            for k, v in pluginfuns[attrs[0]].items():
+                print(f'descLen = {len(v.__doc__.strip()[:20])}')
+                l.append(f'''\t{k}\t{v.__doc__.strip()[:20]
+                if len(v.__doc__.strip()[:20])<=20
+                else v.__doc__.strip()[:20]+'...'}\n''' )
         else:
             l.append('【错误】参数不合法\n')
             ext = printHelp()
@@ -124,7 +146,5 @@ async def printHelp(*attrs,**kwargs):
 
 
 funs['#h'] = printHelp
-desc['#h'] = '不传参打印命令表，传参则解释命令'
-desc['#abb'] = f'可用缩写表:{shorts}'
 
 print('Callable LOAD DONE =========>')
