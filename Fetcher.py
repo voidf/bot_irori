@@ -18,6 +18,7 @@ import base64
 import importlib
 import sys
 
+def randstr(l: int) -> str: return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
 
 def fetchAtCoderContests() -> dict:
     j = {}

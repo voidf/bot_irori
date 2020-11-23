@@ -33,6 +33,7 @@ import datetime
 import urllib
 import mido
 import importlib
+import inspect
 shorts = {}
 funs = {}
 desc = {}
@@ -63,6 +64,12 @@ for plugin in os.listdir(pluginsdir):
     importlib.reload(module)
     names = module.__dict__.get("__all__", [x for x in module.__dict__ if x[:1] != '_'])
     globals().update({k: getattr(module, k) for k in names})
+    for n, f in inspect.getmembers(module): # 判断这是个可以加进QQ消息调用表的函数
+        if not inspect.isbuiltin(f) and inspect.iscoroutinefunction(f):
+            argsinfo = inspect.getfullargspec(f)
+            if argsinfo.varargs == 'attrs' and argsinfo.kwonlyargs == ['kwargs'] and not argsinfo.args and not argsinfo.varkw and not argsinfo.defaults:
+                pass
+    
     pluginfuns[pkgname] = getattr(module, "functionMap")
     funs.update(getattr(module, "functionMap"))
     shorts.update(getattr(module, "shortMap"))
