@@ -197,8 +197,6 @@ def smart_decorator(decorator):
 
 def tnow(): return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l: int) -> str: return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
-
 def getCredit(user: int):
     if not os.path.exists(f'credits/{user}'):        
         return 500

@@ -275,6 +275,8 @@ async def 欧拉函数(*attrs, kwargs={}):
                 x //= i
     if x > 1:
         res = (res // x) * (x - 1)
+    if x == int(attrs[0]):
+        return [Plain(f'{x}是质数\n{res}')]
     return [Plain(f'{res}')]
 
 async def 孙子定理(*attrs, kwargs={}):
@@ -301,6 +303,14 @@ async def 孙子定理(*attrs, kwargs={}):
             r = ((getinv(M2//G, M1//G) * (C1 - C2) // G) % (M1 // G) * M2 + C2) % f
         return [Plain(str(r))]
             
+
+async def 计算器(*attrs, kwargs={}):
+    x = 0
+    for c in ''.join(attrs):
+        if c in string.digits:
+            pass
+    return [Plain('施工中')]
+
 
 async def 老线代bot了(*attrs, kwargs={}):
     print(attrs)
