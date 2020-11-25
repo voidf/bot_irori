@@ -38,7 +38,30 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 + 知道如何用电脑浏览器下载文件
 + 具有一定的英文基础
 
-## 使用
+## docker一句话部署
+
+> 没有docker的可以根据自己的linux发行版复制然后运行本仓库的安装脚本
+>  + [install_docker_debian.sh](install_docker_debian.sh)
+>  + [install_docker_centos.sh](install_docker_centos.sh)
+> 里面的命令
+
+`docker run -it voidf/irori`
+
+或者如果你嫌国外镜像下载不够快的话：
+
+`docker run -it voidf/irori --registry-mirror=https://docker.mirrors.ustc.edu.cn`
+
+## 快速部署（精简版）
+
+1. 克隆本仓库
+2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`http或s://mirai-http-api实例host:端口/`
+3. 安装python3，然后`pip3 install -r requirements.txt`
+4. 安装java，记得配好环境变量
+5. 将[release里的env](http://d0.ananas.chaoxing.com/download/aad7ee20c57d3b402b7f254b4f3373de)文件解压
+6. 在解压目录里面`./run.sh`
+7. `python3 irori.py`
+
+## 安装使用（啰嗦版）
 
 先装[python](https://www.python.org/downloads/)最好是3.7左右这样的版本,最好是64位，即安装包上写有AMD64字样的exe包
 
@@ -60,7 +83,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 `pip install -r requirements.txt`
 
-**注意kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢**
+> 其实kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢
 
 快速配置环境的话可以直接捣鼓一下release里的东西
 
@@ -120,7 +143,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 ## 进阶：cfg.json配置模板
 
-```
+```python
 {
     "banGroup": {
         "114514":["#CF"]
@@ -128,27 +151,33 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
     "allowGroup": {
         "1919810": ["#CF","#AT"]
     }, # 仅允许1919810群用#CF，#AT两个命令
-    "Onaji_botList": [
+    "botList": [
         1926,
         817
     ], # 每个群内忽略QQ号为1926和817的两个群员的发言
-    "onlineMsg": [
-        [998244353, "雷真殿に迷惑をかけているのではあるまいな？"]
-    ], # 向群998244353发送登录提醒“雷真殿に迷惑をかけているのではあるまいな？”
+    "onlineMsg": {
+        "998244353": ["雷真殿に迷惑をかけているのではあるまいな？","ありませんか？"]
+    }, # 向群998244353从后面的列表中抽一个字符串发送登录提醒
     "proxy": {
         "http": "socks5://11.4.51.4:810",
         "https": "socks5://11.4.51.4:810"
     }, # 设置代理（目前只有#看看病 用到
     "masters": [233, 666], # 设置系统级命令的管理员（player号
+    "enables": [0], # 默认使能状态，0为默认处理任何对象的消息，否则只处理提供的player号
     "appid": "2020123456789", # 设置百度翻译的appid
     "secretKey": "ajusdhgiudhfgiohsdkil", # 百度翻译的密钥
-    "lengthLim":1919 # 文字转图片的字符串长度阈值
+    "echoMsg": false, # 是否打印收到的消息链
+    "lengthLim":1919, # 文字转图片的字符串长度阈值
+    "AVGHost": "http://127.0.0.1:1919", # AVG主机地址（没有或不需要可留空
+    "OJHost": "http://127.0.0.1:14569" # OJ主机地址（没有或不需要可留空
 }
 ```
 
+可以从仓库给定的`cfg.json.template`直接修改，将后缀`.template`和文件里的所有井号注释删去，改为自己合适的设置然后保存即可。
+
 ## 参与开发
 
-参见[DEV.md](DEV.md)
+参见[DEV.md](DEV.md)或者本仓库的Wiki
 
 ## 老版本kuriyama(0.2.3)留下来的坑
 
@@ -174,6 +203,8 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] 实现Fygon计算复杂度
 + [ ] 求二次剩余
 + [ ] 选课
++ [ ] 对接屑站转发抽奖
++ [ ] 自用本校工具箱
 
 + 大坑
   
@@ -181,6 +212,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] ai棋牌
 + [ ] TRPG
 + [x] irori-OpenJudge（但是自建果然不如对接
++ [ ] irori农场（
 
 ## 引用项目:
 
@@ -235,5 +267,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 ![](Assets/kusa/18.png)
 
 ![](Assets/kusa/19.png)
+
+![](Assets/kusa/20.png)
 
 **欢迎投稿（**

@@ -18,6 +18,7 @@ from PIL import ImageFont,ImageDraw
 import base64
 import importlib
 import sys
+from Fetcher import *
 # from mirai.face import QQFaces
 # from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain, Group, Image, Member, At, Source
 
@@ -164,6 +165,7 @@ async def JRRPclearRoutiner():
             GLOBAL.JRRP_map.clear()
             asyncio.ensure_future(msgDistributer(msg='你昨天的人品已经被清除了——',typ='P',player=550247773345)) #player号码暂时这么写，别打我
         except:
+            traceback.print_exc()
             print('人品清除失败')
 
 async def CFLoopRoutiner():
@@ -176,6 +178,7 @@ async def CFLoopRoutiner():
             for _ in os.listdir('CF/'):
                 try:
                     if _[-4:]!='.png':
+                        print(f'EXECUTING{_}')
                         CFNoticeManager(j,gp=int(_))
                 except:
                     print('CF爬虫挂了！',traceback.format_exc())
@@ -295,56 +298,45 @@ async def msgDistributer(**kwargs):
         elif 'mem' in kwargs:
             await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
         
+async def msgSerializer(_i, **kwargs):
+    p = getPlayer(**kwargs)
+    rate = GLOBAL.RUSHRATE.get(p,1)
+    print(_i)
+    if 'note' in _i:
+        await msgDistributer(msg=_i['note'], **kwargs)
+    if 'msg' in _i:
+        if _i.get('typ', 'P') != 'I':
+            await asyncio.sleep(len(_i['msg'])/5/rate)
+        await msgDistributer(**_i, **kwargs)
+    if 'MORE' in _i and 'note' in _i['MORE']:
+        await msgDistributer(typ='P',msg=_i['MORE']['note'],**kwargs)
+
+                
+def smart_decorator(decorator):
+    def decorator_proxy(func=None, **kwargs):
+        if func is not None:
+            return decorator(func=func, **kwargs)
+        def decorator_proxy(func):
+            return decorator(func=func, **kwargs)
+        return decorator_proxy
+    return decorator_proxy
 
 def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:return ''.join(random.sample(string.ascii_letters*l+string.digits*l,l))
+def randstr(l:int) -> str:return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
 
-def renderHtml(dst_lnk,na) -> str:
-    """渲染dst_lnk的网页，保存为na，返回网页标题"""
-    option = webdriver.ChromeOptions()
-    option.add_argument('--headless')
-    option.add_argument('--no-sandbox')
-    option.add_argument('--disable-gpu')
-    option.add_argument("--window-size=1280,1024")
-    option.add_argument("--hide-scrollbars")
-    
-    driver = webdriver.Chrome(options=option)
-    
-    driver.get(dst_lnk)
-    ostr = []
-    ostr.append(Plain(text=driver.title))
-    location = driver.execute_script('return window.location.href')
-    ostr.append(Plain(text=location))
-    
-    scroll_width = driver.execute_script('return document.body.parentNode.scrollWidth')
-    scroll_height = driver.execute_script('return document.body.parentNode.scrollHeight')
-    if scroll_height*scroll_width > GLOBAL.webPngLimit:
-        if scroll_width >= GLOBAL.webPngLimit:
-            driver.quit()
-            ostr.append(Plain(text='我画不了这么鬼畜的页面OxO'))
-            return ostr
-        else:
-            if 'codeforces' in dst_lnk:
-                scroll_height = min(GLOBAL.webPngLimit*10//scroll_width,scroll_height)
-            else:
-                scroll_height = GLOBAL.webPngLimit//scroll_width
-    if 'moegirl' in dst_lnk:
-        driver.execute_script('''var o=document.querySelectorAll('.heimu');for(var i=0;i<o.length;i++){o[i].style.color="#FFF"}''')
-        driver.execute_script('''var o=document.querySelectorAll('a');for(var i=0;i<o.length;i++){o[i].style.color="#0AF"}''')
-    driver.set_window_size(scroll_width, scroll_height)
-    driver.get_screenshot_as_file(na)
-    driver.quit()
-    return ostr
+
 
 def generateTmpFileName(pref,ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
 def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
+    print(extDict)
     player = extDict.get("player",0)
     tc = chkcfg(player)
-    theme = int(extDict.get("-theme",255))
+    theme = int(extDict.get("-theme", 255))
+    theme = int(extDict.get("-t", theme))
     offset = tc.font_size >> 1
     print(offset)
     nl = []
@@ -356,7 +348,7 @@ def compressMsg(l,extDict={}):
             others.append(i)
     print(others)
     s = ''.join(nl)
-    if len(s) >tc.compress_threshold or "-force-image" in extDict:
+    if len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
         
         font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
         
@@ -388,6 +380,7 @@ def compressMsg(l,extDict={}):
 
 def getPlayer(**kwargs):
     """根据不定字典拿player号"""
+    if 'player' in kwargs: return kwargs['player']
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
@@ -400,53 +393,30 @@ def getPlayer(**kwargs):
             player = kwargs['mem']
     return player
 
-def removeSniffer(player,event):
-    print(chkcfg(player).quick_calls.pop(event,"?"))
-    try:
-        with open(f'sniffer/{player}','r') as f:
-            j = json.load(f)
-        del j[event]
-        with open(f'sniffer/{player}','w') as f:
-            json.dump(j,f)
+
+def clearCFFuture(key,G,src):
+    """
+    第一个参数是比赛唯一标号，第二个是群组号用于在dict中确认
+    第三个参数是来源函数，因为这个函数是在来源callback调用的，
+    那么在这之前来源已经被执行完了，因此不用cancel，直接从dict中删去即可
+    """
+    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(G,{})
+    try:print('清除成功',CFNoticeQueue.pop(key))
     except:
-        print('缓存sniffer文件出错')
-        print(traceback.format_exc())
+        traceback.print_exc()
+        print(f'{key}中无比赛{G}的提醒日程')
 
-def overwriteSniffer(player,event,pattern,*attrs):
-    eventObj = {event:{'sniff':[pattern],'attrs':attrs}}
-    chkcfg(player).quick_calls.update(eventObj)
-    if not os.path.exists(f'sniffer/{player}'):
-        with open(f'sniffer/{player}','w') as f:
-            json.dump(eventObj,f)
-        return
-    with open(f'sniffer/{player}','r') as f:
-        j = json.load(f)
-    j.update(eventObj)
-    with open(f'sniffer/{player}','w') as f:
-        json.dump(j,f)
-
-def appendSniffer(player,event,pattern): # 注意捕捉exc
-    chkcfg(player).quick_calls[event]['sniff'].append(pattern)
-    with open(f'sniffer/{player}','r') as f:
-        j = json.load(f)
-    j[event]['sniff'].append(pattern)
-    with open(f'sniffer/{player}','w') as f:
-        json.dump(j,f)
-
-def clearCFFuture(G,key,src):
-    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(src,{})
-    try:
-        print('清除成功',CFNoticeQueue.pop(key))
+def clearOTFuture(key,G,src):
+    """
+    第一个参数是比赛唯一标号，第二个是群组号用于在dict中确认
+    第三个参数是来源函数，因为这个函数是在来源callback调用的，
+    那么在这之前来源已经被执行完了，因此不用cancel，直接从dict中删去即可
+    """
+    t = GLOBAL.OTNoticeQueueGlobal.setdefault(G,{})
+    try:print('清除成功',t.pop(key))
     except:
-        print('无',G)
-
-def clearOTFuture(G,key,src):
-
-    t = GLOBAL.OTNoticeQueueGlobal.setdefault(src,{})
-    try:
-        print('清除成功',t.pop(key))
-    except:
-        print('无',G)
+        traceback.print_exc()
+        print(f'{key}中无比赛{G}的提醒日程')
 
 def CFNoticeManager(j,**kwargs):
     try:
@@ -457,11 +427,10 @@ def CFNoticeManager(j,**kwargs):
     with open(fn,'r') as f:
         feat = f.readline().strip()
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
-    print(j)
+    print(f"INITING {gp} FOR {CFNoticeQueue}")
     for k,v in j.items():
         timew = None
         if k not in CFNoticeQueue:
-            
             if 'routine' in v:
                 timew = v['routine'] - tnow() - datetime.timedelta(hours=1)
                 asy = asyncio.ensure_future(contestsBeginNotice(gp,v['title'],timew.total_seconds()))
@@ -480,9 +449,7 @@ def OTNoticeManager(j,**kwargs):
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-
     OtherOJNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
-
     for k in j:
         if k['title'] not in OtherOJNoticeQueue:
             timew = k['begin'] - tnow() - datetime.timedelta(hours=1)
@@ -491,119 +458,52 @@ def OTNoticeManager(j,**kwargs):
             asy.add_done_callback(functools.partial(clearOTFuture,k['title'],gp))
     print(OtherOJNoticeQueue)
 
-def fetchCodeForcesContests():
-    r = requests.get('https://codeforces.com/contests?complete=true')
-    print(r)
-    soup = BeautifulSoup(r.text,'html.parser')
-    li = {}
-    for i in soup('table')[0]('tr'):
 
-        if any(i('td')): #标题 作者 日期 时长 开始倒计时 （爬到的是UTC+3
-            contest = li.setdefault(i['data-contestid'],{})
-            
-            pos = i('td')[0].text.find('Enter')
-            if pos!=-1:
-                print('正在运行的比赛')
-                contest['title'] = i('td')[0].text[:pos-1].strip()
+
+
+def renderHtml(dst_lnk, na) -> str:
+    """渲染dst_lnk的网页，保存为na，返回网页标题"""
+    option = webdriver.ChromeOptions()
+    option.add_argument('--headless')
+    option.add_argument('--no-sandbox')
+    option.add_argument('--disable-gpu')
+    option.add_argument("--window-size=1280,1024")
+    option.add_argument("--hide-scrollbars")
+    driver = webdriver.Chrome(options=option)
+    driver.get(dst_lnk)
+    ostr = []
+    ostr.append(Plain(text=driver.title))
+    location = driver.execute_script('return window.location.href')
+    ostr.append(Plain(text=location))
+    scroll_width = driver.execute_script(
+        'return document.body.parentNode.scrollWidth')
+    scroll_height = driver.execute_script(
+        'return document.body.parentNode.scrollHeight')
+    if scroll_height*scroll_width > GLOBAL.webPngLimit:
+        if scroll_width >= GLOBAL.webPngLimit:
+            driver.quit()
+            ostr.append(Plain(text='我画不了这么鬼畜的页面OxO'))
+            return ostr
+        else:
+            if 'codeforces' in dst_lnk:
+                scroll_height = min(GLOBAL.webPngLimit*10 //
+                                    scroll_width, scroll_height)
             else:
-                try:
-                    contest['title'] = i('td')[0].string.strip()
-                    contest['authors'] = [au.string.strip() for au in i('td')[1]('a')]
-                    contest['routine'] = datetime.datetime.strptime(i('td')[2].a.span.string.strip(),'%b/%d/%Y %H:%M') + datetime.timedelta(hours=5)
-                    contest['length'] = i('td')[3].string.strip()
-                    contest['countdown'] = i('td')[4].text.strip()
-                    
-                except:
-                    print(traceback.format_exc())
-    return li
-
-def fetchAtCoderContests() -> dict:
-    j = {}
-    l = []
-    r = requests.get('https://atcoder.jp/contests/',headers = GLOBAL.AtCoderHeaders)
-    s = BeautifulSoup(r.text,'html.parser')
-    try:
-        for p,i in enumerate(s.find('h3',string='Active Contests').next_sibling.next_sibling('tr')):
-            if p:
-                l.append({
-                'length':i('td')[2].text,
-                'ranking_range':i('td')[3].text,
-                'title':i('a')[1].text,
-                'begin':datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                })
-    except:
-        pass
-    j['running'] = l
-    l = []
-
-    for p,i in enumerate(s.find('h3',string='Upcoming Contests').next_sibling.next_sibling('tr')):# 持续时间 排名区间 比赛名 比赛时间
-        if p:
-            l.append({
-                'length':i('td')[2].text,
-                'ranking_range':i('td')[3].text,
-                'title':i('a')[1].text,
-                'begin':datetime.datetime.strptime(i('a')[0].text,"%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                })
-
-    j['upcoming'] = l
-    print(j)
-    return j
-
-def fetchNowCoderContests() -> list:
-    l = []
-    res = requests.get('https://ac.nowcoder.com/acm/contest/vip-index?&headNav=www')
-    bs_res = BeautifulSoup(res.text,'html.parser')
-    items = bs_res.find('div',class_='platform-mod js-current')
-    for item in items.find_all(class_='platform-item'):
-        ans = item.find(class_='platform-item-cont')
-        contest_name = ans.find('a',target='_blank').text
-        contest_time = ans.find('li',class_='match-time-icon').text
-        li = contest_time.split('\n')
-        d = datetime.datetime.strptime(li[0],"比赛时间：%Y-%m-%d %H:%M")
-        l.append({
-            "title":contest_name,
-            "begin":d,
-            "length":li[2].strip()
-        })
-    return l
-
-def fetchWeather(city: str) -> list:
-    search_lnk = 'http://toy1.weather.com.cn/search?cityname=' + city
-    j = json.loads(requests.get(search_lnk).text[1:-1])[0]['ref'].split('~')
-    output = [f'{j[2]}的天气数据:']
-    weather_lnk = f'http://www.weather.com.cn/weather/{j[0]}.shtml'
-    b = BeautifulSoup(requests.get(weather_lnk).content,'html.parser')
-
-    ctr = 0
-    pos = 10
-    for p,i in enumerate(b('li')):
-        if i.text.find('今天')!=-1:
-            ctr+=1
-            if ctr>=2:
-                pos = p
-                break
+                scroll_height = GLOBAL.webPngLimit//scroll_width
+    if 'moegirl' in dst_lnk:
+        driver.execute_script(
+            '''var o=document.querySelectorAll('.heimu');for(var i=0;i<o.length;i++){o[i].style.color="#FFF"}''')
+        driver.execute_script(
+            '''var o=document.querySelectorAll('a');for(var i=0;i<o.length;i++){o[i].style.color="#0AF"}''')
+    driver.set_window_size(scroll_width, scroll_height)
+    driver.get_screenshot_as_file(na)
+    driver.quit()
+    return ostr
 
 
-    for i in b('li')[pos:pos+7]:
-        t = i('p')
-        output.append(f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
-    return output
 
-def fetchSentences(d):
-    r = requests.get(f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
-    j = json.loads(r.text)
-    try:
-        rr = requests.get(j['picture'])
-        fn = 'tmp' + randstr(4)
-        with open(fn,'wb') as f:
-            f.write(rr.content)
-        d['img'] = fn
-        print(fn)
-        asyncio.ensure_future(rmTmpFile(fn))
-    except:
-        print(f'【每日一句】爬图炸了:{traceback.format_exc()}')
-    d.setdefault('plain',[]).append(j['content'])
-    d.setdefault('plain',[]).append(j['note'])
+
+
     
 
 def uploadToChaoXing(fn: Union[bytes,str]) -> str:
@@ -640,6 +540,21 @@ def quickpow(x,p,m = -1):
             x = x * x % m
             p>>=1
     return res
+
+def A000110_list(m, mod=0): # 集合的划分数
+    mod = int(mod)
+    A = [0 for i in range(m)]
+    # m -= 1
+    A[0] = 1
+    # R = [1, 1]
+    for n in range(1, m):
+        A[n] = A[0]
+        for k in range(n, 0, -1):
+            A[k-1] += A[k]
+            if mod: A[k-1] %= mod
+        # R.append(A[0])
+    # return R
+    return A[0]
 
 def exgcd(a,b):
     if not b:

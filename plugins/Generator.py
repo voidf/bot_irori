@@ -1,3 +1,7 @@
+"""生成器类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -11,7 +15,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -34,7 +37,6 @@ import mido
 import GLOBAL
 from Utils import *
 importMirai()
-from AVG import AVG
 
 def 不会吧(*attrs,**kwargs):
     return [Plain(f'不会真的有人{" ".join(attrs)}吧？不会吧不会吧？')]
@@ -258,7 +260,7 @@ def 舔狗生成器(*attrs,**kwargs):
         {"msg":f"我把我自己耳朵都嚎聋了"},
         {"msg":f"恨不得摆上一车喇叭歌颂您的光辉事迹"}
     ]
-    asyncio.ensure_future(AVG.__msgSerializer__(construct,**kwargs))
+    asyncio.ensure_future(msgSerializer(construct,**kwargs))
     return [Plain(f"!{pat[0]}!!!!!!")]
 
 def 川普生成器(*attrs,**kwargs):
@@ -328,7 +330,7 @@ def 今日人品(*attrs,**kwargs):
     #    ans+='危！'
     #return [Plain(ans)]
 
-GeneratorMap = {
+functionMap = {
     '#论证':这么臭的函数有必要定义吗,
     '#营销':营销生成器,
     '#舔':舔狗生成器,
@@ -348,7 +350,7 @@ GeneratorMap = {
     '#百度':自己不會百度嗎
 }
 
-GeneratorShort = {
+shortMap = {
     '#pr':'#舔',
     '#trump':'#Trump',
     '#jj': "#军舰",
@@ -356,7 +358,7 @@ GeneratorShort = {
     '#baidu':'#百度'
 }
 
-GeneratorDescript = {
+functionDescript = {
     '#论证':'这么臭的功能有必要解释吗',
     '#百度':'自己不會百度嗎?那我來幫你百度一下',
     '#懂':'懂的都懂,不懂的我也不多解释',
