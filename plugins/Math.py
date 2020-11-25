@@ -305,9 +305,11 @@ async def 孙子定理(*attrs, kwargs={}):
             
 
 async def 计算器(*attrs, kwargs={}):
-
-    
-    return [Plain('施工中')]
+    """计算中缀表达式
+    :param exp: 待求表达式（python风格）exp
+    :return:
+        Union[int, float, complex]: result"""
+    return [Plain(evaluate_expression(''.join(attrs).replace(' ','').strip()))]
 
 
 async def 老线代bot了(*attrs, kwargs={}):

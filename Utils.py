@@ -218,32 +218,79 @@ unary_calculate_map = {
 }
 
 
-def evalute_expression(exp: str) -> Union[int, float, complex]:
+def evaluate_expression(exp: str) -> str:
     """处理不带空格和其他空字符的中缀表达式"""
-    operators = []
-    unary_operators = []
+    operators = [] # 除括号和单目外，优先级单调递增
     operands = []
     x = []
     xx = []
+
+    suffix_exp = [] # 放2元组(本体, 类型)罢了
+
     last_mono = None
-    cur_operator = ''
+    cur_operator = '' # 只放双目
     float_token = False
     complex_token = False
 
-    def binocular_calculate(f: str) -> Union[int, float, complex]:
+    def binocular_calculate(f: str):
         A = operands.pop()
         B = operands.pop()
-        return binocular_calculate_map[f](A,B)
-    def unary_calculate(f: str) -> Union[int, float, complex]:
+        operands.append(binocular_calculate_map[f](B,A))
+    def unary_calculate(f: str):
         A = operands.pop()
-        return unary_calculate_map[f](A)
+        operands.append(unary_calculate_map[f](A))
+    def handle_operand():
+        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono
+        handled = ''.join(x)
+        if float_token:
+            handled += '.' + ''.join(xx)
+        if complex_token:
+            handled += 'j'
+        if handled:
+            print(f'Handled operand:{handled}')
+            if complex_token:
+                t = complex(handled)
+            elif float_token:
+                t = float(handled)
+            else:
+                t = int(handled)
+            suffix_exp.append((t, 'operand'))
+            last_mono = 'num'
+        float_token = False
+        complex_token = False
+        x = []
+        xx = []
+
         
+    def calculate_from_stack():
+        for op, typ in suffix_exp:
+            # op, typ = suffix_exp.pop()
+            if typ == 'operand':
+                operands.append(op)
+            elif typ == 'unary':
+                unary_calculate(op)
+            else:
+                binocular_calculate(op)
+    def maintain_stack():
+        nonlocal cur_operator
+        if cur_operator != '(':
+            while operators:
+                if operators[-1][1] == 'unary':
+                    suffix_exp.append(operators.pop())
+                else:
+                    if GLOBAL.binocular_operators[operators[-1][0]] >= GLOBAL.binocular_operators[cur_operator]:
+                        suffix_exp.append(operators.pop())
+                    else:
+                        break
+        operators.append((cur_operator, 'binocular'))
+        cur_operator = ''
+
     for c in exp:
         if c in '.j' + string.digits:
             if cur_operator:
-                # while 
-                operators.append(cur_operator)
-
+                maintain_stack()
+                last_mono = 'ope'
+            
             if c == '.':
                 float_token = True
             elif c == 'j':
@@ -254,39 +301,32 @@ def evalute_expression(exp: str) -> Union[int, float, complex]:
                 else:
                     x.append(c)
         else:
-            handled = ''.join(x)
-            if float_token:
-                handled += '.' + ''.join(xx)
-            if complex_token:
-                handled += 'j'
+            handle_operand()
+            if c == ')':
+                while operators[-1][0]!='(':
+                    suffix_exp.append(operators.pop())
+                operators.pop()
+                last_mono = 'num'
 
-            float_token = False
-            complex_token = False
-            x = []
-            xx = []
-
-            if handled:
-                print(f'Handled operand:{handled}')
-                try:
-                    if complex_token:
-                        operands.append(complex(handled))
-                    elif float_token:
-                        operands.append(float(handled))
-                    else:
-                        operands.append(int(handled))
-                    while unary_operators:pass
-
-                except Exception as e:
-                    return [Plain(str(e))]
-            
-            last_mono = 'num'
-
-            if cur_operator + c in GLOBAL.binocular_operators:
+            elif cur_operator in GLOBAL.binocular_operators and c in ('-', '~'):
+                maintain_stack()
+                operators.append((c, 'unary'))
+                last_mono = 'ope'
+            elif last_mono == 'ope' and c in ('-', '~'):
+                operators.append((c, 'unary'))
+            elif cur_operator + c in GLOBAL.binocular_operators:
                 cur_operator += c
-                if cur_operator == ')':
-                    while operators[-1]!='(':pass
 
+    handle_operand()
 
+    if cur_operator:
+        maintain_stack()
+        operators.append((cur_operator, 'binocular'))
+
+    while operators:
+        suffix_exp.append(operators.pop())
+    calculate_from_stack()
+    return str(operands[0])
 
 
 def getCredit(user: int):
