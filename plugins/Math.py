@@ -36,6 +36,7 @@ import datetime
 import urllib
 import mido
 from Utils import *
+from Sniffer import *
 importMirai()
 
 '''
@@ -309,6 +310,13 @@ async def 计算器(*attrs, kwargs={}):
     :param exp: 待求表达式（python风格）exp
     :return:
         Union[int, float, complex]: result"""
+    player = getPlayer(**kwargs)
+    if attrs[0] in GLOBAL.subscribes:
+        overwriteSniffer(player, '#计算器', r'^[0-9\s+-/*&^<>|%\(\)]*$')
+        return [Plain('遇到可运算表达式直接输出结果')]
+    elif attrs[0] in GLOBAL.unsubscribes:
+        removeSniffer(player, '#计算器')
+        return [Plain('禁用快速计算')]
     return [Plain(evaluate_expression(''.join(attrs).replace(' ','').strip()))]
 
 

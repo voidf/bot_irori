@@ -278,6 +278,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
 
         if tc.quick_calls:
             print(tc.quick_calls)
+            print(getMessageChainText(message))
             try:
                 for ev,mono in dict(tc.quick_calls).items():
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
