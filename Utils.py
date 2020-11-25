@@ -312,8 +312,14 @@ def evaluate_expression(exp: str) -> str:
                 maintain_stack()
                 operators.append((c, 'unary'))
                 last_mono = 'ope'
+            elif cur_operator in GLOBAL.binocular_operators and c == '(':
+                maintain_stack()
+                operators.append((c, 'binocular'))
+                last_mono = 'ope'
             elif last_mono == 'ope' and c in ('-', '~'):
                 operators.append((c, 'unary'))
+            elif last_mono == 'ope' and c == '(':
+                operators.append((c, 'binocular'))    
             elif cur_operator + c in GLOBAL.binocular_operators:
                 cur_operator += c
 
