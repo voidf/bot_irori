@@ -305,10 +305,8 @@ async def 孙子定理(*attrs, kwargs={}):
             
 
 async def 计算器(*attrs, kwargs={}):
-    x = 0
-    for c in ''.join(attrs):
-        if c in string.digits:
-            pass
+
+    
     return [Plain('施工中')]
 
 

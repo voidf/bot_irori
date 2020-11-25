@@ -197,6 +197,98 @@ def smart_decorator(decorator):
 
 def tnow(): return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
+binocular_calculate_map = {
+    '+': lambda x,y:x+y,
+    '-': lambda x,y:x-y,
+    '*': lambda x,y:x*y,
+    '/': lambda x,y:x/y,
+    '//': lambda x,y:x//y,
+    '%': lambda x,y:x%y,
+    '&': lambda x,y:x&y,
+    '|': lambda x,y:x|y,
+    '^': lambda x,y:x^y,
+    '**': lambda x,y:x**y,
+    '<<': lambda x,y:x<<y,
+    '>>': lambda x,y:x>>y
+}
+
+unary_calculate_map = {
+    '-': lambda x:-x,
+    '~': lambda x:~x
+}
+
+
+def evalute_expression(exp: str) -> Union[int, float, complex]:
+    """处理不带空格和其他空字符的中缀表达式"""
+    operators = []
+    unary_operators = []
+    operands = []
+    x = []
+    xx = []
+    last_mono = None
+    cur_operator = ''
+    float_token = False
+    complex_token = False
+
+    def binocular_calculate(f: str) -> Union[int, float, complex]:
+        A = operands.pop()
+        B = operands.pop()
+        return binocular_calculate_map[f](A,B)
+    def unary_calculate(f: str) -> Union[int, float, complex]:
+        A = operands.pop()
+        return unary_calculate_map[f](A)
+        
+    for c in exp:
+        if c in '.j' + string.digits:
+            if cur_operator:
+                # while 
+                operators.append(cur_operator)
+
+            if c == '.':
+                float_token = True
+            elif c == 'j':
+                complex_token = True
+            elif c in string.digits:
+                if float_token:
+                    xx.append(c)
+                else:
+                    x.append(c)
+        else:
+            handled = ''.join(x)
+            if float_token:
+                handled += '.' + ''.join(xx)
+            if complex_token:
+                handled += 'j'
+
+            float_token = False
+            complex_token = False
+            x = []
+            xx = []
+
+            if handled:
+                print(f'Handled operand:{handled}')
+                try:
+                    if complex_token:
+                        operands.append(complex(handled))
+                    elif float_token:
+                        operands.append(float(handled))
+                    else:
+                        operands.append(int(handled))
+                    while unary_operators:pass
+
+                except Exception as e:
+                    return [Plain(str(e))]
+            
+            last_mono = 'num'
+
+            if cur_operator + c in GLOBAL.binocular_operators:
+                cur_operator += c
+                if cur_operator == ')':
+                    while operators[-1]!='(':pass
+
+
+
+
 def getCredit(user: int):
     if not os.path.exists(f'credits/{user}'):        
         return 500

@@ -140,7 +140,7 @@ async def printHelp(*attrs,**kwargs):
                 else v.__doc__.strip()[:20]+'...'}\n''' )
         else:
             l.append('【错误】参数不合法\n')
-            ext = printHelp()
+            ext = await printHelp()
         
     return [Plain('\n'.join(l))] + img + ext
 

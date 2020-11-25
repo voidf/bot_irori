@@ -959,9 +959,24 @@ unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭�
 
 chat_log = {}
 credit_cmds = {}
-credit_operators = ('+', '-', '*', '/', '**', '<<', '>>', '&', '|', '^', '%', '~')
+credit_operators = ('+', '-', '*', '//', '**', '<<', '>>', '&', '|', '^', '%', '~')
 credit_operators_weight = (0.7, 0.08, 0.07, 0.03, 0.02, 0.02, 0.02, 0.02, 0.017, 0.01, 0.002, 0.001)
-
+binocular_operators = {
+	'+':50,
+	'-':50,
+	'*':70,
+	'/':70,
+	'**':90,
+	'<<':30,
+	'>>':30,
+	'&':25,
+	'|':20,
+	'^':22,
+	'%':70,
+	'//':70,
+	'(':1,
+	')':100
+}
 class SessionConfigures():
 	restrict_cmd = set()
 	allow_cmd = set()
