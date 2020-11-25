@@ -1,3 +1,5 @@
+"""灵车在线测评系统"""
+
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -34,14 +36,6 @@ import zlib
 import time
 import datetime
 
-def smart_decorator(decorator):
-    def decorator_proxy(func=None, **kwargs):
-        if func is not None:
-            return decorator(func=func, **kwargs)
-        def decorator_proxy(func):
-            return decorator(func=func, **kwargs)
-        return decorator_proxy
-    return decorator_proxy
 
 def check_host(func):
     @wraps(func)
@@ -105,17 +99,17 @@ def 提交(*attrs,**kwargs):
         ext = '就这？'
     return [Plain(render+ext)]
 
-OJMap = {
+functionMap = {
     "#OJ.info":查看问题,
     "#OJ.submit":提交,
 }
 
-OJShort = {
+shortMap = {
     "^info": "#OJ.info",
     "^submit": "#OJ.submit",
 }
 
-OJDescript = {
+functionDescript = {
     "#OJ.info":"传入欲查看的问题的id，返回问题信息",
     "#OJ.submit":"""想交题了？
 用法：

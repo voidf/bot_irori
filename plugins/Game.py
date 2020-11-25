@@ -1,3 +1,8 @@
+"""小游戏类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
+    
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -11,7 +16,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -33,9 +37,10 @@ import urllib
 import mido
 import shutil
 from Utils import *
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 importMirai()
 
-def asobi2048(*attrs,**kwargs):
+def asobi2048(*attrs, **kwargs):
     player = getPlayer(**kwargs)
     f = False
     n = 4
@@ -438,14 +443,14 @@ def asobiSlidingPuzzle(*attrs,**kwargs):
     return [generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
 
 
-GameMap = {
+functionMap = {
     '#2048':asobi2048,
     '#折线':asobiPolyline,
     '#华容道':asobiSlidingPuzzle
 }
-GameShort = {'#zx':'#折线','#hdpt':'#华容道'}
+shortMap = {'#zx':'#折线','#hdpt':'#华容道'}
 
-GameDescript = {
+functionDescript = {
     '#2048':
 """
 开始2048游戏，wasd控制移动方向，init用于初始化，传参gamestart进入快速操作模式（慎用

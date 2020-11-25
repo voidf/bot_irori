@@ -1,3 +1,7 @@
+"""字符串处理类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -31,6 +35,7 @@ import time
 import datetime
 from urllib.parse import quote
 import mido
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
 
@@ -507,7 +512,7 @@ book_of_answers = [
     "把重心放在学习上",
     "培养一项新的爱好",
     "对他人慷慨",
-    "不放赌一把",
+    "不妨赌一把",
     "去做其他的事情",
     "观察形势",
     "休息，休息一会",
@@ -909,7 +914,7 @@ def KMP(*attrs,**kwargs):
     return [Plain(f'KMP-Fail:{fail}\nKMP-Fval:{fval}\nEXKMP-next:{EX_next}\nEXKMP-extent:{EX_extent}')]
 
 
-StringMap = {
+functionMap = {
     '#BV':BVCoder,
     '#b64e':编码base64,
     '#b64d':解码base64,
@@ -926,7 +931,7 @@ StringMap = {
     '#KMP':KMP
 }
 
-StringShort = {
+shortMap = {
     '#ans':'#为什么',
     '#why':'#为什么',
     '#wsm':'#为什么',
@@ -935,7 +940,7 @@ StringShort = {
     '#wsme':'#为什么e'
 }
 
-StringDescript = {
+functionDescript = {
     '#repeat':'復讀消息，測試用',
     '#b64e':'base64编码,例：#b64e mirai',
     '#b64d':'base64解码,例：#b64d 114514==',

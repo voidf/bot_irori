@@ -1,3 +1,7 @@
+"""数学类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
@@ -12,7 +16,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -227,7 +230,7 @@ def CalKatalan(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(*attrs,**kwargs):
+def 统计姬from104(*attrs, **kwargs):
     l=[float(x) for x in attrs]
     ostr = []
     ostr.append(Plain(f"Mean 平均数:{statistics.mean(l)}\n"))
@@ -240,7 +243,7 @@ def 统计姬from104(*attrs,**kwargs):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(*attrs,**kwargs):
+def QM化简器(*attrs, **kwargs):
     v = list(attrs)
     if len(v[0].split(',')) > 1: # 最小项输入
         if len(v) == 1:
@@ -250,13 +253,13 @@ def QM化简器(*attrs,**kwargs):
     else:
         return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
 
-def 打印真值表(*attrs,**kwargs):
+def 打印真值表(*attrs, **kwargs):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs,**kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs, **kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 孙子定理(*attrs,**kwargs):
+def 孙子定理(*attrs, **kwargs):
     il = ' '.join(attrs).strip().split()
     li = []
     for i in il:
@@ -272,7 +275,7 @@ def 孙子定理(*attrs,**kwargs):
             M1 = li.pop()
             M2 = f
             C2 = r
-            G = math.gcd(M2,M1)
+            G = math.gcd(M2, M1)
             L = M1*M2//G
             if (C1-C2)%G:
                 return [Plain('输入数据无解')]
@@ -281,7 +284,7 @@ def 孙子定理(*attrs,**kwargs):
         return [Plain(str(r))]
             
 
-def 老线代bot了(*attrs,**kwargs):
+def 老线代bot了(*attrs, **kwargs):
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
@@ -330,7 +333,92 @@ def 老线代bot了(*attrs,**kwargs):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-MathMap = {
+def 离散闭包用工具(*attrs, **kwargs):
+    m = {} # 数转名
+    r = {} # 名转数
+    def addval(v):
+        if v not in r:
+            r[v] = len(m)
+            m[len(m)] = v
+        return r[v]
+    def rendermatrix(mt: numpy.array) -> str:
+        ans = []
+        for i, ii in enumerate(mt):
+            for j, jj in enumerate(ii):
+                if jj:
+                    ans.append(f'{m[i]},{m[j]}')
+        return f'{mt.astype(numpy.int16)}\n{" ".join(ans)}'
+
+    conn = []
+    input_char = []
+    for i in attrs:
+        f, t = i.split(',')
+        input_char.append(f)
+        input_char.append(t)
+    for i in sorted(input_char): addval(i) # 搞成字典序可能好一些
+    for i in attrs:
+        f, t = i.split(',')
+        conn.append((r[f], r[t]))
+
+    mat = numpy.zeros((len(m), len(m)), dtype=bool)
+    for f, t in conn:
+        mat[f][t] = 1
+    rmat = copy.deepcopy(mat) # 自反
+    smat = copy.deepcopy(mat) # 对称
+    tmat = copy.deepcopy(mat) # 传递
+
+    自反 = True
+    反自反 = True
+    对称 = True
+    反对称 = True
+    传递 = True
+
+    for i, ii in enumerate(mat):
+        for j, jj in enumerate(ii):
+            if i == j:
+                if jj: 反自反 = False
+                else: 自反 = False
+                rmat[i][j] = 1
+            else:
+                if jj:
+                    if mat[j][i]: 反对称 = False
+                    else: 对称 = False
+                    smat[j][i] = 1
+    tmp = copy.deepcopy(mat)
+    powerlist = []
+    s = set()
+    while tmp.tostring() not in s:
+        s.add(tmp.tostring())
+        powerlist.append(tmp)
+        tmp = tmp.dot(mat)
+    for i in powerlist:
+        tmat |= i
+    if not (tmat == mat).all(): 传递 = False
+    renderer = f"""基本性质：
+    自反:{自反}
+    反自反:{反自反}
+    对称:{对称}
+    反对称:{反对称}
+    传递:{传递}
+
+{m}
+
+{rendermatrix(mat)}
+
+r(R)即自反闭包：
+{rendermatrix(rmat)}
+
+s(R)即对称闭包：
+{rendermatrix(smat)}
+
+t(R)即传递闭包：
+{rendermatrix(tmat)}
+"""
+    return [Plain(renderer)]
+
+def 划分数个数(*attrs, **kwargs): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+    
+functionMap = {
     '#QM':QM化简器,
     '#C':CalC,
     '#A':CalA,
@@ -339,17 +427,21 @@ MathMap = {
     '#inv':逆元,
     '#CRT':孙子定理,
     '#线代':老线代bot了,
-    '#真值表':打印真值表
+    '#真值表':打印真值表,
+    '#encap':离散闭包用工具,
+    '#B': 划分数个数
 }
 
-MathShort = {
+shortMap = {
     '#stat':'#统计',
 }
 
-MathDescript = {
+functionDescript = {
     '#K':'计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)',
     '#A':'计算排列数，例:#A 3 3',
+    '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
+    '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
     '#C':
 '''
 两个参数计算组合数，一个参数计算阶乘

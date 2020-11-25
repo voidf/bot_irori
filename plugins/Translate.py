@@ -1,3 +1,7 @@
+"""翻译类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
 import sys
 import GLOBAL
 from bs4 import BeautifulSoup
@@ -32,6 +36,7 @@ import datetime
 import urllib
 import mido
 import GLOBAL
+from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
 
@@ -267,17 +272,17 @@ def 百度翻译(*attrs, **kwargs):
         return [Plain(text='原谅我不知道你在说什么（\n')]
 
 
-TranslateMap = {
+functionMap = {
     '#gkr':咕狗翻译,
     '#bkr':百度翻译,
     '#好好说话':能不能好好说话,
 }
 
-TranslateShort = {
+shortMap = {
     '#hhsh':'#好好说话','#kr':'#bkr',
 }
 
-TranslateDescript = {
+functionDescript = {
     '#好好说话':'来自fufu的功能，如果有不懂的缩写可以用它查询，例:#好好说话 bksn',
     '#gkr':
 """

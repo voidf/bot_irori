@@ -28,6 +28,8 @@ JRRP_words=[
 	"抓虫","重构","搞irori",
 ]
 
+RUSHRATE = {}
+
 cfgs={}
 
 randomStrLength = 4

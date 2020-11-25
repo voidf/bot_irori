@@ -37,7 +37,6 @@ import argparse
 # from mirai import MessageChain
 from Utils import *
 importMirai()
-import Test
 identifier = uuid.uuid1().hex
 
 locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
@@ -62,8 +61,8 @@ with open('authdata','r') as f:
 # print(dir(MessageChain))
 
 if GLOBAL.py_mirai_version == 3:
-    mirai_api_http_locate = host.replace('https://','')
-    mirai_api_http_locate = mirai_api_http_locate.replace('http://','')
+    mirai_api_http_locate = host.replace('https://', '')
+    mirai_api_http_locate = mirai_api_http_locate.replace('http://', '')
     irori = Mirai(f"mirai://{mirai_api_http_locate}?authKey={authKey}&qq={qq}")
 else:
     loop = asyncio.get_event_loop()
@@ -254,14 +253,14 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             return
         a,*b = s
         l = []
-        if a in Callable.shortMap:
-            a = Callable.shortMap[a]
+        if a in Callable.shorts:
+            a = Callable.shorts[a]
         
-        if a in Callable.functionMap:
+        if a in Callable.funs:
             
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
-                    l = Callable.functionMap[a](*b, **extDict)
+                    l = Callable.funs[a](*b, **extDict)
                     if l is None:
                         print(traceback.format_exc())
                     else:
@@ -285,7 +284,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
                             if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                l = Callable.funs[ev](*mono['attrs'],*s,**extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendGroupMessage(group,compressMsg(l,extDict)))
                                 break
@@ -325,14 +324,14 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
             return
         a,*b = s
         l = []
-        if a in Callable.shortMap:
-            a = Callable.shortMap[a]
+        if a in Callable.shorts:
+            a = Callable.shorts[a]
         
-        if a in Callable.functionMap: # 命令模块
+        if a in Callable.funs: # 命令模块
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
                 try:
                     
-                    l = Callable.functionMap[a](*b, **extDict)
+                    l = Callable.funs[a](*b, **extDict)
                     print(f"MESSAGESLENGTH ===> {len(l)}")
                     if l:
                         await app.sendFriendMessage(hurenzu,compressMsg(l,extDict))
@@ -351,7 +350,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                     if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                         for sniffKey in mono['sniff']:
                             if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = Callable.functionMap[ev](*mono['attrs'],*s,**extDict)
+                                l = Callable.funs[ev](*mono['attrs'],*s,**extDict)
                                 if l:
                                     asyncio.ensure_future(app.sendFriendMessage(hurenzu,compressMsg(l)))
                                 break
@@ -368,7 +367,7 @@ async def hajime(bot):
         if not os.path.exists('sniffer/'):
             os.mkdir('sniffer/')
         for _ in os.listdir('sniffer/'):
-            Test.同步嗅探器(player=int(_))
+            print(int(_),syncSniffer(player=int(_)))
     except:
         print('嗅探器爆炸了，有点严重\n',traceback.format_exc())
     try:
@@ -419,8 +418,7 @@ else:
     async def startup(bot: Mirai):
         await hajime(bot)
     
-if __name__ == '__main__':
-    print(f"============irori running with python-mirai version{GLOBAL.py_mirai_version}=============")
-    if GLOBAL.py_mirai_version == 3:irori.run()
-    else:app.launch_blocking()
-    
+
+print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version}=============")
+if GLOBAL.py_mirai_version == 3:irori.run()
+else:app.launch_blocking()

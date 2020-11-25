@@ -1,6 +1,11 @@
+"""异步与文件读写类"""
+import os
+if __name__ == '__main__':
+    os.chdir('..')
+
 import GLOBAL
 from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
+from PIL import ImageFont, ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -11,7 +16,6 @@ import json5
 import json
 import numpy
 import random
-import os
 import base64
 import qrcode
 import io
@@ -34,7 +38,7 @@ import mido
 from Utils import *
 importMirai()
 
-def 投票姬(*attrs,**kwargs):
+def 投票姬(*attrs, **kwargs):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
@@ -128,7 +132,7 @@ def 投票姬(*attrs,**kwargs):
         json.dump(j,fw)
     return ostr
 
-def ddl通知姬(*attrs,**kwargs):
+def ddl通知姬(*attrs, **kwargs):
     async def Noticer(g,mb,kotoba,delays):
         print('delay:',delays)
         if delays<0:
@@ -266,7 +270,7 @@ def ddl通知姬(*attrs,**kwargs):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-def 电笔记(*attrs,**kwargs):
+def 电笔记(*attrs, **kwargs):
     ins = ' '.join(attrs)
     if ins == 'reload':
         ret_msg = [Plain('知识库已更新,现有词条：\n')]
@@ -288,7 +292,7 @@ def 电笔记(*attrs,**kwargs):
     else:
         return [Plain('不存在此条目')]
 
-def 在线P歌(*attrs,**kwargs):
+def 在线P歌(*attrs, **kwargs):
     m = mido.MidiFile()
     t = mido.MidiTrack()
     m.tracks.append(t)
@@ -326,19 +330,53 @@ def 在线P歌(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(fn))
     return [Plain(uploadToChaoXing(fn))]
 
-FileMap = {
+def 仿洛谷每日签到(*attrs, **kwargs):
+    generate_key_count = random.randint(2,5)
+    print(kwargs['mem'])
+    print(dir(kwargs['mem']))
+    mem = int(getattr(kwargs['mem'],'id',kwargs['mem']))
+    fn = f'DailySign/{mem}'
+    from Assets.签到语料 import 宜, 忌, 运势
+    if not os.path.exists('DailySign'): os.mkdir('DailySign')
+    if not os.path.exists(fn): 
+        with open(fn,'w') as f: json.dump({},f)
+    with open(fn,'r') as f: current_user = json.load(f)
+    def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
+    if current_user.get('last_sign','1919-8-10') != datetime.datetime.now().strftime('%Y-%m-%d'):
+        if to_datetime(current_user.get('last_sign','1919-8-10')) != to_datetime(datetime.datetime.now().strftime('%Y-%m-%d')) - datetime.timedelta(days=1):
+            current_user['combo'] = 0
+        current_user['combo'] = current_user.get('combo', 0) + 1
+        fortune = random.choice(运势)
+        y = random.sample(宜.items(),generate_key_count)
+        t忌 = copy.deepcopy(忌)
+        for yi in y: t忌.pop(yi[0],(0,False))
+        j = random.sample(t忌.items(),generate_key_count) # 防重
+        if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
+        if fortune in ('大凶','危'): y = [('诸事不宜','')]
+        for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
+        for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
+        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
+        current_user['info'] = ans
+        current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        with open(fn,'w') as f: json.dump(current_user,f)
+    else: current_user['info'] = '您今天已经求过签啦！以下是求签结果：\n' + current_user['info']
+    return [Plain(current_user['info'])]
+
+functionMap = {
     '#ddl':ddl通知姬,
     '#vote':投票姬,
     '#i电':电笔记,
     '#P歌':在线P歌,
+    '#求签':仿洛谷每日签到
 }
 
-FileShort = {
+shortMap = {
     '#iee':'#i电',
     '#P':'#P歌'
 }
 
-FileDescript = {
+functionDescript = {
+    '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
     '#vote':
 """
 因为群投票限制15个选项所以整了这个计票姬
