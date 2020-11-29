@@ -233,7 +233,7 @@ def evaluate_expression(exp: str) -> str:
 
     suffix_exp = [] # 放2元组(本体, 类型)罢了
 
-    last_mono = None
+    last_mono = 'ope'
     cur_operator = '' # 只放双目
     float_token = False
     complex_token = False
