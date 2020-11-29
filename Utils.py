@@ -209,7 +209,9 @@ binocular_calculate_map = {
     '^': lambda x,y:x^y,
     '**': lambda x,y:x**y,
     '<<': lambda x,y:x<<y,
-    '>>': lambda x,y:x>>y
+    '<': lambda x,y:int(x<y),
+    '>>': lambda x,y:x>>y,
+    '>': lambda x,y:int(x>y)
 }
 
 unary_calculate_map = {
