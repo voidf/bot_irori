@@ -333,6 +333,7 @@ def evaluate_expression(exp: str) -> str:
 
     while operators:
         suffix_exp.append(operators.pop())
+    print(suffix_exp)
     calculate_from_stack()
     return str(operands[0])
 
