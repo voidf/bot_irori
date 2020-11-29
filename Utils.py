@@ -235,9 +235,11 @@ def evaluate_expression(exp: str) -> str:
     def binocular_calculate(f: str):
         A = operands.pop()
         B = operands.pop()
+        print("bino calculated:",binocular_calculate_map[f](B,A))
         operands.append(binocular_calculate_map[f](B,A))
     def unary_calculate(f: str):
         A = operands.pop()
+        print("unary calculated:",unary_calculate_map[f](A))
         operands.append(unary_calculate_map[f](A))
     def handle_operand():
         nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono
