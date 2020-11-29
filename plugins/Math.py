@@ -312,7 +312,7 @@ async def 计算器(*attrs, kwargs={}):
         Union[int, float, complex]: result"""
     player = getPlayer(**kwargs)
     if attrs[0] in GLOBAL.subscribes:
-        overwriteSniffer(player, '#计算器', r'^[0-9\s+-/*&^<>|%\(\)]+$')
+        overwriteSniffer(player, '#计算器', r'^[0-9\s+-/*&^<>~=|%\(\)]+$')
         return [Plain('遇到可运算表达式直接输出结果')]
     elif attrs[0] in GLOBAL.unsubscribes:
         removeSniffer(player, '#计算器')

@@ -202,16 +202,20 @@ binocular_calculate_map = {
     '-': lambda x,y:x-y,
     '*': lambda x,y:x*y,
     '/': lambda x,y:x/y,
+    '=': lambda x,y:x is y,
+    '==': lambda x,y:x==y,
     '//': lambda x,y:x//y,
     '%': lambda x,y:x%y,
+    '&&': lambda x,y:x and y,
     '&': lambda x,y:x&y,
+    '||': lambda x,y:x or y,
     '|': lambda x,y:x|y,
     '^': lambda x,y:x^y,
     '**': lambda x,y:x**y,
     '<<': lambda x,y:x<<y,
-    '<': lambda x,y:int(x<y),
+    '<': lambda x,y:x<y,
     '>>': lambda x,y:x>>y,
-    '>': lambda x,y:int(x>y)
+    '>': lambda x,y:x>y
 }
 
 unary_calculate_map = {
