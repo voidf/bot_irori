@@ -11,3 +11,6 @@ colorclass==2.2.0
 mido
 pexpect
 graia-application-mirai
+graia-broadcast
+asgiref
+graia.broadcast

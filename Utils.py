@@ -19,6 +19,8 @@ import base64
 import importlib
 import sys
 from Fetcher import *
+from asgiref.sync import async_to_sync, sync_to_async
+
 # from mirai.face import QQFaces
 # from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain, Group, Image, Member, At, Source
 
@@ -32,43 +34,10 @@ from Fetcher import *
 # from graia.application.group import Group,Member
 # from graia.application.friend import Friend
 
-def importMirai():
-    global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
-    global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces
-    try:
-        if GLOBAL.py_mirai_version == 3:raise ImportError
-        Mirai = getattr(importlib.import_module("graia.application"),"GraiaMiraiApplication")
-        Session = getattr(importlib.import_module("graia.application"),"Session")
-        FriendMessage = getattr(importlib.import_module("graia.application.event.messages"),"FriendMessage")
-        GroupMessage = getattr(importlib.import_module("graia.application.event.messages"),"GroupMessage")
-        ApplicationLaunched = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationLaunched")
-        ApplicationShutdowned = getattr(importlib.import_module("graia.application.event.lifecycle"),"ApplicationShutdowned")
-        MessageChain = getattr(importlib.import_module("graia.application.message.chain"),"MessageChain")
-        Plain = getattr(importlib.import_module("graia.application.message.elements.internal"),"Plain")
-        Image = getattr(importlib.import_module("graia.application.message.elements.internal"),"Image")
-        At = getattr(importlib.import_module("graia.application.message.elements.internal"),"At")
-        Face = getattr(importlib.import_module("graia.application.message.elements.internal"),"Face")
-        Source = getattr(importlib.import_module("graia.application.message.elements.internal"),"Source")
-        Broadcast = getattr(importlib.import_module("graia.broadcast"),"Broadcast")
-        Group = getattr(importlib.import_module("graia.application.group"),"Group")
-        Member = getattr(importlib.import_module("graia.application.group"),"Member")
-        Friend = getattr(importlib.import_module("graia.application.friend"),"Friend")
-        GLOBAL.py_mirai_version = 4
-    except ImportError:
-        Mirai = getattr(importlib.import_module("mirai"),"Mirai")
-        Plain = getattr(importlib.import_module("mirai"),"Plain")
-        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
-        Friend = getattr(importlib.import_module("mirai"),"Friend")
-        Face = getattr(importlib.import_module("mirai"),"Face")
-        MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
-        Group = getattr(importlib.import_module("mirai"),"Group")
-        Image = getattr(importlib.import_module("mirai"),"Image")
-        Member = getattr(importlib.import_module("mirai"),"Member")
-        At = getattr(importlib.import_module("mirai"),"At")
-        Source = getattr(importlib.import_module("mirai"),"Source")
-        QQFaces = getattr(importlib.import_module("GLOBAL"),"QQFaces")
-        GLOBAL.py_mirai_version = 3
 
+from GLOBAL import importMirai
+from GLOBAL import Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
+from GLOBAL import MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice
 importMirai()
 
 youbi = {
@@ -82,7 +51,10 @@ youbi = {
 }
 
 from GLOBAL import SessionConfigures
+
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+
+def getmem(mono): return mono.id if getattr(mono, 'id', None) else int(mono)
 
 def getPlainText(p:Plain) -> str:
     """做v3和v4的Plain兼容"""
@@ -99,120 +71,6 @@ def generateImageFromFile(fn:str) -> Image:
     if GLOBAL.py_mirai_version == 3: return Image.fromFileSystem(fn)
     else: return Image.fromLocalFile(fn)
 
-async def WeatherSubscribeRoutiner():
-    print('进入回环(天气预报')
-    if not os.path.exists('weather/'):
-        os.mkdir('weather/')
-    while 1:
-
-        print(f'weather report waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400)
-
-        for _ in os.listdir('weather/'):
-            try:
-                with open('weather/'+_,'r') as f:
-                    dt = datetime.datetime.now()
-                    ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{youbi[dt.isoweekday()]}']
-
-                    try:
-                        bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
-                        res = bs('div',attrs={'id':'jie_guo'})
-                        ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
-                        ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
-                    except:
-                        ans.append('我忘了今天农历几号了')
-                        print(traceback.format_exc())
-
-                    if random.randint(0,3):
-                        ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
-
-                    for city in f.readlines():
-                        if city.strip():
-                            j = fetchWeather(city.strip())
-                            ans += j[:3]
-                asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=_))
-
-            except:
-                print('天气预报姬挂了！',traceback.format_exc())
-
-async def SentenceSubscribeRoutiner():
-    print('进入回环(每日一句')
-    if not os.path.exists('sentence/'):
-        os.mkdir('sentence/')
-    while 1:
-
-        print(f'sentence report waiting for {86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400)
-
-        for _ in os.listdir('sentence/'):
-            try:
-                d={}
-                fetchSentences(d)
-                if 'img' in d:
-                    asyncio.ensure_future(msgDistributer(msg=d['img'],typ='I',player=_))
-                asyncio.ensure_future(msgDistributer(msg='\n'.join(d['plain']),typ='P',player=_))
-
-            except:
-                print('每日一句挂了！',traceback.format_exc())
-
-async def JRRPclearRoutiner():
-    print('进入回环：清空人品（？）')
-    while 1:
-        print(f'JRRP clear waiting for {86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400}')
-        await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+8*3600)%86400) 
-
-        try:
-            GLOBAL.JRRP_map.clear()
-            asyncio.ensure_future(msgDistributer(msg='你昨天的人品已经被清除了——',typ='P',player=550247773345)) #player号码暂时这么写，别打我
-        except:
-            traceback.print_exc()
-            print('人品清除失败')
-
-async def CFLoopRoutiner():
-    print('进入回环(CF')
-    if not os.path.exists('CF/'):
-        os.mkdir('CF/')
-    while 1:
-        if any([_ for _ in os.listdir('CF/') if _[-4:]!='.png']):
-            j = fetchCodeForcesContests()
-            for _ in os.listdir('CF/'):
-                try:
-                    if _[-4:]!='.png':
-                        print(f'EXECUTING{_}')
-                        CFNoticeManager(j,gp=int(_))
-                except:
-                    print('CF爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
-
-async def ATLoopRoutiner():
-    print('进入回环(AT')
-    if not os.path.exists('AtCoder/'):
-        os.mkdir('AtCoder/')
-    while 1:
-        if any([_ for _ in os.listdir('AtCoder/') if _[-4:]!='.png']):
-            j = fetchAtCoderContests()
-            for _ in os.listdir('AtCoder/'):
-                try:
-                    if _[-4:]!='.png':
-                        OTNoticeManager(j['upcoming'],gp=int(_))
-                except:
-                    print('AT爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
-
-async def NCLoopRoutiner():
-    print('进入回环(NC')
-    if not os.path.exists('NowCoder/'):
-        os.mkdir('NowCoder/')
-    while 1:
-        if any([_ for _ in os.listdir('NowCoder/') if _[-4:]!='.png']):
-            j = fetchNowCoderContests()
-            for _ in os.listdir('NowCoder/'):
-                try:
-                    if _[-4:]!='.png':
-                        OTNoticeManager(j,gp=int(_))
-                except:
-                    print('NC爬虫挂了！',traceback.format_exc())
-        await asyncio.sleep(86400)
 
 async def rmTmpFile(fi:str):
     await asyncio.sleep(60)
@@ -237,7 +95,7 @@ async def CFProblemRender(g,cid,ti):
         GLOBAL.CFRenderFlag.add(cid)
         await asyncio.sleep(ti)
         base = 'https://codeforces.com/contest/'+cid+'/problems'
-        l = renderHtml(base,FN)
+        l = await renderHtml(base, FN)
         GLOBAL.CFRenderFlag.discard(ti)
         l.append(generateImageFromFile(FN))
         await msgDistributer(gp=g,list=l)
@@ -248,6 +106,22 @@ async def fuzzT(g,s,e,w=''):
             await asyncio.sleep(0.2)
         await msgDistributer(gp=g,msg=f'{chr(_)}{_}{w}')
 
+async def MessageChainSpliter(chain: list, **kwargs):
+    if chain:
+        if 'player' in kwargs:
+            kwargs['player'] = int(kwargs['player'])
+            if kwargs['player'] > 1<<39:
+                for seq in chain:
+                    await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39), MessageChain.create([seq]).asSendable())
+            else:
+                for seq in chain:
+                    await GLOBAL.app.sendFriendMessage(kwargs['player'], MessageChain.create([seq]).asSendable())
+        elif 'gp' in kwargs:
+            for seq in chain:
+                await GLOBAL.app.sendGroupMessage(kwargs['gp'], MessageChain.create([seq]).asSendable())
+        elif 'mem' in kwargs:
+            for seq in chain:
+                await GLOBAL.app.sendFriendMessage(kwargs['mem'], MessageChain.create([seq]).asSendable())
 
 async def msgDistributer(**kwargs):
     """
@@ -259,7 +133,7 @@ async def msgDistributer(**kwargs):
     
     if 'msg' in kwargs and kwargs['msg']:
         if kwargs.get('typ','P') == 'E':
-            seq = [Face(QQFaces[kwargs['msg']])]
+            seq = [Face(faceId=QQFaces[kwargs['msg']])]
         elif kwargs.get('typ','P') == 'I':
             # print(base64.b64decode(kwargs['msg']))
             try: # 这个try用来判断msg是不是可解码的b64
@@ -290,13 +164,13 @@ async def msgDistributer(**kwargs):
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
-                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),compressMsg(seq))
+                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),await compressMsg(seq))
             else:
-                await GLOBAL.app.sendFriendMessage(kwargs['player'],compressMsg(seq))
+                await GLOBAL.app.sendFriendMessage(kwargs['player'],await compressMsg(seq))
         elif 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],compressMsg(seq))
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'],await compressMsg(seq))
         elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],compressMsg(seq))
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'],await compressMsg(seq))
         
 async def msgSerializer(_i, **kwargs):
     p = getPlayer(**kwargs)
@@ -321,16 +195,174 @@ def smart_decorator(decorator):
         return decorator_proxy
     return decorator_proxy
 
-def tnow():return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+def tnow(): return datetime.datetime.utcnow() + datetime.timedelta(hours=8)
 
-def randstr(l:int) -> str:return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
+binocular_calculate_map = {
+    '+': lambda x,y:x+y,
+    '-': lambda x,y:x-y,
+    '*': lambda x,y:x*y,
+    '/': lambda x,y:x/y,
+    '=': lambda x,y:x is y,
+    '==': lambda x,y:x==y,
+    '//': lambda x,y:x//y,
+    '%': lambda x,y:x%y,
+    '&&': lambda x,y:x and y,
+    '&': lambda x,y:x&y,
+    '||': lambda x,y:x or y,
+    '|': lambda x,y:x|y,
+    '^': lambda x,y:x^y,
+    '**': lambda x,y:x**y,
+    '<<': lambda x,y:x<<y,
+    '<': lambda x,y:x<y,
+    '>>': lambda x,y:x>>y,
+    '>': lambda x,y:x>y
+}
+
+unary_calculate_map = {
+    '-': lambda x:-x,
+    '~': lambda x:~x
+}
 
 
+def evaluate_expression(exp: str) -> str:
+    """处理不带空格和其他空字符的中缀表达式"""
+    operators = [] # 除括号和单目外，优先级单调递增
+    operands = []
+    x = []
+    xx = []
 
-def generateTmpFileName(pref,ext='.png',**kwargs):
+    suffix_exp = [] # 放2元组(本体, 类型)罢了
+
+    last_mono = 'ope'
+    cur_operator = '' # 只放双目
+    float_token = False
+    complex_token = False
+
+    def binocular_calculate(f: str):
+        A = operands.pop()
+        B = operands.pop()
+        print("bino calculated:",binocular_calculate_map[f](B,A))
+        operands.append(binocular_calculate_map[f](B,A))
+    def unary_calculate(f: str):
+        A = operands.pop()
+        print("unary calculated:",unary_calculate_map[f](A))
+        operands.append(unary_calculate_map[f](A))
+    def handle_operand():
+        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono
+        handled = ''.join(x)
+        if float_token:
+            handled += '.' + ''.join(xx)
+        if complex_token:
+            handled += 'j'
+        if handled:
+            print(f'Handled operand:{handled}')
+            if complex_token:
+                t = complex(handled)
+            elif float_token:
+                t = float(handled)
+            else:
+                t = int(handled)
+            suffix_exp.append((t, 'operand'))
+            last_mono = 'num'
+        float_token = False
+        complex_token = False
+        x = []
+        xx = []
+
+        
+    def calculate_from_stack():
+        for op, typ in suffix_exp:
+            # op, typ = suffix_exp.pop()
+            if typ == 'operand':
+                operands.append(op)
+            elif typ == 'unary':
+                unary_calculate(op)
+            else:
+                binocular_calculate(op)
+    def maintain_stack():
+        nonlocal cur_operator
+        if cur_operator != '(':
+            while operators:
+                if operators[-1][1] == 'unary':
+                    suffix_exp.append(operators.pop())
+                else:
+                    if GLOBAL.binocular_operators[operators[-1][0]] >= GLOBAL.binocular_operators[cur_operator]:
+                        suffix_exp.append(operators.pop())
+                    else:
+                        break
+        operators.append((cur_operator, 'binocular'))
+        cur_operator = ''
+
+    for c in exp:
+        if c in '.j' + string.digits:
+            if cur_operator:
+                maintain_stack()
+                last_mono = 'ope'
+            
+            if c == '.':
+                float_token = True
+            elif c == 'j':
+                complex_token = True
+            elif c in string.digits:
+                if float_token:
+                    xx.append(c)
+                else:
+                    x.append(c)
+        else:
+            handle_operand()
+            if c == ')':
+                while operators[-1][0]!='(':
+                    suffix_exp.append(operators.pop())
+                operators.pop()
+                last_mono = 'num'
+
+            elif cur_operator in GLOBAL.binocular_operators and c in ('-', '~'):
+                maintain_stack()
+                operators.append((c, 'unary'))
+                last_mono = 'ope'
+            elif cur_operator in GLOBAL.binocular_operators and c == '(':
+                maintain_stack()
+                operators.append((c, 'binocular'))
+                last_mono = 'ope'
+            elif last_mono == 'ope' and c in ('-', '~'):
+                operators.append((c, 'unary'))
+            elif last_mono == 'ope' and c == '(':
+                operators.append((c, 'binocular'))    
+            elif cur_operator + c in GLOBAL.binocular_operators:
+                cur_operator += c
+
+    handle_operand()
+
+    if cur_operator:
+        maintain_stack()
+        operators.append((cur_operator, 'binocular'))
+
+    while operators:
+        suffix_exp.append(operators.pop())
+    print(suffix_exp)
+    calculate_from_stack()
+    return str(operands[0])
+
+
+def getCredit(user: int):
+    if not os.path.exists(f'credits/{user}'):        
+        return 500
+    else:
+        with open(f'credits/{user}', 'r') as f:
+            return int(f.read().strip())
+
+def updateCredit(user: int, operator: str, val: int): # 危
+    if operator not in GLOBAL.credit_operators: return False
+    c = getCredit(user)
+    c = eval(f'{c}{operator}{int(val)}')
+    with open(f'credits/{user}', 'w') as f:
+        f.write(f'{c}')
+    return True
+
+def generateTmpFileName(pref, ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
-def compressMsg(l,extDict={}):
+async def compressMsg(l,extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     print(extDict)
     player = extDict.get("player",0)
@@ -372,15 +404,31 @@ def compressMsg(l,extDict={}):
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
         l = [generateImageFromFile(p)] + others
-
+    
     if GLOBAL.py_mirai_version == 3:
         return l
     else:
+        if "-voice" in extDict and "voices" in extDict:
+            for i in extDict['voices']:
+                voi = await GLOBAL.app.uploadVoice(getFileBytes(i))
+                # l.append(voi)
+                asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         return MessageChain.create(l).asSendable()
 
-def getPlayer(**kwargs):
+def getFileBytes(s):
+    if isinstance(s, bytes):
+        return s
+    elif s[:4] == 'http':
+        ret = requests.get(s).content
+        print(len(ret))
+        return ret
+    else:
+        with open(s, 'rb') as f:
+            return f.read()
+
+def getPlayer(**kwargs) -> int:
     """根据不定字典拿player号"""
-    if 'player' in kwargs: return kwargs['player']
+    if 'player' in kwargs: return int(kwargs['player'])
     if 'gp' in kwargs:
         try:
             player = kwargs['gp'].id + 2**39
@@ -391,7 +439,8 @@ def getPlayer(**kwargs):
             player = kwargs['mem'].id
         except:
             player = kwargs['mem']
-    return player
+    return int(player)
+
 
 
 def clearCFFuture(key,G,src):
@@ -461,7 +510,7 @@ def OTNoticeManager(j,**kwargs):
 
 
 
-def renderHtml(dst_lnk, na) -> str:
+async def renderHtml(dst_lnk, na) -> str:
     """渲染dst_lnk的网页，保存为na，返回网页标题"""
     option = webdriver.ChromeOptions()
     option.add_argument('--headless')
@@ -501,10 +550,6 @@ def renderHtml(dst_lnk, na) -> str:
     return ostr
 
 
-
-
-
-    
 
 def uploadToChaoXing(fn: Union[bytes,str]) -> str:
     lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'
@@ -593,3 +638,5 @@ def calcinvs(array:list):
         invs += treearray_getsum(len(treearray)-1, treearray) - treearray_getsum(d[i], treearray)
         treearray_update(d[i],1,treearray)
     return invs
+
+

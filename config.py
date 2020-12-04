@@ -32,11 +32,11 @@ mirai_console = pexpect.spawn('bash /env/run.sh')
 mirai_console.sendline(f'login {account} {password}')
 
 try:
-    while cmd not in ('DONE','BASH'):
+    while cmd not in ('DONE', 'BASH'):
         try:
             mirai_console.sendline(cmd)
             while True:
-                mirai_console.expect('\r\n',timeout = 3)
+                mirai_console.expect('\r\n', timeout=3)
                 print(mirai_console.before.decode('utf-8'))
         except:
             cmd = input('上面是mirai_console的输出，\n如果你觉得已经没问题的话请输入"DONE"来启动irori，\n或者输入"BASH"来开启一个shell进行手动配置。除了"BASH"和"DONE"之外的所有输入会被转发至mirai终端>>>')

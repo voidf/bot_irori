@@ -5,7 +5,7 @@ if __name__ == '__main__':
     
 import GLOBAL
 from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
+from PIL import ImageFont, ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -40,7 +40,7 @@ from Utils import *
 from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 importMirai()
 
-def asobi2048(*attrs, **kwargs):
+async def asobi2048(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     f = False
     n = 4
@@ -168,7 +168,7 @@ def asobi2048(*attrs, **kwargs):
         outputString.append(Plain(text='\n'))
     return outputString
 
-def asobiPolyline(*attrs,**kwargs):
+async def asobiPolyline(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     n=1000
     m = {
@@ -320,7 +320,7 @@ def asobiPolyline(*attrs,**kwargs):
     else:
         return [Plain(text='命令错误')]
 
-def asobiSlidingPuzzle(*attrs,**kwargs):
+async def asobiSlidingPuzzle(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
 
     def find1(array):

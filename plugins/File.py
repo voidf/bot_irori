@@ -38,7 +38,98 @@ import mido
 from Utils import *
 importMirai()
 
-def 投票姬(*attrs, **kwargs):
+async def 信用点命令更新订阅姬(*attrs, kwargs={}):
+    if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
+    if attrs and attrs[0] in GLOBAL.unsubscribes:
+        os.remove(f'credits/sub/{getPlayer(**kwargs)}')
+        return [Plain('取消信用点命令更新订阅')]
+    ret = [f'今天使用{",".join(GLOBAL.credit_cmds)}这些命令会有惊喜哦（']
+    if attrs and attrs[0] in GLOBAL.subscribes:
+        with open(f'credits/sub/{getPlayer(**kwargs)}', 'w'): pass
+        ret.append('订阅信用点命令更新')
+    return [Plain('\n'.join(ret))]
+
+crdmap = [
+    (0, ('大祸患', '拯救一下')),
+    (100, ('高危份子', '抢救一下')),
+    (200, ('危险份子', '补救一下')),
+    (300, ('贱民', '紧急涨分')),
+    (500, ('市民一阶', '去涨分')),
+    (600, ('市民二阶', '去涨分')),
+    (700, ('市民三阶', '去涨分')),
+    (800, ('优秀市民', '去涨分')),
+    (900, ('模范市民', '去参加公务员考试')),
+    (1000, ('二级科员', '去涨分')),
+    (1500, ('一级科员', '去参加干部竞选')),
+    (2000, ('副乡二十四级', '去涨分')),
+    (2200, ('副乡二十三级', '去涨分')),
+    (2300, ('副乡二十二级', '去涨分')),
+    (2400, ('副乡二十一级', '去申请转正')),
+    (2500, ('正乡二十级', '去涨分')),
+    (2700, ('正乡十九级', '去涨分')),
+    (2900, ('正乡十八级', '去涨分')),
+    (3100, ('正乡十七级', '去申请晋级')),
+    (3300, ('副县十六级', '去涨分')),
+    (3600, ('副县十五级', '去申请转正')),
+    (4000, ('正县十四级', '去涨分')),
+    (4500, ('正县十三级', '去申请晋级')),
+    (5000, ('副厅十二级', '去涨分')),
+    (5600, ('副厅十一级', '去申请转正')),
+    (6400, ('正厅十级', '去涨分')),
+    (7300, ('正厅九级', '去申请晋级')),
+    (8300, ('副省八级', '去涨分')),
+    (9500, ('副省七级', '去申请转正')),
+    (11000, ('正省六级', '去涨分')),
+    (13000, ('正省五级', '去申请晋级')),
+    (16000, ('副国四级', '去涨分')),
+    (20000, ('副国三级', '去涨分')),
+    (30000, ('副国二级', '去申请转正')),
+    (50000, ('正国级', '去管理信用系统'))
+]
+def 最小(数):
+    左 = 0
+    右 = len(GLOBAL.恶臭键值)-1
+    中 = (左+右+1) >> 1
+    while 左<右:
+        if 数>=GLOBAL.恶臭键值[中]:
+            左 = 中
+        else:
+            右 = 中-1
+        中 = (左+右+1) >> 1
+    return GLOBAL.恶臭键值[左]
+def 评价(crd):
+    if crd == 114514:
+        return ('大 先 辈', '去造福社会')
+    elif crd < 0:
+        return ('死刑立即执行', '点击预约行刑队')
+    l = 0
+    r = len(crdmap) - 1
+    mid = (l + r + 1) >> 1
+    while l < r:
+        if crd >= crdmap[mid][0]: l = mid
+        else: r = mid - 1
+        mid = (l + r + 1) >> 1
+    return crdmap[l][1]
+
+async def 成分查询(*attrs, kwargs={}):
+    """对群友的成分感到怀疑了？
+    :param user: 群友的qq号
+    :return:     群友的信用点和头衔
+    """
+    user = attrs[0]
+    crd = getCredit(getmem(user))
+    ret = [f'用户{user}现在拥有信用点{crd}点，评价：']
+    ret.extend(评价(crd))
+    return [Plain('\n'.join(ret))]
+
+async def 信用点查询(*attrs, kwargs={}):
+    user = getmem(kwargs['mem'])
+    crd = getCredit(getmem(user))
+    ret = [f'您现在拥有信用点{crd}点，评价：']
+    ret.extend(评价(crd))
+    return [Plain('\n'.join(ret))]
+
+async def 投票姬(*attrs, kwargs={}):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
@@ -132,7 +223,7 @@ def 投票姬(*attrs, **kwargs):
         json.dump(j,fw)
     return ostr
 
-def ddl通知姬(*attrs, **kwargs):
+async def ddl通知姬(*attrs, kwargs={}):
     async def Noticer(g,mb,kotoba,delays):
         print('delay:',delays)
         if delays<0:
@@ -270,7 +361,7 @@ def ddl通知姬(*attrs, **kwargs):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-def 电笔记(*attrs, **kwargs):
+async def 电笔记(*attrs, kwargs={}):
     ins = ' '.join(attrs)
     if ins == 'reload':
         ret_msg = [Plain('知识库已更新,现有词条：\n')]
@@ -292,7 +383,7 @@ def 电笔记(*attrs, **kwargs):
     else:
         return [Plain('不存在此条目')]
 
-def 在线P歌(*attrs, **kwargs):
+async def 在线P歌(*attrs, kwargs={}):
     m = mido.MidiFile()
     t = mido.MidiTrack()
     m.tracks.append(t)
@@ -330,11 +421,11 @@ def 在线P歌(*attrs, **kwargs):
     asyncio.ensure_future(rmTmpFile(fn))
     return [Plain(uploadToChaoXing(fn))]
 
-def 仿洛谷每日签到(*attrs, **kwargs):
+async def 仿洛谷每日签到(*attrs, kwargs={}):
     generate_key_count = random.randint(2,5)
     print(kwargs['mem'])
     print(dir(kwargs['mem']))
-    mem = int(getattr(kwargs['mem'],'id',kwargs['mem']))
+    mem = getmem(kwargs['mem'])
     fn = f'DailySign/{mem}'
     from Assets.签到语料 import 宜, 忌, 运势
     if not os.path.exists('DailySign'): os.mkdir('DailySign')
@@ -355,7 +446,9 @@ def 仿洛谷每日签到(*attrs, **kwargs):
         if fortune in ('大凶','危'): y = [('诸事不宜','')]
         for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
-        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天"
+        cd = random.randint(1,8) * current_user['combo']
+        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天\n\n今日奖励：信用点{cd}点"
+        print(updateCredit(mem, '+', cd))
         current_user['info'] = ans
         current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
         with open(fn,'w') as f: json.dump(current_user,f)
@@ -367,7 +460,9 @@ functionMap = {
     '#vote':投票姬,
     '#i电':电笔记,
     '#P歌':在线P歌,
-    '#求签':仿洛谷每日签到
+    '#求签':仿洛谷每日签到,
+    '#信用点查询': 信用点查询,
+    '#信用点情报': 信用点命令更新订阅姬
 }
 
 shortMap = {
@@ -377,6 +472,8 @@ shortMap = {
 
 functionDescript = {
     '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
+    '#信用点情报':'查看今天用什么命令会对信用点产生影响',
+    '#信用点查询':'查询你的信用点情况',
     '#vote':
 """
 因为群投票限制15个选项所以整了这个计票姬

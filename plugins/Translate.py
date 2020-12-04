@@ -35,7 +35,6 @@ import time
 import datetime
 import urllib
 import mido
-import GLOBAL
 from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
@@ -237,14 +236,14 @@ def googleTrans(req):
     return result[0][0][0]
 
 
-def 能不能好好说话(*attrs, **kwargs):
+async def 能不能好好说话(*attrs, kwargs={}):
     if attrs:
         return [Plain(hhsh(' '.join(attrs)))]
     else:
         return [Plain('宁想说什么？')]
 
 
-def 咕狗翻译(*attrs, **kwargs):
+async def 咕狗翻译(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
         removeSniffer(player,'#gkr')
@@ -258,7 +257,7 @@ def 咕狗翻译(*attrs, **kwargs):
         return [Plain(text='原谅我不知道你在说什么（')]
 
 
-def 百度翻译(*attrs, **kwargs):
+async def 百度翻译(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
         removeSniffer(player,'#bkr')

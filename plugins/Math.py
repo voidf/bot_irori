@@ -36,6 +36,7 @@ import datetime
 import urllib
 import mido
 from Utils import *
+from Sniffer import *
 importMirai()
 
 '''
@@ -186,7 +187,7 @@ def read_matrix_matlab(s):
                 li[i][j] = float(li[i][j])
     return numpy.matrix(li)
 
-def CalC(*attrs,**kwargs):
+async def CalC(*attrs, kwargs={}):
     try:
         if len(attrs)==3:
             a,b=(int(i) for i in attrs[1:3])
@@ -215,10 +216,10 @@ def CalC(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def CalA(*attrs,**kwargs):
-    return CalC('A',*attrs,**kwargs)
+async def CalA(*attrs,kwargs={}):
+    return await CalC('A',*attrs,kwargs=kwargs)
 
-def CalKatalan(*attrs,**kwargs):
+async def CalKatalan(*attrs,kwargs={}):
     try:
         if len(attrs):
             a = int(attrs[0])
@@ -230,7 +231,7 @@ def CalKatalan(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(*attrs, **kwargs):
+async def 统计姬from104(*attrs, kwargs={}):
     l=[float(x) for x in attrs]
     ostr = []
     ostr.append(Plain(f"Mean 平均数:{statistics.mean(l)}\n"))
@@ -243,7 +244,7 @@ def 统计姬from104(*attrs, **kwargs):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(*attrs, **kwargs):
+async def QM化简器(*attrs, kwargs={}):
     v = list(attrs)
     if len(v[0].split(',')) > 1: # 最小项输入
         if len(v) == 1:
@@ -253,13 +254,33 @@ def QM化简器(*attrs, **kwargs):
     else:
         return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
 
-def 打印真值表(*attrs, **kwargs):
+async def 打印真值表(*attrs, kwargs={}):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs, **kwargs):return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+async def 逆元(*attrs, kwargs={}): return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 孙子定理(*attrs, **kwargs):
+async def 欧拉函数(*attrs, kwargs={}):
+    """求给定值的欧拉函数
+    :param x: 待求值x
+    :return:
+        int: φ(x)
+    """
+    x = int(attrs[0])
+    res = x
+    upp = x**0.5
+    for i in range(2, int(upp)+1):
+        if x % i == 0:
+            res = (res // i) * (i - 1)
+            while x % i == 0:
+                x //= i
+    if x > 1:
+        res = (res // x) * (x - 1)
+    if x == int(attrs[0]):
+        return [Plain(f'{x}是质数\n{res}')]
+    return [Plain(f'{res}')]
+
+async def 孙子定理(*attrs, kwargs={}):
     il = ' '.join(attrs).strip().split()
     li = []
     for i in il:
@@ -284,7 +305,23 @@ def 孙子定理(*attrs, **kwargs):
         return [Plain(str(r))]
             
 
-def 老线代bot了(*attrs, **kwargs):
+async def 计算器(*attrs, kwargs={}):
+    """计算中缀表达式
+    :param exp: 待求表达式（python风格）exp
+    :return:
+        Union[int, float, complex]: result"""
+    player = getPlayer(**kwargs)
+    if attrs[0] in GLOBAL.subscribes:
+        overwriteSniffer(player, '#计算器', r'^[0-9\s+-/*&^<>~=|%\(\)]+$')
+        return [Plain('遇到可运算表达式直接输出结果')]
+    elif attrs[0] in GLOBAL.unsubscribes:
+        removeSniffer(player, '#计算器')
+        return [Plain('禁用快速计算')]
+    return [Plain(evaluate_expression(''.join(attrs).replace(' ','').strip()))]
+
+
+async def 老线代bot了(*attrs, kwargs={}):
+    print(attrs)
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
@@ -333,7 +370,7 @@ def 老线代bot了(*attrs, **kwargs):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-def 离散闭包用工具(*attrs, **kwargs):
+async def 离散闭包用工具(*attrs, kwargs={}):
     m = {} # 数转名
     r = {} # 名转数
     def addval(v):
@@ -416,7 +453,7 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-def 划分数个数(*attrs, **kwargs): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+async def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
     
 functionMap = {
     '#QM':QM化简器,
@@ -425,6 +462,7 @@ functionMap = {
     '#K':CalKatalan,
     '#统计':统计姬from104,
     '#inv':逆元,
+    '#phi':欧拉函数,
     '#CRT':孙子定理,
     '#线代':老线代bot了,
     '#真值表':打印真值表,
@@ -442,6 +480,7 @@ functionDescript = {
     '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
     '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
     '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
+    '#phi': '算欧拉函数',
     '#C':
 '''
 两个参数计算组合数，一个参数计算阶乘

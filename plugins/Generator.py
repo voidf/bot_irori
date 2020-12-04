@@ -8,6 +8,7 @@ from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from urllib.parse import quote
 import re
 import asyncio
 import requests
@@ -38,10 +39,10 @@ import GLOBAL
 from Utils import *
 importMirai()
 
-def 不会吧(*attrs,**kwargs):
+async def 不会吧(*attrs,kwargs={}):
     return [Plain(f'不会真的有人{" ".join(attrs)}吧？不会吧不会吧？')]
 
-def 营销生成器(*attrs,**kwargs):
+async def 营销生成器(*attrs,kwargs={}):
     try:
         subject = attrs[0]
         event = attrs[1]
@@ -51,7 +52,7 @@ def 营销生成器(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 同学你好生成器(*attrs,**kwargs):
+async def 同学你好生成器(*attrs,kwargs={}):
     try:
         if len(attrs)==1:
             ato = attrs[0]
@@ -67,7 +68,7 @@ def 同学你好生成器(*attrs,**kwargs):
     except Exception as e:
         return [Plain(str(e))]
 
-def 这么臭的函数有必要定义吗(*attrs,**kwargs):
+async def 这么臭的函数有必要定义吗(*attrs,kwargs={}):
 
     def 最小(数):
         左 = 0
@@ -110,7 +111,7 @@ def 这么臭的函数有必要定义吗(*attrs,**kwargs):
         print(e)
         return [Plain('这么恶臭的字串有必要论证吗')]
 
-def 猫图生成器(*attrs,**kwargs):
+async def 猫图生成器(*attrs, kwargs={}):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
     nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
@@ -126,7 +127,7 @@ def 猫图生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [generateImageFromFile(p)]
 
-def 优质解答生成器(*attrs,**kwargs):
+async def 优质解答生成器(*attrs, kwargs={}):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
     nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
@@ -142,9 +143,9 @@ def 优质解答生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [generateImageFromFile(p)]
 
-def 自己不會百度嗎(*attrs,**kwargs):return [Plain(f"http://iwo.im/?q={quote(' '.join(attrs))}")]
+async def 自己不會百度嗎(*attrs, kwargs={}): return [Plain(f"http://iwo.im/?q={quote(' '.join(attrs))}")]
 
-def IPlay生成器(*attrs,**kwargs):
+async def IPlay生成器(*attrs, kwargs={}):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
     Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
     layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
@@ -160,10 +161,10 @@ def IPlay生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p))
     return [generateImageFromFile(p)]
     
-def 希望没事生成器(*attrs,**kwargs):
+async def 希望没事生成器(*attrs, kwargs={}):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
     nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
-    layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
+    layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(layer2)
     
     text = attrs[0]
@@ -181,10 +182,10 @@ def 希望没事生成器(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [generateImageFromFile(p)]
 
-def 希望工程(*attrs,**kwargs):
+async def 希望工程(*attrs, kwargs={}):
     font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
     nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
-    layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
+    layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(layer2)
     
     text = attrs[0]
@@ -202,12 +203,11 @@ def 希望工程(*attrs,**kwargs):
     asyncio.ensure_future(rmTmpFile(p),loop=None)
     return [generateImageFromFile(p)]
 
-def 打拳姬(*attrs,**kwargs):
-    return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]
+async def 打拳姬(*attrs, kwargs={}): return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]
 
-def 懂的都懂(*attrs,**kwargs):return [Plain('这种事情见得多了，我只想说懂的都懂，不懂的我也不多解释，毕竟自己知道就好，细细品吧。你们也别来问我怎么了，利益牵扯太大，说了对你我都没好处，当不知道就行了，其余的我只能说这里面水很深，牵扯到很多东西。详细情况你们自己是很难找的，网上大部分已经删除干净了，所以我只能说懂的都懂。懂的人已经基本都获利上岸了，不懂的人永远不懂，关键懂的人都是自己悟的，你也不知道谁是懂的人也没法请教，大家都藏着掖着生怕别人知道自己懂的事，所以不懂的你甚至都不知道自己不懂。在有些时候，某些人对某些事情不懂装懂，还以为别人不懂。其实自己才是不懂的，别人懂的够多了，不仅懂，还懂的超越了这个范围，但是某些不懂的人让懂的人完全教不懂，所以不懂的人永远不懂，只能不懂装懂，别人说懂的都懂，只要点点头就行了。其实你我都懂，不懂没必要装懂，毕竟里面牵扯到很多懂不了的事，懂的人觉得没必要说出来，不懂的人看见又来问七问八，最后跟他说了他也不一定能懂，就算懂了以后也对他不好，毕竟懂的太多了不是好。懂了吗？')]
+async def 懂的都懂(*attrs, kwargs={}): return [Plain('这种事情见得多了，我只想说懂的都懂，不懂的我也不多解释，毕竟自己知道就好，细细品吧。你们也别来问我怎么了，利益牵扯太大，说了对你我都没好处，当不知道就行了，其余的我只能说这里面水很深，牵扯到很多东西。详细情况你们自己是很难找的，网上大部分已经删除干净了，所以我只能说懂的都懂。懂的人已经基本都获利上岸了，不懂的人永远不懂，关键懂的人都是自己悟的，你也不知道谁是懂的人也没法请教，大家都藏着掖着生怕别人知道自己懂的事，所以不懂的你甚至都不知道自己不懂。在有些时候，某些人对某些事情不懂装懂，还以为别人不懂。其实自己才是不懂的，别人懂的够多了，不仅懂，还懂的超越了这个范围，但是某些不懂的人让懂的人完全教不懂，所以不懂的人永远不懂，只能不懂装懂，别人说懂的都懂，只要点点头就行了。其实你我都懂，不懂没必要装懂，毕竟里面牵扯到很多懂不了的事，懂的人觉得没必要说出来，不懂的人看见又来问七问八，最后跟他说了他也不一定能懂，就算懂了以后也对他不好，毕竟懂的太多了不是好。懂了吗？')]
 
-def 舔狗生成器(*attrs,**kwargs):
+async def 舔狗生成器(*attrs, kwargs={}):
     pat = ['太太','画','手','图']
     for i in range(min(len(attrs),len(pat))):
         pat[i] = attrs[i]
@@ -263,25 +263,25 @@ def 舔狗生成器(*attrs,**kwargs):
     asyncio.ensure_future(msgSerializer(construct,**kwargs))
     return [Plain(f"!{pat[0]}!!!!!!")]
 
-def 川普生成器(*attrs,**kwargs):
+async def 川普生成器(*attrs, kwargs={}):
     s = ' '.join(attrs) if attrs else '中国'
     pat = f"{chr(128588)}没有人\n{chr(128080)}比我\n{chr(128076)}更懂\n{chr(9757)}{s}"
     return [Plain(pat)]
 
-def 骰子(*attrs,**kwargs):
+async def 骰子(*attrs, kwargs={}):
     if(len(attrs)>=2):
         x,y=(int(i) for i in attrs[:2])
         return [Plain(f"{random.randint(min(x,y),max(x,y))}")]
     else:
         return [Plain("我要怎么给你Roll哦")]
 
-def 军舰(*attrs,**kwargs):
+async def 军舰(*attrs, kwargs={}):
     try:
         return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
     except Exception as e:
         return [Plain(str(e))]
 
-def 今日人品(*attrs,**kwargs):
+async def 今日人品(*attrs,kwargs={}):
     player_id=kwargs['mem'].id
     if player_id not in GLOBAL.JRRP_map: #已经存在信息直接读取，否则生成新数字
         temp_rpval=random.randint(0,100)
