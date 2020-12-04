@@ -603,9 +603,6 @@ async def 爬what_anime(*attrs,kwargs={}):
     else:
         return [Plain('您没发图哥哥！')]
 
-async def 动图测试(*attrs,**kwargs):
-    return [generateImageFromFile('68747470733a2f2f696d616765732e706c75726b2e636f6d2f376c55526164787959567276506c35324d376d6d33472e676966.gif')]
-
 functionMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
@@ -621,8 +618,7 @@ functionMap = {
     '#ip':爬ip,
     '#addr':反爬ip,
     '#每日一句':爬每日一句,
-    '#搜番':爬what_anime,
-    '#动图测试':动图测试
+    '#搜番':爬what_anime
 }
 
 shortMap = {
