@@ -1,4 +1,5 @@
 """爬虫类"""
+from asyncio.tasks import sleep
 import os
 
 from requests.exceptions import Timeout
@@ -531,7 +532,7 @@ async def 反爬ip(*attrs,kwargs={}):
     ans = [' '.join(i) for i in rr]
     return [Plain('\n'.join(ans))]
 
-def 爬what_anime(*attrs,**kwargs):
+async def 爬what_anime(*attrs,kwargs={}):
     '''
     爬取whats_anime的番剧信息
     '''
@@ -558,7 +559,7 @@ def 爬what_anime(*attrs,**kwargs):
         if info_li[8]:
             ret.append(Plain(f'结果可能包含成人内容……\n'))
             return
-        res2=requests.get('https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7]),timeout=10)
+        res2=requests.get('https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7]),timeout=20)
         #res2=requests.get(f'https://media.trace.moe/video/{info_li[4]}/{info_li[5]}?t={info_li[6]}&token={info_li[7]}',timeout=20)
         if res2.status_code==200:
             prew = f"tmpAni{randstr(3)}.png"
@@ -582,10 +583,9 @@ def 爬what_anime(*attrs,**kwargs):
 
         return ans
 
-
     if 'pic' in kwargs and kwargs['pic']:
-        pic_url=kwargs['pic']
-        res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=10)
+        pic_url=kwargs['pic'].url
+        res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
         if res.status_code==200:
             ret=[] #保存返回结果
             info=res.json()
@@ -600,8 +600,10 @@ def 爬what_anime(*attrs,**kwargs):
             return ret
         else:
             return [Plain(f'搜素过程中发生了一点问题：{res.status_code}')]
-        
-def 动图测试(*attrs,**kwargs):
+    else:
+        return [Plain('您没发图哥哥！')]
+
+async def 动图测试(*attrs,**kwargs):
     return [generateImageFromFile('68747470733a2f2f696d616765732e706c75726b2e636f6d2f376c55526164787959567276506c35324d376d6d33472e676966.gif')]
 
 functionMap = {
