@@ -1,5 +1,8 @@
 """爬虫类"""
+from asyncio.tasks import sleep
 import os
+
+from requests.exceptions import Timeout
 if __name__ == '__main__':
     os.chdir('..')
 import GLOBAL
@@ -34,6 +37,7 @@ import time
 import datetime
 import urllib
 import mido
+import imageio
 import GLOBAL
 from Utils import *
 importMirai()
@@ -528,7 +532,76 @@ async def 反爬ip(*attrs,kwargs={}):
     ans = [' '.join(i) for i in rr]
     return [Plain('\n'.join(ans))]
 
+async def 爬what_anime(*attrs,kwargs={}):
+    '''
+    爬取whats_anime的番剧信息
+    '''
+    def get_info(info):
+        docs=info["docs"]
+        firstres=docs[0]
 
+        li=[
+            firstres['title'],
+            firstres['title_chinese'],
+            firstres['title_english'],
+            firstres['episode'],
+
+            firstres['anilist_id'],
+            firstres['filename'],
+            firstres['at'],
+            firstres['tokenthumb'],
+
+            firstres['is_adult']
+        ]
+        return li
+    
+    def get_prew(ret:list,info_li:list):
+        if info_li[8]:
+            ret.append(Plain(f'结果可能包含成人内容……\n'))
+            return
+        res2=requests.get('https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7]),timeout=20)
+        #res2=requests.get(f'https://media.trace.moe/video/{info_li[4]}/{info_li[5]}?t={info_li[6]}&token={info_li[7]}',timeout=20)
+        if res2.status_code==200:
+            prew = f"tmpAni{randstr(3)}.png"
+            #prew=f'tmpVideo_{randstr(3)}.mp4'
+            with open(prew,'wb') as prew_f:
+                prew_f.write(res2.content)
+            asyncio.ensure_future(rmTmpFile(prew))
+            ret.append(generateImageFromFile(prew))
+        else:
+            ret.append(Plain(f'抓图过程中发生了一点差错:{res2.status_code}\n'))
+
+    def get_word(info):
+        firstres=info["docs"][0]
+        ans='\n'
+
+        ans+=f"{firstres['title_chinese']} ({firstres['title']})\n"
+        if(firstres['episode']): ans+=f"第{firstres['episode']}话\n"
+        else: ans+='（剧场版）\n'
+        ans+=f"起止位置：{int(firstres['from'])//60}:{int(firstres['from'])%60} - {int(firstres['to'])//60}:{int(firstres['to'])%60}\n"
+        ans+=f"相似度：{firstres['similarity']*100:.4f}%\n"
+
+        return ans
+
+    if 'pic' in kwargs and kwargs['pic']:
+        pic_url=kwargs['pic'].url
+        res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
+        if res.status_code==200:
+            ret=[] #保存返回结果
+            info=res.json()
+            info_li=get_info(info) #用于找图
+
+            #找图
+            get_prew(ret,info_li)
+            
+            #输出文字结果
+            ret.append(Plain(get_word(info)))
+
+            return ret
+        else:
+            return [Plain(f'搜素过程中发生了一点问题：{res.status_code}')]
+    else:
+        return [Plain('您没发图哥哥！')]
 
 functionMap = {
     '#LaTeX':爬LaTeX,
@@ -544,7 +617,8 @@ functionMap = {
     '#天气':爬天气,
     '#ip':爬ip,
     '#addr':反爬ip,
-    '#每日一句':爬每日一句
+    '#每日一句':爬每日一句,
+    '#搜番':爬what_anime
 }
 
 shortMap = {
