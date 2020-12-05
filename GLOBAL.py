@@ -959,8 +959,8 @@ unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭�
 
 chat_log = {}
 credit_cmds = {}
-credit_operators = ('+', '-', '*', '//', '**', '<<', '>>', '&', '|', '^', '%', '~')
-credit_operators_weight = (0.7, 0.08, 0.07, 0.03, 0.02, 0.02, 0.02, 0.02, 0.017, 0.01, 0.002, 0.001)
+credit_operators = ('+', '-', '*', '//', '**', '<<', '>>', '&', '|', '^', '%')
+credit_operators_weight = (0.7, 0.08, 0.07, 0.03, 0.02, 0.02, 0.02, 0.02, 0.017, 0.01, 0.003)
 binocular_operators = {
 	'+':50,
 	'-':50,

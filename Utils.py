@@ -354,7 +354,8 @@ def getCredit(user: int):
 def updateCredit(user: int, operator: str, val: int): # 危
     if operator not in GLOBAL.credit_operators: return False
     c = getCredit(user)
-    c = eval(f'{c}{operator}{int(val)}')
+    # c = eval(f'{c}{operator}{int(val)}')
+    c = evaluate_expression(f'{c}{operator}{int(val)}')
     with open(f'credits/{user}', 'w') as f:
         f.write(f'{c}')
     return True
