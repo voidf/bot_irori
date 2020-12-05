@@ -1,4 +1,4 @@
-kuriyama
+pydantic==1.7.0
 numpy
 bs4
 requests[socks]
