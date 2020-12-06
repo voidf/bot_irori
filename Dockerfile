@@ -14,7 +14,7 @@ pip3 install wheel && \
 git clone https://github.com/voidf/bot_irori.git /irori && \
 wget http://d0.ananas.chaoxing.com/download/e42506778079d4a29bf70982a8d69912 -U "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36" -O env.zip && \
 pip3 install -r /irori/requirements.txt && \
-unzip env.zip && chmod +x /env/run.sh && cd /env
+unzip env.zip && pwd && ls -al && cd env && chmod +x run.sh && 
 
 # 设置code文件夹是工作目录
 WORKDIR /irori
