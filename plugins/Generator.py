@@ -330,7 +330,6 @@ async def 今日人品(*attrs,kwargs={}):
     #    ans+='危！'
     #return [Plain(ans)]
 
-
 functionMap = {
     '#论证':这么臭的函数有必要定义吗,
     '#营销':营销生成器,
