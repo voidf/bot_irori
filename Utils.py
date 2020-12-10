@@ -19,20 +19,6 @@ import base64
 import importlib
 import sys
 from Fetcher import *
-from asgiref.sync import async_to_sync, sync_to_async
-
-# from mirai.face import QQFaces
-# from mirai import Mirai, Plain, MessageChain, Friend, Face, MessageChain, Group, Image, Member, At, Source
-
-# from graia.application import GraiaMiraiApplication as Mirai
-# from graia.application import Session
-# from graia.application.event.messages import FriendMessage,GroupMessage
-# from graia.application.event.lifecycle import ApplicationLaunched,ApplicationShutdowned
-# from graia.application.message.chain import MessageChain
-# from graia.application.message.elements.internal import Plain, Image, At, Face, Source
-# from graia.broadcast import Broadcast
-# from graia.application.group import Group,Member
-# from graia.application.friend import Friend
 
 
 from GLOBAL import importMirai
@@ -383,7 +369,7 @@ async def compressMsg(l,extDict={}):
     s = ''.join(nl)
     if len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
         
-        font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
+        font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
         
         sl = s.split('\n')
         height = len(sl)

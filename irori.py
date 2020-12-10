@@ -33,8 +33,7 @@ import pexpect.popen_spawn
 import time
 import datetime
 import uuid
-import argparse
-# from mirai import MessageChain
+import xlrd
 from Utils import *
 from Routiner import *
 from Sniffer import *
@@ -63,7 +62,7 @@ try:
         cfg = json.load(jfr)
         banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
         allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
-        botList = set(cfg.get('botList',[]))
+        botList = set(oocfg.get('botList',[]))
         GLOBAL.proxy = cfg.get('proxy',{})
         muteList = set(cfg.get('muteList',[]))
         masterID = set(cfg.get('masters',[]))
@@ -159,8 +158,7 @@ sys_dict = {
     'terminal':sys_terminal,
 }
 
-@sync_to_async
-def systemcall(member,player:int,s,extDict) -> (bool,str):
+async def systemcall(member,player:int,s,extDict) -> (bool,str):
     tc = chkcfg(player)
     if tc.enable_this:
         if member in SHELL:
@@ -217,9 +215,6 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         if i[:2] == "--":
             arg,*val = i[2:].split("=")
             extDict["-"+arg] = "".join(val)
-        # elif i[:1] == "-":
-            # arg,*val = i[1:].split("=")
-            # extDict["-"+arg] = "".join(val)
         else: ns.append(i)
     return ns
 
@@ -398,6 +393,35 @@ async def hajime(bot):
     except:
         print('ddl模块收到异常（不太重要：\n',traceback.format_exc())
     
+    try:
+        for i in os.listdir('DigitalElectronicsTech'):
+            if i[-6:]=='.json5':
+                with open('DigitalElectronicsTech/'+i,'r') as f: 
+                    j = json5.load(f)
+                for k,v in j.items():
+                    GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
+                    if 'img' in v:
+                        for vi in v['img']:
+                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
+                    for an in v['AN']:
+                        GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
+    except:
+        print("数电笔记初始化失败")
+        traceback.print_exc()
+
+    try:
+        book = xlrd.open_workbook("Assets/中药.xlsx")
+        sheet = book.sheet_by_index(0)
+        titles = []
+        for i in sheet.row(0):
+            if i.value == "": break
+            titles.append(i.value)
+        
+        
+    except:
+        print("中药数据库初始化失败")
+        traceback.print_exc()
+
     RoutinerLoop()
 
 if GLOBAL.py_mirai_version == 3:

@@ -112,7 +112,7 @@ async def 这么臭的函数有必要定义吗(*attrs,kwargs={}):
         return [Plain('这么恶臭的字串有必要论证吗')]
 
 async def 猫图生成器(*attrs, kwargs={}):
-    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
+    font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
     nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
@@ -128,7 +128,7 @@ async def 猫图生成器(*attrs, kwargs={}):
     return [generateImageFromFile(p)]
 
 async def 优质解答生成器(*attrs, kwargs={}):
-    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
+    font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
     nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
@@ -146,7 +146,7 @@ async def 优质解答生成器(*attrs, kwargs={}):
 async def 自己不會百度嗎(*attrs, kwargs={}): return [Plain(f"http://iwo.im/?q={quote(' '.join(attrs))}")]
 
 async def IPlay生成器(*attrs, kwargs={}):
-    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
+    font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
     Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
     layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
     draw = ImageDraw.Draw(layer2)
@@ -162,7 +162,7 @@ async def IPlay生成器(*attrs, kwargs={}):
     return [generateImageFromFile(p)]
     
 async def 希望没事生成器(*attrs, kwargs={}):
-    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
+    font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
     nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
     layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(layer2)
@@ -183,7 +183,7 @@ async def 希望没事生成器(*attrs, kwargs={}):
     return [generateImageFromFile(p)]
 
 async def 希望工程(*attrs, kwargs={}):
-    font = ImageFont.truetype('sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
+    font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
     nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
     layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(layer2)

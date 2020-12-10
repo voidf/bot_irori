@@ -38,6 +38,9 @@ import mido
 from Utils import *
 importMirai()
 
+async def 中药(*attrs, kwargs={}):
+
+
 async def 信用点命令更新订阅姬(*attrs, kwargs={}):
     if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
     if attrs and attrs[0] in GLOBAL.unsubscribes:
@@ -361,24 +364,9 @@ async def ddl通知姬(*attrs, kwargs={}):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-async def 电笔记(*attrs, kwargs={}):
+async def 数电笔记(*attrs, kwargs={}):
     ins = ' '.join(attrs)
-    if ins == 'reload':
-        ret_msg = [Plain('知识库已更新,现有词条：\n')]
-        for i in os.listdir('DigitalElectronicsTech'):
-            if i[-6:]=='.json5':
-                with open('DigitalElectronicsTech/'+i,'r') as f: 
-                    j = json5.load(f)
-                for k,v in j.items():
-                    ret_msg.append(Plain('\t- '+k+'\n'))
-                    GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
-                    if 'img' in v:
-                        for vi in v['img']:
-                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
-                    for an in v['AN']:
-                        GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
-        return ret_msg
-    elif ins in GLOBAL.DEKnowledge:
+    if ins in GLOBAL.DEKnowledge:
         return GLOBAL.DEKnowledge[ins]
     else:
         return [Plain('不存在此条目')]
@@ -458,7 +446,7 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
 functionMap = {
     '#ddl':ddl通知姬,
     '#vote':投票姬,
-    '#i电':电笔记,
+    '#i电':数电笔记,
     '#P歌':在线P歌,
     '#求签':仿洛谷每日签到,
     '#信用点查询': 信用点查询,
