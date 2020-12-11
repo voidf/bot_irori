@@ -192,7 +192,7 @@ async def 译电码(*attrs,kwargs={}):
     msg = ' '.join(attrs).upper()
 
     conf = re.findall('''SPLIT=(.*?) ''',msg)
-    split_symbol = '/'
+    split_symbol = ' '
     print(conf)
     if not conf:
         conf = re.findall('''SPLIT=(.*?)$''',msg)
