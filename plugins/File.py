@@ -43,7 +43,7 @@ async def 中药(*attrs, kwargs={}):
         return []
     else:
         if attrs[0] in GLOBAL.中药名索引:
-            
+            pass
         else: return [Plain()]
 
 
