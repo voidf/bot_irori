@@ -415,6 +415,7 @@ async def hajime(bot):
         GLOBAL.中药title = []
         
         GLOBAL.中药 = []
+        GLOBAL.中药名索引 = {}
 
         for p, i in enumerate(sheet.get_rows()):
             if p == 0:
@@ -425,9 +426,8 @@ async def hajime(bot):
                 cont = []
                 for j in len(GLOBAL.中药title):
                     cont.append(i[j].value)
-                GLOBAL.中药.append(cont)
-
-
+                GLOBAL.中药.append('^^'.join(cont))
+                GLOBAL.中药名索引[cont[0]] = p
         
     except:
         print("中药数据库初始化失败")

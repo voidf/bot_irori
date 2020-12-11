@@ -39,6 +39,12 @@ from Utils import *
 importMirai()
 
 async def 中药(*attrs, kwargs={}):
+    if attrs[0] == "搜索":
+        return []
+    else:
+        if attrs[0] in GLOBAL.中药名索引:
+            
+        else: return [Plain()]
 
 
 async def 信用点命令更新订阅姬(*attrs, kwargs={}):
