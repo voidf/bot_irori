@@ -192,7 +192,7 @@ async def 译电码(*attrs,kwargs={}):
     msg = ' '.join(attrs).upper()
 
     conf = re.findall('''SPLIT=(.*?) ''',msg)
-    split_symbol = ' '
+    split_symbol = '/'
     print(conf)
     if not conf:
         conf = re.findall('''SPLIT=(.*?)$''',msg)
@@ -206,12 +206,19 @@ async def 译电码(*attrs,kwargs={}):
         for i in conf:
             msg = msg.replace(f'''SPLIT={i}''','')
     
-    msg = msg.replace(' ','')
+    
     ans = []
-    for i in msg.split(split_symbol):
-        if i not in m2a:
-            return [Plain(f'不合法的电码：{i}')]
-        ans.append(m2a[i])
+    if len(attrs) > 3:
+        for i in msg.split():
+            if i not in m2a:
+                return [Plain(f'不合法的电码：{i}')]
+            ans.append(m2a[i])
+    else:
+        msg = msg.replace(' ','')
+        for i in msg.split(split_symbol):
+            if i not in m2a:
+                return [Plain(f'不合法的电码：{i}')]
+            ans.append(m2a[i])
     return [Plain(''.join(ans))]
 
 async def 译中文电码(*attrs,kwargs={}):
