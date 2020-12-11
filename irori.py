@@ -412,11 +412,22 @@ async def hajime(bot):
     try:
         book = xlrd.open_workbook("Assets/中药.xlsx")
         sheet = book.sheet_by_index(0)
-        titles = []
-        for i in sheet.row(0):
-            if i.value == "": break
-            titles.append(i.value)
+        GLOBAL.中药title = []
         
+        GLOBAL.中药 = []
+
+        for p, i in enumerate(sheet.get_rows()):
+            if p == 0:
+                for j in i:
+                    if j.value == "": break
+                    GLOBAL.中药title.append(j.value)
+            else:
+                cont = []
+                for j in len(GLOBAL.中药title):
+                    cont.append(i[j].value)
+                GLOBAL.中药.append(cont)
+
+
         
     except:
         print("中药数据库初始化失败")
