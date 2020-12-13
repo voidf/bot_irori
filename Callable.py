@@ -112,10 +112,10 @@ async def printHelp(*attrs,**kwargs):
         l.append('已导入的模块：')
         for k, v in plugindocs.items():
             l.append(f'''\t{k} {v}''')
-        l.append('输入#h <类名> 以查询模块下命令')
-        l.append('使用#h <命令名> 可以查询详细用法')
-        l.append('尖括号表示参数必要，方括号表示参数可选，实际使用中不必一定需要')
-        l.append('使用#h #abb可以查询缩写表')
+        l.append('''输入#h <类名> 以查询模块下命令
+使用#h <命令名> 可以查询详细用法
+尖括号表示参数必要，方括号表示参数可选，实际使用中不必一定需要
+使用#h #abb可以查询缩写表''')
     else:
         if attrs[0] in shorts:
             attrs = [shorts[attrs[0]],*attrs[1:]]
@@ -138,6 +138,14 @@ async def printHelp(*attrs,**kwargs):
                 l.append(f'''\t{k}\t{v.__doc__.strip()[:20]
                 if len(v.__doc__.strip()[:20])<=20
                 else v.__doc__.strip()[:20]+'...'}\n''' )
+        elif attrs[0] == "search" and len(attrs) > 1:
+            key = attrs[1]
+            checked = set()
+            for k, v in funs.items():
+                if re.search(key, k, re.S) or re.search(key, v.__doc__, re.S):
+                    l.append(f'''\t{k}\t{v.__doc__.strip()[:20]
+                    if len(v.__doc__.strip()[:20])<=20
+                    else v.__doc__.strip()[:20]+'...'}\n''' )
         else:
             l.append('【错误】参数不合法\n')
             ext = await printHelp()
