@@ -34,6 +34,7 @@ import time
 import datetime
 import uuid
 import xlrd
+import json5
 from Utils import *
 from Routiner import *
 from Sniffer import *
@@ -41,14 +42,14 @@ from graia.broadcast.builtin.decoraters import Depend
 importMirai()
 identifier = uuid.uuid1().hex
 
-locate = re.findall("""来自：(.*?)\r\n""",requests.get('https://202020.ip138.com/',headers={
+locate = re.findall("""来自：(.*?)\n""",requests.get('https://2021.ip138.com/',headers={
     "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
     "Accept-Encoding":"gzip, deflate, br",
     "Accept-Language":"zh-CN,zh;q=0.9",
     "Cache-Control":"no-cache",
     "Connection":"keep-alive",
     "DNT":"1",
-    "Host":"202020.ip138.com",
+    "Host":"2021.ip138.com",
     "Pragma":"no-cache",
     "Referer":"https://www.ip138.com/",
     "Upgrade-Insecure-Requests":"1",
@@ -62,7 +63,7 @@ try:
         cfg = json.load(jfr)
         banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
         allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
-        botList = set(oocfg.get('botList',[]))
+        botList = set(cfg.get('botList',[]))
         GLOBAL.proxy = cfg.get('proxy',{})
         muteList = set(cfg.get('muteList',[]))
         masterID = set(cfg.get('masters',[]))
@@ -243,7 +244,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
             return
         if not tc.enable_this:
             return
-        a,*b = s
+        a, *b = s
         l = []
         if a in Callable.shorts:
             a = Callable.shorts[a]
@@ -260,7 +261,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if a in GLOBAL.credit_cmds:
                         updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
-                        await app.sendGroupMessage(group,await compressMsg(l,extDict))
+                        await app.sendGroupMessage(group, await compressMsg(l,extDict))
                 except:
                     if l is None:
                         l = []
@@ -268,7 +269,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                     if tc.print_exception:
                         l.append(Plain(traceback.format_exc()))
                     if l:
-                        await app.sendGroupMessage(group,await compressMsg(l,extDict))
+                        await app.sendGroupMessage(group, await compressMsg(l,extDict))
                 return
 
         if tc.quick_calls:
@@ -396,8 +397,8 @@ async def hajime(bot):
     try:
         for i in os.listdir('DigitalElectronicsTech'):
             if i[-6:]=='.json5':
-                with open('DigitalElectronicsTech/'+i,'r') as f: 
-                    j = json5.load(f)
+                with open('DigitalElectronicsTech/'+i, 'r', encoding='utf-8') as f: 
+                    j = json5.load(f, encoding='utf-8')
                 for k,v in j.items():
                     GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
                     if 'img' in v:
@@ -424,10 +425,10 @@ async def hajime(bot):
                     GLOBAL.中药title.append(j.value)
             else:
                 cont = []
-                for j in len(GLOBAL.中药title):
+                for j in range(len(GLOBAL.中药title)):
                     cont.append(i[j].value)
-                GLOBAL.中药.append('^^'.join(cont))
-                GLOBAL.中药名索引[cont[0]] = p
+                GLOBAL.中药.append('^^'.join(cont)) # 麻黄^^辛温微苦^^发汗解表、宣肺平喘、利水消肿 ...
+                GLOBAL.中药名索引[cont[0]] = p - 1
         
     except:
         print("中药数据库初始化失败")

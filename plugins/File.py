@@ -39,13 +39,34 @@ from Utils import *
 importMirai()
 
 async def 中药(*attrs, kwargs={}):
-    if attrs[0] == "搜索":
-        return []
+    renderli = [] # int
+    premsg = ''
+    def _render():
+        out = []
+        ks = GLOBAL.中药title
+        for i in renderli:
+            cur = GLOBAL.中药[i].split('^^')
+            for p, j in enumerate(ks):
+                out.append(f"{j}:{cur[p]}")
+            out.append("\n")
+        return premsg + '\t'.join(out)
+
+    def _scan(keyword):
+        for p, i in enumerate(GLOBAL.中药):
+            if re.search(keyword, i, re.S):
+                renderli.append(p)
+
+    if attrs[0] in ("搜索", "scan", "search"):
+        _scan(attrs[1])
+        premsg = f"检索结果：{len(renderli)}条：\n"
+        
     else:
         if attrs[0] in GLOBAL.中药名索引:
-            pass
-        else: return [Plain()]
-
+            renderli.append(GLOBAL.中药名索引[attrs[0]])
+        else:
+            _scan(attrs[0])
+            premsg = "没有这种药，您可能在找：\n"
+    return [Plain(_render())]
 
 async def 信用点命令更新订阅姬(*attrs, kwargs={}):
     if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
@@ -59,6 +80,7 @@ async def 信用点命令更新订阅姬(*attrs, kwargs={}):
     return [Plain('\n'.join(ret))]
 
 crdmap = [
+    (-500, ('人民公敌', '死了算了')),
     (0, ('大祸患', '拯救一下')),
     (100, ('高危份子', '抢救一下')),
     (200, ('危险份子', '补救一下')),
