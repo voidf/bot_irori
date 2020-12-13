@@ -39,6 +39,11 @@ from Utils import *
 importMirai()
 
 async def 中药(*attrs, kwargs={}):
+    """群友贡献的中药笔记整理
+按名称查询某个中药信息：
+#中药 [药名]
+搜索中药信息：
+#中药 搜索 [搜索关键字]"""
     renderli = [] # int
     premsg = ''
     def _render():
