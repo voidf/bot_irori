@@ -103,8 +103,9 @@ for k, v in list(desc.items()):
     elif not funs[k].__doc__:
         funs[k].__doc__ = v
 
-async def printHelp(*attrs,**kwargs):
+async def printHelp(*attrs, kwargs={}):
     """不传参打印命令表，传参则解释命令"""
+    show_limit = int(kwargs.get('-showlim', 20))
     l = []
     img = []
     ext = []
@@ -114,6 +115,7 @@ async def printHelp(*attrs,**kwargs):
             l.append(f'''\t{k} {v}''')
         l.append('''输入#h <类名> 以查询模块下命令
 使用#h <命令名> 可以查询详细用法
+使用#h search <关键字> 可以按照关键字查找相关命令
 尖括号表示参数必要，方括号表示参数可选，实际使用中不必一定需要
 使用#h #abb可以查询缩写表''')
     else:
@@ -134,18 +136,18 @@ async def printHelp(*attrs,**kwargs):
         elif attrs[0] in pluginfuns:
             l.append(f'分类：{attrs[0]}')
             for k, v in pluginfuns[attrs[0]].items():
-                print(f'descLen = {len(v.__doc__.strip()[:20])}')
-                l.append(f'''\t{k}\t{v.__doc__.strip()[:20]
-                if len(v.__doc__.strip()[:20])<=20
-                else v.__doc__.strip()[:20]+'...'}\n''' )
+                print(f'descLen = {len(v.__doc__.strip()[:show_limit])}')
+                l.append(f'''\t{k}\t{v.__doc__.strip()[:show_limit]
+                if len(v.__doc__.strip()[:show_limit])<=show_limit
+                else v.__doc__.strip()[:show_limit]+'...'}\n''' )
         elif attrs[0] == "search" and len(attrs) > 1:
             key = attrs[1]
             checked = set()
             for k, v in funs.items():
                 if re.search(key, k, re.S) or re.search(key, v.__doc__, re.S):
-                    l.append(f'''\t{k}\t{v.__doc__.strip()[:20]
-                    if len(v.__doc__.strip()[:20])<=20
-                    else v.__doc__.strip()[:20]+'...'}\n''' )
+                    l.append(f'''\t{k}\t{v.__doc__.strip()[:show_limit]
+                    if len(v.__doc__.strip()[:show_limit])<=show_limit
+                    else v.__doc__.strip()[:show_limit]+'...'}\n''' )
         else:
             l.append('【错误】参数不合法\n')
             ext = await printHelp()
