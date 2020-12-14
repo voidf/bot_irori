@@ -349,15 +349,12 @@ def updateCredit(user: int, operator: str, val: int): # 危
 def generateTmpFileName(pref, ext='.png',**kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
-async def compressMsg(l,extDict={}):
+async def compressMsg(l, extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     print(extDict)
     player = extDict.get("player",0)
     tc = chkcfg(player)
-    theme = int(extDict.get("-theme", 255))
-    theme = int(extDict.get("-t", theme))
-    offset = tc.font_size >> 1
-    print(offset)
+    
     nl = []
     others = []
     for i in l:
@@ -365,12 +362,35 @@ async def compressMsg(l,extDict={}):
             nl.append(getPlainText(i))
         else:
             others.append(i)
-    print(others)
     s = ''.join(nl)
-    if len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
-        
+    if "-paste" in extDict:
+        data = {
+            "poster":"irori",
+            "syntax": extDict.get("-syntax", "text"),
+            "expiration":"day",
+            "content":s
+        }
+        asyncio.ensure_future(msgDistributer(list=[Plain(requests.post("https://paste.ubuntu.com/", data=data).url)], **extDict))
+        return others
+    elif len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
+        A = int(extDict.get("-A", 255))
+        try:
+            theme = extDict.get("-t", "0xFF")
+            theme = extDict.get("-theme", theme)
+            theme = int(theme, 16)
+            R = (theme & 0xFF0000) >> 16
+            G = (theme & 0x00FF00) >> 8
+            B = theme & 0xFF
+        except TypeError: pass
+        except: traceback.print_exc()
+        finally:
+            theme = int(extDict.get("-t", 255))
+            theme = int(extDict.get("-theme", theme))
+            R = 255-theme
+            G = 255-theme
+            B = 255-theme
+        offset = tc.font_size >> 1
         font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',GLOBAL.compressFontSize)
-        
         sl = s.split('\n')
         height = len(sl)
         width = 0
@@ -380,7 +400,7 @@ async def compressMsg(l,extDict={}):
         layer2 = PImage.new(
             'RGBA',
             (width * (GLOBAL.compressFontSize), (height) * (GLOBAL.compressFontSize +offset)),
-            (255 - theme, 255 - theme, 255 - theme, 255)
+            (R, G, B, A)
         )
         p = generateTmpFileName('ZIP')
         # PImage.alpha_composite(nyaSrc,layer2).save(p)
@@ -395,7 +415,7 @@ async def compressMsg(l,extDict={}):
     if GLOBAL.py_mirai_version == 3:
         return l
     else:
-        if "-voice" in extDict and "voices" in extDict:
+        if "-voice" in extDict and "voices" in extDict: # 不能超过1M
             for i in extDict['voices']:
                 voi = await GLOBAL.app.uploadVoice(getFileBytes(i))
                 # l.append(voi)

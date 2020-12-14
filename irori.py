@@ -267,8 +267,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         l = []
                     print(traceback.format_exc())
                     if tc.print_exception:
-                        l.append(Plain(traceback.format_exc()))
-                    if l:
+                        l=[Plain(traceback.format_exc())]
                         await app.sendGroupMessage(group, await compressMsg(l,extDict))
                 return
 
@@ -287,8 +286,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
 
             except:
                 if tc.print_exception:
-                    l.append(Plain(traceback.format_exc()))
-                if l:
+                    l.append=[Plain(traceback.format_exc())]
                     await app.sendGroupMessage(group,await compressMsg(l,extDict))
 
 @irori.receiver("FriendMessage", headless_decoraters=[Depend(irori_statistics)])
@@ -334,8 +332,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                 except:
                     print(traceback.format_exc())
                     if tc.print_exception:
-                        l.append(Plain(traceback.format_exc()))
-                    if l:
+                        l=[Plain(traceback.format_exc())]
                         await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
                 return
 
@@ -353,8 +350,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
 
             except:
                 if tc.print_exception:
-                    l.append(Plain(traceback.format_exc()))
-                if l:
+                    l=[Plain(traceback.format_exc())]
                     await app.sendFriendMessage(hurenzu,await compressMsg(l,extDict))
 
 async def hajime(bot):
