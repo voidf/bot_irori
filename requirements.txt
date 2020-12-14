@@ -13,4 +13,4 @@ pexpect
 graia-application-mirai
 graia-broadcast
 graia.broadcast
-xlrd
+xlrd==1.2.0
