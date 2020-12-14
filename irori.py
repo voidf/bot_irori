@@ -262,6 +262,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                         updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
                         await app.sendGroupMessage(group, await compressMsg(l,extDict))
+                except AttributeError: print(traceback.format_exc())
                 except:
                     if l is None:
                         l = []
@@ -283,7 +284,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
                                 if l:
                                     asyncio.ensure_future(app.sendGroupMessage(group,await compressMsg(l,extDict)))
                                 break
-
+            except AttributeError: print(traceback.format_exc())
             except:
                 if tc.print_exception:
                     l.append=[Plain(traceback.format_exc())]
@@ -329,6 +330,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                         updateCredit(member, *GLOBAL.credit_cmds[a])
                     if l:
                         await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
+                except AttributeError: print(traceback.format_exc())
                 except:
                     print(traceback.format_exc())
                     if tc.print_exception:
@@ -347,7 +349,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
                                 if l:
                                     asyncio.ensure_future(app.sendFriendMessage(hurenzu,await compressMsg(l)))
                                 break
-
+            except AttributeError: print(traceback.format_exc())
             except:
                 if tc.print_exception:
                     l=[Plain(traceback.format_exc())]
