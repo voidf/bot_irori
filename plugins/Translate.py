@@ -245,13 +245,16 @@ async def 能不能好好说话(*attrs, kwargs={}):
 
 async def 咕狗翻译(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
-    if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
+    if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         removeSniffer(player,'#gkr')
         return [Plain('我住嘴了')]
+    if '-q' in kwargs or '--quick' in kwargs:
+        overwriteSniffer(player,'#gkr', r'^[a-zA-Z\s]+$', 'en', 'zh')
+        return [Plain(f'快速翻译启动（{attrs[0]}=>{attrs[1]},结束打E）')]
     if len(attrs) > 2:
         if attrs[2] == '=':
             overwriteSniffer(player,'#gkr','.*',attrs[0], attrs[1])
-            return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
+            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
@@ -259,13 +262,16 @@ async def 咕狗翻译(*attrs, kwargs={}):
 
 async def 百度翻译(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
-    if ' '.join(attrs) in ('黙れ', '闭嘴', 'damare', 'E') or ' '.join(attrs[2:]) in ('黙れ', '闭嘴', 'damare', 'E'):
+    if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         removeSniffer(player,'#bkr')
         return [Plain('我住嘴了')]
+    if '-q' in kwargs or '--quick' in kwargs:
+        overwriteSniffer(player,'#bkr', r'^[a-zA-Z\s]+$', 'en', 'zh')
+        return [Plain(f'快速翻译启动（{attrs[0]}=>{attrs[1]},结束打E）')]
     if len(attrs) > 2:
         if attrs[2] == '=':
             overwriteSniffer(player,'#bkr','.*',attrs[0], attrs[1])
-            return [Plain(f'快速翻译打开（{attrs[0]}=>{attrs[1]},结束打E）')]
+            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（\n')]
