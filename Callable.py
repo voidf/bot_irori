@@ -117,7 +117,12 @@ async def printHelp(*attrs, kwargs={}):
 使用#h <命令名> 可以查询详细用法
 使用#h search <关键字> 可以按照关键字查找相关命令
 尖括号表示参数必要，方括号表示参数可选，实际使用中不必一定需要
-使用#h #abb可以查询缩写表''')
+使用#h #abb可以查询缩写表
+
+通用选项：
+    --fi --force-image 强制把文本消息转换成图片发送
+    --paste 强制把文本消息粘贴至ubuntu pastebin
+    --voice 【试验阶段】如果命令支持的话，发送语音消息''')
     else:
         if attrs[0] in shorts:
             attrs = [shorts[attrs[0]],*attrs[1:]]
