@@ -250,7 +250,7 @@ async def 咕狗翻译(*attrs, kwargs={}):
         return [Plain('我住嘴了')]
     if '-q' in kwargs or '--quick' in kwargs:
         overwriteSniffer(player,'#gkr', r'^[a-zA-Z\s]+$', 'en', 'zh')
-        return [Plain(f'快速翻译启动（{attrs[0]}=>{attrs[1]},结束打E）')]
+        return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
         if attrs[2] == '=':
             overwriteSniffer(player,'#gkr','.*',attrs[0], attrs[1])
@@ -267,7 +267,7 @@ async def 百度翻译(*attrs, kwargs={}):
         return [Plain('我住嘴了')]
     if '-q' in kwargs or '--quick' in kwargs:
         overwriteSniffer(player,'#bkr', r'^[a-zA-Z\s]+$', 'en', 'zh')
-        return [Plain(f'快速翻译启动（{attrs[0]}=>{attrs[1]},结束打E）')]
+        return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
         if attrs[2] == '=':
             overwriteSniffer(player,'#bkr','.*',attrs[0], attrs[1])
