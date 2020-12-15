@@ -372,8 +372,8 @@ async def compressMsg(l, extDict={}):
                 "expiration":"day",
                 "content":s
             }
-            asyncio.ensure_future(msgDistributer(list=[Plain(requests.post("https://paste.ubuntu.com/", data=data).url)], **extDict))
-        l = others
+            # asyncio.ensure_future(msgDistributer(list=[Plain(requests.post("https://paste.ubuntu.com/", data=data).url)], **extDict))
+        l = [Plain(requests.post("https://paste.ubuntu.com/", data=data).url)] + others
     elif len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
         A = int(extDict.get("-A", 255))
         try:
