@@ -399,7 +399,9 @@ async def ddl通知姬(*attrs, kwargs={}):
     
 async def 数电笔记(*attrs, kwargs={}):
     ins = ' '.join(attrs)
-    if ins in GLOBAL.DEKnowledge:
+    if ins == 'ls':
+        return [Plain('\n'.join(GLOBAL.DEKnowledge.keys()))]
+    elif ins in GLOBAL.DEKnowledge:
         return GLOBAL.DEKnowledge[ins]
     else:
         return [Plain('不存在此条目')]
