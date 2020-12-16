@@ -125,6 +125,8 @@ def sys_pull(member,player,s,extDict):
 
 def sys_exec(member,player,s,extDict):return f"""{exec(' '.join(s[1:]))}"""
 
+def sys_run(member,player,s,extDict):return f"""{os.popen(' '.join(s[1:])).read()}"""
+
 def sys_eval(member,player,s,extDict):return f"""{eval(' '.join(s[1:]))}"""
 
 def sys_pexc(member,player,s,extDict):chkcfg(player).print_exception=True;return '异常时打印异常信息'
@@ -152,6 +154,7 @@ sys_dict = {
     'pull':sys_pull,
     'eval':sys_eval,
     'exec':sys_exec,
+    'run':sys_run,
     'pexc':sys_pexc,
     'cexc':sys_cexc,
     'su':sys_su,

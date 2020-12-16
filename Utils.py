@@ -346,7 +346,7 @@ def updateCredit(user: int, operator: str, val: int): # 危
         f.write(f'{c}')
     return True
 
-def generateTmpFileName(pref, ext='.png',**kwargs):
+def generateTmpFileName(pref='', ext='.png', **kwargs):
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
 async def compressMsg(l, extDict={}):
@@ -419,10 +419,38 @@ async def compressMsg(l, extDict={}):
     else:
         if "-voice" in extDict and "voices" in extDict: # 不能超过1M
             for i in extDict['voices']:
-                voi = await GLOBAL.app.uploadVoice(getFileBytes(i))
-                # l.append(voi)
+                fn = generateTmpFile(getFileBytes(i), fm='mp3')
+                out = limitAudioSizeByBitrate(fn) if '-fs' not in extDict else limitAudioSizeByCut(fn)
+                byte = getFileBytes(out)
+                voi = await GLOBAL.app.uploadVoice(byte)
                 asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         return MessageChain.create(l).asSendable()
+
+def generateTmpFile(b: bytes, fm='png') -> str:
+    """生成一个30s后会删掉的临时文件"""
+    fn = generateTmpFileName(ext=f'.{fm}')
+    with open(fn, 'wb') as f:
+        f.write(b)
+    asyncio.ensure_future(rmTmpFile(fn))
+    return fn
+    
+def limitAudioSizeByBitrate(src) -> str:
+    """依赖ffmpeg，生成一个临时文件，全 损 音 质"""
+    lim = 8 * 1024 # 即1MB，大于1M发不出去
+    dst = generateTmpFileName(ext='.mp3')
+    dur = os.popen(f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {src}').read()
+    dur = float(dur)
+    print(dur)
+    os.system(f'ffmpeg -y -i {src} -b:a {lim / dur}k {dst}')
+    asyncio.ensure_future(rmTmpFile(dst))
+    return dst
+
+def limitAudioSizeByCut(src) -> str:
+    """超出部分会被剪掉"""
+    dst = generateTmpFileName(ext='.mp3')
+    os.system(f'ffmpeg -y -i {src} -fs 1024K {dst}')
+    asyncio.ensure_future(rmTmpFile(dst))
+    return dst
 
 def getFileBytes(s):
     if isinstance(s, bytes):
