@@ -436,19 +436,20 @@ def generateTmpFile(b: bytes, fm='png') -> str:
     
 def limitAudioSizeByBitrate(src) -> str:
     """依赖ffmpeg，生成一个临时文件，全 损 音 质"""
-    lim = 8 * 1024 # 即1MB，大于1M发不出去
-    dst = generateTmpFileName(ext='.mp3')
+    # lim = 8 * 1024 # 即1MB，大于1M发不出去
+    lim = 8000
+    dst = generateTmpFileName(ext='.amr')
     dur = os.popen(f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {src}').read()
     dur = float(dur)
     print(dur)
-    os.system(f'ffmpeg -y -i {src} -b:a {lim / dur}k {dst}')
+    os.system(f'ffmpeg -y -i {src} -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
 def limitAudioSizeByCut(src) -> str:
     """超出部分会被剪掉"""
-    dst = generateTmpFileName(ext='.mp3')
-    os.system(f'ffmpeg -y -i {src} -fs 1024K {dst}')
+    dst = generateTmpFileName(ext='.amr')
+    os.system(f'ffmpeg -y -i {src} -ac 1 -ar 8000 -fs 1000K {dst}')
     asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
