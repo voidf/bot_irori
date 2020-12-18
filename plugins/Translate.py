@@ -94,10 +94,9 @@ def hhsh(req):
     res = json.loads(requests.post(
         url, headers=head, json=re, timeout=30).text)
     try:
-        for i in res[0]['trans']:
-            result += '\n'+i
+        result += '\n'.join(res[0]['trans'])
     except:
-        result = '\n尚未收录'
+        result = '尚未收录'
     return result
 
 # 无符号位移: https://www.jianshu.com/p/24d11ab44ae6
