@@ -57,7 +57,7 @@ async def 乒乓球(*attrs,kwargs={}):
     if GLOBAL.pingCtr-1==0:
         s = 'pong'
     else:
-        s = f'pong {GLOBAL.pingCtr}Xcombo'
+        s = f'pong - {GLOBAL.pingCtr}'
     return [Plain(s)]
 
 async def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]

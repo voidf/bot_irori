@@ -210,8 +210,8 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
     extDict['pics'] = pic
     if member in tc.super_users:extDict['sudo'] = True
     if s[0] == 'sudo':
-        s.pop(0)
         if member in masterID:
+            s.pop(0)
             extDict['sudo'] = True
     if GLOBAL.echoMsg:print(f"""{message}""")
     ns = []
@@ -222,6 +222,52 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
         else: ns.append(i)
     return ns
 
+
+async def cmdResolver(player, s, extDict) -> None:
+    tc = chkcfg(player)
+    member = getmem(extDict['mem'])
+    try:
+        if 'sudo' in extDict:
+            is_called, output = await systemcall(member,player,s,extDict)
+            if is_called:
+                await msgDistributer(player=player, list=await compressMsg([Plain(output)],extDict))
+                return
+        if not tc.enable_this:
+            return
+        a, *b = s
+        l = []
+        a = Callable.shorts.get(a, a)
+        
+        if a in Callable.funs:
+            
+            if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
+
+                l = await compressMsg(await Callable.funs[a](*b, kwargs=extDict), extDict)
+
+                if a in GLOBAL.credit_cmds:
+                    updateCredit(member, *GLOBAL.credit_cmds[a])
+                if l:
+                    await msgDistributer(player=player, list=l)
+
+                return
+
+        if tc.quick_calls:
+            # print(tc.quick_calls)
+            # print(getMessageChainText(message))
+            for ev,mono in dict(tc.quick_calls).items():
+                if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
+                    for sniffKey in mono['sniff']:
+                        if re.search(sniffKey,getMessageChainText(message), re.S):
+                            l = await compressMsg(await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict), extDict)
+                            if l:
+                                asyncio.ensure_future(msgDistributer(player=player, list=l))
+                            break
+
+    except:
+        if tc.print_exception:
+            await app.sendGroupMessage(group,await compressMsg([Plain(traceback.format_exc())],extDict))
+        return
+
 @irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
 async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:Member):
     GLOBAL.app = app
@@ -231,132 +277,26 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
         'mem':member,
         'player':player
     }
-    tc = chkcfg(player)
-    s = msgprework(message,extDict)
-    member:int = getmem(extDict['mem'])
-    if member not in botList:
-        try:
-            if 'sudo' in extDict:
-                is_called,output = await systemcall(member,player,s,extDict)
-                if is_called:
-                    await app.sendGroupMessage(group,await compressMsg([Plain(output)],extDict))
-                    return
-        except:
-            if tc.print_exception:
-                await app.sendGroupMessage(group,await compressMsg([Plain(traceback.format_exc())],extDict))
-            return
-        if not tc.enable_this:
-            return
-        a, *b = s
-        l = []
-        if a in Callable.shorts:
-            a = Callable.shorts[a]
-        
-        if a in Callable.funs:
-            
-            if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
-                try:
-                    l = await Callable.funs[a](*b, kwargs=extDict)
-                    if l is None:
-                        print(traceback.format_exc())
-                    else:
-                        print(f"MESSAGESLENGTH ===> {len(l)}")
-                    if a in GLOBAL.credit_cmds:
-                        updateCredit(member, *GLOBAL.credit_cmds[a])
-                    if l:
-                        await app.sendGroupMessage(group, await compressMsg(l,extDict))
-                except AttributeError: print(traceback.format_exc())
-                except:
-                    if l is None:
-                        l = []
-                    print(traceback.format_exc())
-                    if tc.print_exception:
-                        l=[Plain(traceback.format_exc())]
-                        await app.sendGroupMessage(group, await compressMsg(l,extDict))
-                return
 
-        if tc.quick_calls:
-            print(tc.quick_calls)
-            print(getMessageChainText(message))
-            try:
-                for ev,mono in dict(tc.quick_calls).items():
-                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
-                        for sniffKey in mono['sniff']:
-                            if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = await Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
-                                if l:
-                                    asyncio.ensure_future(app.sendGroupMessage(group,await compressMsg(l,extDict)))
-                                break
-            except AttributeError: print(traceback.format_exc())
-            except:
-                if tc.print_exception:
-                    l.append=[Plain(traceback.format_exc())]
-                    await app.sendGroupMessage(group,await compressMsg(l,extDict))
+    s = msgprework(message,extDict)
+    m = getmem(extDict['mem'])
+    if m not in botList:
+        await cmdResolver(player, s, extDict)
 
 @irori.receiver("FriendMessage", headless_decoraters=[Depend(irori_statistics)])
 async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
     GLOBAL.app = app
     player = hurenzu.id
-    tc = chkcfg(player)
 
     extDict = {
         'mem':hurenzu,
         'player':player
     }
-    member = getmem(hurenzu)
+
     s = msgprework(message,extDict)
 
     if hurenzu.id not in muteList:
-        try:
-            if 'sudo' in extDict:
-                is_called,output = await systemcall(member, player, s, extDict)
-                if is_called:
-                    await app.sendFriendMessage(hurenzu,await compressMsg([Plain(output)],extDict))
-                    return
-        except:
-            if tc.print_exception:
-                await app.sendFriendMessage(hurenzu,await compressMsg([Plain(traceback.format_exc())],extDict))
-            return
-        if not tc.enable_this:
-            return
-        a,*b = s
-        l = []
-        if a in Callable.shorts:
-            a = Callable.shorts[a]
-        
-        if a in Callable.funs: # 命令模块
-            if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
-                try:
-                    l = await Callable.funs[a](*b, kwargs=extDict)
-                    print(f"MESSAGESLENGTH ===> {len(l)}")
-                    if a in GLOBAL.credit_cmds:
-                        updateCredit(member, *GLOBAL.credit_cmds[a])
-                    if l:
-                        await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
-                except AttributeError: print(traceback.format_exc())
-                except:
-                    print(traceback.format_exc())
-                    if tc.print_exception:
-                        l=[Plain(traceback.format_exc())]
-                        await app.sendFriendMessage(hurenzu, await compressMsg(l,extDict))
-                return
-
-        if tc.quick_calls: # sniff模块
-            print(tc.quick_calls)
-            try:
-                for ev,mono in tc.quick_calls.items():
-                    if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
-                        for sniffKey in mono['sniff']:
-                            if re.search(sniffKey,getMessageChainText(message),re.S):
-                                l = await Callable.funs[ev](*mono['attrs'],*s,kwargs=extDict)
-                                if l:
-                                    asyncio.ensure_future(app.sendFriendMessage(hurenzu,await compressMsg(l)))
-                                break
-            except AttributeError: print(traceback.format_exc())
-            except:
-                if tc.print_exception:
-                    l=[Plain(traceback.format_exc())]
-                    await app.sendFriendMessage(hurenzu,await compressMsg(l,extDict))
+        await cmdResolver(player, s, extDict)
 
 async def hajime(bot):
     GLOBAL.app = bot

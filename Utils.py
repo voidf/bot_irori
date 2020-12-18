@@ -91,8 +91,9 @@ async def fuzzT(g,s,e,w=''):
         if _%10==0:
             await asyncio.sleep(0.2)
         await msgDistributer(gp=g,msg=f'{chr(_)}{_}{w}')
-
+# from graia.application.message.chain import MessageChain
 async def MessageChainSpliter(chain: list, **kwargs):
+    """只在v4工作的函数，把消息链拆开，一条条发送"""
     if chain:
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
@@ -114,6 +115,7 @@ async def msgDistributer(**kwargs):
     根据player号分发消息
     输入字典msg为源文本，typ标识其类型('E'表情,'I'图片文件目录,'P'普通文本)
     扩展了也可以扔消息元素列表(list)进来的功能
+    用例await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
     """
     seq = []
     
@@ -143,20 +145,26 @@ async def msgDistributer(**kwargs):
         else:
             seq = [Plain(kwargs['msg'])]
 
+    need_compress = True
     if 'list' in kwargs and kwargs['list']:
-        seq += kwargs['list']
+        if not seq and isinstance(kwargs['list'], MessageChain): 
+            need_compress = False
+            seq = kwargs['list']
+        else:
+            seq += kwargs['list']
 
     if seq:
+        if need_compress: seq = await compressMsg(seq)
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
-                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39),await compressMsg(seq))
+                await GLOBAL.app.sendGroupMessage(kwargs['player']-(1<<39), seq)
             else:
-                await GLOBAL.app.sendFriendMessage(kwargs['player'],await compressMsg(seq))
+                await GLOBAL.app.sendFriendMessage(kwargs['player'], seq)
         elif 'gp' in kwargs:
-            await GLOBAL.app.sendGroupMessage(kwargs['gp'],await compressMsg(seq))
+            await GLOBAL.app.sendGroupMessage(kwargs['gp'], seq)
         elif 'mem' in kwargs:
-            await GLOBAL.app.sendFriendMessage(kwargs['mem'],await compressMsg(seq))
+            await GLOBAL.app.sendFriendMessage(kwargs['mem'], seq)
         
 async def msgSerializer(_i, **kwargs):
     p = getPlayer(**kwargs)
@@ -364,15 +372,15 @@ async def compressMsg(l, extDict={}):
             others.append(i)
     s = ''.join(nl)
 
-    if "-paste" in extDict:
-        if s:
-            data = {
-                "poster":"irori",
-                "syntax": extDict.get("-syntax", "text"),
-                "expiration":"day",
-                "content":s
-            }
-            # asyncio.ensure_future(msgDistributer(list=[Plain(requests.post("https://paste.ubuntu.com/", data=data).url)], **extDict))
+    if "-paste" in extDict and s:
+
+        data = {
+            "poster":"irori",
+            "syntax": extDict.get("-syntax", "text"),
+            "expiration":"day",
+            "content":s
+        }
+        # asyncio.ensure_future(msgDistributer(list=[Plain(requests.post("https://paste.ubuntu.com/", data=data).url)], **extDict))
         l = [Plain(requests.post("https://paste.ubuntu.com/", data=data).url)] + others
     elif len(s) > tc.compress_threshold or "-force-image" in extDict or "-fi" in extDict:
         A = int(extDict.get("-A", 255))
@@ -413,6 +421,8 @@ async def compressMsg(l, extDict={}):
         layer2.save(p)
         asyncio.ensure_future(rmTmpFile(p))
         l = [generateImageFromFile(p)] + others
+        
+    if not l: return []
     
     if GLOBAL.py_mirai_version == 3:
         return l
