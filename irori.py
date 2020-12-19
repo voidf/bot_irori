@@ -224,6 +224,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
 
 
 async def cmdResolver(player, s, message, extDict) -> None:
+    print(extDict)
     tc = chkcfg(player)
     member = getmem(extDict['mem'])
     try:
