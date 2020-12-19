@@ -262,7 +262,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
                         if re.search(sniffKey,getMessageChainText(message), re.S):
                             l = await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict)
                             if l:
-                                asyncio.ensure_future(, **extDict(player=player, list=l, **extDict))
+                                asyncio.ensure_future(msgDistributer(player=player, list=l, **extDict))
                             break
 
     except:
