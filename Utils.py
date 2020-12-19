@@ -154,7 +154,7 @@ async def msgDistributer(**kwargs):
             seq += kwargs['list']
 
     if seq:
-        if need_compress: seq = await compressMsg(seq)
+        if need_compress: seq = await compressMsg(seq, extDict=kwargs)
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:

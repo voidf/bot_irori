@@ -231,7 +231,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
         if 'sudo' in extDict:
             is_called, output = await systemcall(member,player,s,extDict)
             if is_called:
-                await msgDistributer(player=player, list=[Plain(output)])
+                await msgDistributer(player=player, list=[Plain(output)], **extDict)
                 return
         if not tc.enable_this:
             return
@@ -248,7 +248,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
                 if a in GLOBAL.credit_cmds:
                     updateCredit(member, *GLOBAL.credit_cmds[a])
                 if l:
-                    await msgDistributer(player=player, list=l)
+                    await msgDistributer(player=player, list=l, **extDict)
 
                 return
 
@@ -262,7 +262,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
                         if re.search(sniffKey,getMessageChainText(message), re.S):
                             l = await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict)
                             if l:
-                                asyncio.ensure_future(msgDistributer(player=player, list=l))
+                                asyncio.ensure_future(, **extDict(player=player, list=l, **extDict))
                             break
 
     except:
