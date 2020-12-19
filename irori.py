@@ -223,7 +223,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
     return ns
 
 
-async def cmdResolver(player, s, extDict) -> None:
+async def cmdResolver(player, s, message, extDict) -> None:
     tc = chkcfg(player)
     member = getmem(extDict['mem'])
     try:
@@ -282,7 +282,7 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     s = msgprework(message,extDict)
     m = getmem(extDict['mem'])
     if m not in botList:
-        await cmdResolver(player, s, extDict)
+        await cmdResolver(player, s, message, extDict)
 
 @irori.receiver("FriendMessage", headless_decoraters=[Depend(irori_statistics)])
 async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
@@ -297,7 +297,7 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
     s = msgprework(message,extDict)
 
     if hurenzu.id not in muteList:
-        await cmdResolver(player, s, extDict)
+        await cmdResolver(player, s, message, extDict)
 
 async def hajime(bot):
     GLOBAL.app = bot
