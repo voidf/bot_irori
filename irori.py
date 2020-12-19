@@ -231,7 +231,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
         if 'sudo' in extDict:
             is_called, output = await systemcall(member,player,s,extDict)
             if is_called:
-                await msgDistributer(player=player, list=[Plain(output)], **extDict)
+                await msgDistributer(list=[Plain(output)], **extDict)
                 return
         if not tc.enable_this:
             return
@@ -248,7 +248,7 @@ async def cmdResolver(player, s, message, extDict) -> None:
                 if a in GLOBAL.credit_cmds:
                     updateCredit(member, *GLOBAL.credit_cmds[a])
                 if l:
-                    await msgDistributer(player=player, list=l, **extDict)
+                    await msgDistributer(list=l, **extDict)
 
                 return
 
@@ -262,12 +262,12 @@ async def cmdResolver(player, s, message, extDict) -> None:
                         if re.search(sniffKey,getMessageChainText(message), re.S):
                             l = await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict)
                             if l:
-                                asyncio.ensure_future(msgDistributer(player=player, list=l, **extDict))
+                                asyncio.ensure_future(msgDistributer(list=l, **extDict))
                             break
 
     except:
         if tc.print_exception:
-            await msgDistributer(player=player, list=[Plain(traceback.format_exc())])
+            await msgDistributer(list=[Plain(traceback.format_exc())], **extDict)
         return
 
 @irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
