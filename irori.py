@@ -230,7 +230,7 @@ async def cmdResolver(player, s, extDict) -> None:
         if 'sudo' in extDict:
             is_called, output = await systemcall(member,player,s,extDict)
             if is_called:
-                await msgDistributer(player=player, list=await compressMsg([Plain(output)],extDict))
+                await msgDistributer(player=player, list=[Plain(output)])
                 return
         if not tc.enable_this:
             return
@@ -242,7 +242,7 @@ async def cmdResolver(player, s, extDict) -> None:
             
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
 
-                l = await compressMsg(await Callable.funs[a](*b, kwargs=extDict), extDict)
+                l = await Callable.funs[a](*b, kwargs=extDict)
 
                 if a in GLOBAL.credit_cmds:
                     updateCredit(member, *GLOBAL.credit_cmds[a])
@@ -258,14 +258,14 @@ async def cmdResolver(player, s, extDict) -> None:
                 if ev not in tc.restrict_cmd and (not tc.allow_cmd or ev in tc.allow_cmd):
                     for sniffKey in mono['sniff']:
                         if re.search(sniffKey,getMessageChainText(message), re.S):
-                            l = await compressMsg(await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict), extDict)
+                            l = await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict)
                             if l:
                                 asyncio.ensure_future(msgDistributer(player=player, list=l))
                             break
 
     except:
         if tc.print_exception:
-            await app.sendGroupMessage(group,await compressMsg([Plain(traceback.format_exc())],extDict))
+            await msgDistributer(player=player, list=[Plain(traceback.format_exc())])
         return
 
 @irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
