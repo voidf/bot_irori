@@ -603,6 +603,43 @@ async def 爬what_anime(*attrs,kwargs={}):
     else:
         return [Plain('您没发图哥哥！')]
 
+async def 刷CF(*attrs,kwargs={}):
+    """爬取给定用户的做题记录。
+    用例：#刷CF bot_yaya"""
+    usr = attrs[0]
+    res = requests.get(f'https://codeforces.com/api/user.status?handle={usr}')
+
+    j = res.json()
+    problems = {}
+    accept_count = 0
+    tried_count = 0
+
+    for i in j['result']:
+        na = i.get('problemsetName', '')
+        na = i.get('contestId', na)
+        ind = i.get('index', '')
+        identity = f'{na}{ind}'
+        verdict = i.get('verdict', '')
+        if identity in problems:
+            if problems[identity] == 'OK': continue
+            elif verdict == 'OK':
+                accept_count += 1
+                tried_count -= 1
+                problems[identity] = 'OK'
+        else:
+            if verdict == 'OK':
+                accept_count += 1
+                problems[identity] = 'OK'
+            else:
+                tried_count += 1
+                problems[identity] = verdict
+    return [Plain(
+        f"""用户{usr}的CF刷题记录：
+    通过{accept_count}题
+    试过{tried_count}题"""
+    )]
+
+
 functionMap = {
     '#LaTeX':爬LaTeX,
     '#看看病':没救了,
@@ -632,7 +669,7 @@ shortMap = {
     '#yy':'#肛道理',
     '#tex':'#LaTeX',
     '#uta':'#什么值得听',
-    '#listen':'#什么值得听',
+    '#music':'#什么值得听',
     '#weather':'#天气',
 
 }
