@@ -252,6 +252,7 @@ async def cmdResolver(player, s, extDict) -> None:
                 return
 
         if tc.quick_calls:
+            extDict['sniffer_invoke'] = True
             # print(tc.quick_calls)
             # print(getMessageChainText(message))
             for ev,mono in dict(tc.quick_calls).items():
