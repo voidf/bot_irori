@@ -153,7 +153,7 @@ async def msgDistributer(**kwargs):
         else:
             seq += kwargs['list']
 
-    if seq:
+    if seq or kwargs.get('voices', False):
         if need_compress: seq = await compressMsg(seq, extDict=kwargs)
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
@@ -429,7 +429,7 @@ async def compressMsg(l, extDict={}):
     else:
         if "-voice" in extDict and "voices" in extDict: # 不能超过1M
             for i in extDict['voices']:
-                fn = generateTmpFile(getFileBytes(i), fm='mp3')
+                fn = generateTmpFile(getFileBytes(i), fm=extDict.get('voices-fm', 'mp3'))
                 out = limitAudioSizeByBitrate(fn) if '-fs' not in extDict else limitAudioSizeByCut(fn)
                 byte = getFileBytes(out)
                 voi = await GLOBAL.app.uploadVoice(byte)
@@ -597,10 +597,11 @@ async def renderHtml(dst_lnk, na) -> str:
     driver.quit()
     return ostr
 
-
+import warnings
 
 def uploadToChaoXing(fn: Union[bytes,str]) -> str:
-    lnk = 'http://notice.chaoxing.com/pc/files/uploadNoticeFile'
+    warnings.warn("超星网盘现在要登录了", DeprecationWarning)
+    lnk = 'https://notice.chaoxing.com/pc/files/uploadNoticeFile'
     if isinstance(fn,bytes):
         r = requests.post(lnk,files = {'attrFile':fn})
     else:

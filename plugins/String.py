@@ -832,6 +832,7 @@ book_of_answers_en = [
 book_of_answers_en = list(set(book_of_answers_en))
 
 async def 答案之书(*attrs,kwargs={}):
+    '向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
@@ -851,6 +852,7 @@ async def 答案之书(*attrs,kwargs={}):
     return [Plain(ans.strip())]
 
 async def 答案之书en(*attrs,kwargs={}):
+    '向答案之书（英文）提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
@@ -932,19 +934,17 @@ functionMap = {
     '#a2m':转电码,
     '#m2a':译电码,
     '#m2z':译中文电码,
-    '#为什么':答案之书,
-    '#为什么e':答案之书en,
     '#repeat':復讀,
     '#KMP':KMP
 }
 
 shortMap = {
-    '#ans':'#为什么',
-    '#why':'#为什么',
-    '#wsm':'#为什么',
-    '#anse':'#为什么e',
-    '#whye':'#为什么e',
-    '#wsme':'#为什么e'
+    '#ans':'#答案之书',
+    '#why':'#答案之书',
+    '#wsm':'#答案之书',
+    '#anse':'#答案之书en',
+    '#whye':'#答案之书en',
+    '#wsme':'#答案之书en'
 }
 
 functionDescript = {
@@ -986,8 +986,6 @@ functionDescript = {
     #m2z _7093__2448__5530__5358_ split=_
     使用_作为电码"_7093__2448__5530__5358_"的分隔符
 ''',
-    '#为什么':'向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？',
-    '#为什么e':'向答案之书（英文）提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？',
     '#KMP':
 '''
 生成KMP算法的fail数组和EXKMP的next和extent数组

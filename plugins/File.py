@@ -444,7 +444,9 @@ async def 在线P歌(*attrs, kwargs={}):
     fn = f'tmp{randstr(4)}.mid'
     m.save(fn)
     asyncio.ensure_future(rmTmpFile(fn))
-    return [Plain(uploadToChaoXing(fn))]
+    kwargs['voices'] = [fn]
+    kwargs['voices-fm'] = 'mid'
+    return [Plain('由于超星已经用不了，请使用--voice发送你自己P的歌')]
 
 async def 仿洛谷每日签到(*attrs, kwargs={}):
     generate_key_count = random.randint(2,5)
