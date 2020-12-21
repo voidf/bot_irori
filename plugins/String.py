@@ -836,16 +836,16 @@ async def 答案之书(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
-            overwriteSniffer(player,'#为什么',r'\?')
-            appendSniffer(player,'#为什么',r'\？')
-            appendSniffer(player,'#为什么',r'¿')
-            appendSniffer(player,'#为什么',r'吗')
-            appendSniffer(player,'#为什么',r'怎么')
-            appendSniffer(player,'#为什么',r'如何')
-            appendSniffer(player,'#为什么',r'为什么')
+            overwriteSniffer(player,'#答案之书',r'\?')
+            appendSniffer(player,'#答案之书',r'\？')
+            appendSniffer(player,'#答案之书',r'¿')
+            appendSniffer(player,'#答案之书',r'吗')
+            appendSniffer(player,'#答案之书',r'怎么')
+            appendSniffer(player,'#答案之书',r'如何')
+            appendSniffer(player,'#答案之书',r'为什么')
             return [Plain('【答案之书】sniff模式')]
         elif attrs[-1] in GLOBAL.unsubscribes:
-            removeSniffer(player,'#为什么')
+            removeSniffer(player,'#答案之书')
             return [Plain('【答案之书】禁用sniffer')]
     dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers+dynamic_answers)
@@ -856,16 +856,16 @@ async def 答案之书en(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[-1] in ('sub','sniff'):
-            overwriteSniffer(player,'#为什么e',r'\?')
-            appendSniffer(player,'#为什么e',r'\？')
-            appendSniffer(player,'#为什么e',r'¿')
-            appendSniffer(player,'#为什么e',r'吗')
-            appendSniffer(player,'#为什么e',r'怎么')
-            appendSniffer(player,'#为什么e',r'如何')
-            appendSniffer(player,'#为什么e',r'为什么')
+            overwriteSniffer(player,'#答案之书en',r'\?')
+            appendSniffer(player,'#答案之书en',r'\？')
+            appendSniffer(player,'#答案之书en',r'¿')
+            appendSniffer(player,'#答案之书en',r'吗')
+            appendSniffer(player,'#答案之书en',r'怎么')
+            appendSniffer(player,'#答案之书en',r'如何')
+            appendSniffer(player,'#答案之书en',r'为什么')
             return [Plain('【book of answers】sniff mode on')]
         elif attrs[-1] in GLOBAL.unsubscribes:
-            removeSniffer(player,'#为什么e')
+            removeSniffer(player,'#答案之书en')
             return [Plain('【book of answers】sniff mode off')]
     dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers_en+dynamic_answers)
