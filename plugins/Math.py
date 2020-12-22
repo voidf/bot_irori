@@ -59,6 +59,7 @@ class FindTruth:
         self.__In(inputMono)
         #输出真值表
         self.__Out()
+        self._print()
         
     #输入
     def __In(self,inputMono):
@@ -66,7 +67,7 @@ class FindTruth:
         self.Str = inputMono
         #筛出字母集合
         self.Set = set(self.Str).difference(set("()!&|>=^"))
-        self._print()
+        
     #求公式结果
     def __Sum(self, Str):
         i = 0 #字符位置
