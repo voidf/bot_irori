@@ -66,6 +66,7 @@ class FindTruth:
         self.Str = inputMono
         #筛出字母集合
         self.Set = set(self.Str).difference(set("()!&|>=^"))
+        self._print()
     #求公式结果
     def __Sum(self, Str):
         i = 0 #字符位置
@@ -245,14 +246,22 @@ async def 统计姬from104(*attrs, kwargs={}):
     return ostr
 
 async def QM化简器(*attrs, kwargs={}):
-    v = list(attrs)
-    if len(v[0].split(',')) > 1: # 最小项输入
-        if len(v) == 1:
-            return [Plain(text=quine_mccluskey.qmccluskey.maid(minterms=v[0].split(',')))]
-        else:
-            return [Plain(text=quine_mccluskey.qmccluskey.maid('',*v[1:3],minterms=v[0].split(',')))]
+    """"""
+    v = attrs
+    if v[0].count(',') >= 1: # 最小项输入
+
+        return [Plain(quine_mccluskey.qmccluskey.maid(
+            minterms=v[0].split(','), 
+            argsdont_cares=kwargs.get('-dc', ''),
+            argsvariables=kwargs.get('-var', '')
+        ))]
+
     else:
-        return [Plain(text=quine_mccluskey.qmccluskey.maid(*v[:3]))]
+        return [Plain(quine_mccluskey.qmccluskey.maid(
+            argssop=v[0], 
+            argsdont_cares=kwargs.get('-dc', ''),
+            argsvariables=kwargs.get('-var', '')
+        ))]
 
 async def 打印真值表(*attrs, kwargs={}):
     s = FindTruth(' '.join(attrs))
