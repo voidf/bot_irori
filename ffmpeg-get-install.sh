@@ -20,6 +20,8 @@ apt install libdav1d-dev -y
 apt install libdc1394-dev -y
 apt install libdrm-dev -y
 
+# apt install pd-flite -y 语音合成库
+
 apt install timidity -y
 timidity tmp43ZC.mid -Ow -o - | ffmpeg -i - -ac 1 -ar 8000 aaa.amr
 
