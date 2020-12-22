@@ -252,7 +252,7 @@ async def QM化简器(*attrs, kwargs={}):
     #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
     #QM <原式的逻辑式表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
 例:
-    #QM 1,4,2,8,5,7 3 --var=a,b,c,d
+    #QM 1,4,2,8,5,7 --var=a,b,c,d
     #QM b'd+a'bc'+a'bcd' --dc=1,2 --var=a,b,c,d"""
     v = attrs
     if v[0].count(',') >= 1: # 最小项输入
