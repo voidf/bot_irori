@@ -461,7 +461,8 @@ def TTS(text, voice='slt') -> str:
         'slt'
     } else 'slt'
     dst = generateTmpFileName(ext='.amr')
-    os.system(f'''ffmpeg -f lavfi -i flite=text={shlex.quote(text)}:voice={shlex.quote(v)[1:-1]} -codec amr_nb -ac 1 -ar 8000 {dst}''')
+    t = "'" if "'" in text else ""
+    os.system(f'''ffmpeg -f lavfi -i flite=text={t}{shlex.quote(text)}{t}:voice={shlex.quote(v)} -codec amr_nb -ac 1 -ar 8000 {dst}''')
     asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
