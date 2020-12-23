@@ -374,7 +374,7 @@ async def compressMsg(l, extDict={}):
     s = ''.join(nl)
 
     if ('-tts' in extDict or '-TTS' in extDict) and s:
-        out = TTS(s)
+        out = TTS(s, extDict['-tts'])
         byte = getFileBytes(out)
         voi = await GLOBAL.app.uploadVoice(byte)
         asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
@@ -450,9 +450,16 @@ async def compressMsg(l, extDict={}):
         if not l: return False
         return MessageChain.create(l).asSendable()
 
-def TTS(text) -> str:
+def TTS(text, voice='slt') -> str:
+    v = voice if voice in {
+        'awb',
+        'kal',
+        'kal16',
+        'rms',
+        'slt'
+    } else 'slt'
     dst = generateTmpFileName(ext='.amr')
-    os.system(f'''ffmpeg -f lavfi -i flite=text='{text}' -codec amr_nb -ac 1 -ar 8000 {dst}''')
+    os.system(f'''ffmpeg -f lavfi -i flite=text='{text}':voice={v} -codec amr_nb -ac 1 -ar 8000 {dst}''')
     asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
