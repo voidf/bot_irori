@@ -426,6 +426,7 @@ async def compressMsg(l, extDict={}):
     if GLOBAL.py_mirai_version == 3:
         return l
     else:
+        print(extDict['voices'])
         if "-voice" in extDict and "voices" in extDict: # 不能超过1M
             for i in extDict['voices']:
                 fn = generateTmpFile(getFileBytes(i), fm=extDict.get('voices-fm', 'mp3'))
@@ -437,6 +438,7 @@ async def compressMsg(l, extDict={}):
                 out = limit_conf[extDict.get('-lim', 'default')](fn)
                 byte = getFileBytes(out)
                 voi = await GLOBAL.app.uploadVoice(byte)
+                print(f"voi ===> {voi}")
                 asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         return MessageChain.create(l).asSendable()
 
