@@ -453,7 +453,7 @@ import platform
 def nolimitAudioSize(src) -> str:
     dst = generateTmpFileName(ext='.amr')
     if src[-3:] == "mid" and platform.system() != 'Windows':
-        os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 {dst}')
+        os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 {dst}')
     asyncio.ensure_future(rmTmpFile(dst))
@@ -468,7 +468,7 @@ def limitAudioSizeByBitrate(src) -> str:
     dur = float(dur)
     print(dur)
     if src[-3:] == "mid" and platform.system() != 'Windows':
-        os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
+        os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     asyncio.ensure_future(rmTmpFile(dst))
