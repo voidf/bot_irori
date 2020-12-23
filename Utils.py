@@ -439,7 +439,7 @@ async def compressMsg(l, extDict={}):
                 byte = getFileBytes(out)
                 voi = await GLOBAL.app.uploadVoice(byte)
                 print(f"voi ===> {voi}")
-                asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
+                # asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         return MessageChain.create(l).asSendable()
 
 def generateTmpFile(b: bytes, fm='png') -> str:
