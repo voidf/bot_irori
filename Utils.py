@@ -154,6 +154,7 @@ async def msgDistributer(**kwargs):
             seq += kwargs['list']
 
     if need_compress: seq = await compressMsg(seq, extDict=kwargs)
+    print(f'\n{seq}\n')
     if seq:
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
@@ -440,7 +441,7 @@ async def compressMsg(l, extDict={}):
                 voi = await GLOBAL.app.uploadVoice(byte)
                 print(f"voi ===> {voi}")
                 asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
-        if not l: return []
+        if not l: return False
         return MessageChain.create(l).asSendable()
 
 def generateTmpFile(b: bytes, fm='png') -> str:
