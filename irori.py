@@ -138,7 +138,7 @@ def sys_su(member,player,s,extDict):chkcfg(player).super_users.add(member);retur
 def sys_exit(member,player,s,extDict):chkcfg(player).super_users.add(member);return 'irori:~$'
 
 def sys_terminal(member,player,s,extDict):
-    if platform.platform().find('Windows') != -1:
+    if platform.system() == 'Windows':
         for i in s[1:]:
             if i in ('ps','powershell'):
                 SHELL[member] = pexpect.popen_spawn.PopenSpawn('powershell')
@@ -389,6 +389,6 @@ else:
         await hajime(bot)
     
 
-print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version}=============")
+print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version} at {platform.platform()}=============")
 if GLOBAL.py_mirai_version == 3: irori.run()
 else: qqbot.launch_blocking()

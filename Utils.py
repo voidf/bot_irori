@@ -422,7 +422,6 @@ async def compressMsg(l, extDict={}):
         asyncio.ensure_future(rmTmpFile(p))
         l = [generateImageFromFile(p)] + others
         
-    if not l: return []
     
     if GLOBAL.py_mirai_version == 3:
         return l
@@ -444,6 +443,7 @@ def generateTmpFile(b: bytes, fm='png') -> str:
     asyncio.ensure_future(rmTmpFile(fn))
     return fn
     
+import platform
 def limitAudioSizeByBitrate(src) -> str:
     """依赖ffmpeg，生成一个临时文件，全 损 音 质"""
     # lim = 8 * 1024 # 即1MB，大于1M发不出去
@@ -452,7 +452,7 @@ def limitAudioSizeByBitrate(src) -> str:
     dur = os.popen(f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {src}').read()
     dur = float(dur)
     print(dur)
-    if src[-3:] == "mid":
+    if src[-3:] == "mid" and platform.system() != 'Windows':
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
@@ -462,7 +462,7 @@ def limitAudioSizeByBitrate(src) -> str:
 def limitAudioSizeByCut(src) -> str:
     """超出部分会被剪掉"""
     dst = generateTmpFileName(ext='.amr')
-    if src[-3:] == "mid":
+    if src[-3:] == "mid" and platform.system() != 'Windows':
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
@@ -605,16 +605,16 @@ async def renderHtml(dst_lnk, na) -> str:
 
 import warnings
 
-def uploadToChaoXing(fn: Union[bytes,str]) -> str:
-    warnings.warn("超星网盘现在要登录了", DeprecationWarning)
-    lnk = 'https://notice.chaoxing.com/pc/files/uploadNoticeFile'
-    if isinstance(fn,bytes):
-        r = requests.post(lnk,files = {'attrFile':fn})
-    else:
-        with open(fn,'rb') as f:
-            r = requests.post(lnk,files = {'attrFile':f})
-    j = json.loads(r.text)
-    return j['att_file']['att_clouddisk']['downPath']
+# def uploadToChaoXing(fn: Union[bytes,str]) -> str:
+#     warnings.warn("超星网盘现在要登录了", DeprecationWarning)
+#     lnk = 'https://notice.chaoxing.com/pc/files/uploadNoticeFile'
+#     if isinstance(fn,bytes):
+#         r = requests.post(lnk,files = {'attrFile':fn})
+#     else:
+#         with open(fn,'rb') as f:
+#             r = requests.post(lnk,files = {'attrFile':f})
+#     j = json.loads(r.text)
+#     return j['att_file']['att_clouddisk']['downPath']
 
 # 数论相关
 
