@@ -450,6 +450,8 @@ async def compressMsg(l, extDict={}):
         if not l: return False
         return MessageChain.create(l).asSendable()
 
+import shlex
+
 def TTS(text, voice='slt') -> str:
     v = voice if voice in {
         'awb',
@@ -459,7 +461,7 @@ def TTS(text, voice='slt') -> str:
         'slt'
     } else 'slt'
     dst = generateTmpFileName(ext='.amr')
-    os.system(f'''ffmpeg -f lavfi -i flite=text='{text}':voice={v} -codec amr_nb -ac 1 -ar 8000 {dst}''')
+    os.system(f'''ffmpeg -f lavfi -i flite=text='{shlex.quote(text)}':voice={shlex.quote(v)} -codec amr_nb -ac 1 -ar 8000 {dst}''')
     asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
