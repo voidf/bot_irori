@@ -426,8 +426,8 @@ async def compressMsg(l, extDict={}):
     if GLOBAL.py_mirai_version == 3:
         return l
     else:
-        print(extDict['voices'])
         if "-voice" in extDict and "voices" in extDict: # 不能超过1M
+            print(extDict['voices'])
             for i in extDict['voices']:
                 fn = generateTmpFile(getFileBytes(i), fm=extDict.get('voices-fm', 'mp3'))
                 limit_conf = {
