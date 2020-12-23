@@ -122,14 +122,3 @@ def maid(argssop='',argsdont_cares='',argsvariables='',minterms=[]):
     outputStr='\n'.join(sols)
 
     return outputStr
-
-
-require(){
-    log require "$@"
-    name_version="$1"
-    name="${1%% *}"
-    shift
-    check_lib $name "$@" || die "ERROR: $name_version not found"
-}
-
-6354
