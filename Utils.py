@@ -429,7 +429,12 @@ async def compressMsg(l, extDict={}):
         if "-voice" in extDict and "voices" in extDict: # 不能超过1M
             for i in extDict['voices']:
                 fn = generateTmpFile(getFileBytes(i), fm=extDict.get('voices-fm', 'mp3'))
-                out = limitAudioSizeByBitrate(fn) if '-fs' not in extDict else limitAudioSizeByCut(fn)
+                limit_conf = {
+                    'crop': limitAudioSizeByCut,
+                    'quan': limitAudioSizeByBitrate,
+                    'default': nolimitAudioSize
+                }
+                out = limit_conf[extDict.get('-lim', 'default')](fn)
                 byte = getFileBytes(out)
                 voi = await GLOBAL.app.uploadVoice(byte)
                 asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
@@ -444,6 +449,16 @@ def generateTmpFile(b: bytes, fm='png') -> str:
     return fn
     
 import platform
+
+def nolimitAudioSize(src) -> str:
+    dst = generateTmpFileName(ext='.amr')
+    if src[-3:] == "mid" and platform.system() != 'Windows':
+        os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 {dst}')
+    else:
+        os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 {dst}')
+    asyncio.ensure_future(rmTmpFile(dst))
+    return dst
+
 def limitAudioSizeByBitrate(src) -> str:
     """依赖ffmpeg，生成一个临时文件，全 损 音 质"""
     # lim = 8 * 1024 # 即1MB，大于1M发不出去
