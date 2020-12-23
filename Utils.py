@@ -373,6 +373,12 @@ async def compressMsg(l, extDict={}):
             others.append(i)
     s = ''.join(nl)
 
+    if ('-tts' in extDict or '-TTS' in extDict) and s:
+        out = TTS(s)
+        byte = getFileBytes(out)
+        voi = await GLOBAL.app.uploadVoice(byte)
+        asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
+
     if "-paste" in extDict and s:
 
         data = {
@@ -439,10 +445,16 @@ async def compressMsg(l, extDict={}):
                 out = limit_conf[extDict.get('-lim', 'default')](fn)
                 byte = getFileBytes(out)
                 voi = await GLOBAL.app.uploadVoice(byte)
-                print(f"voi ===> {voi}")
+                # print(f"voi ===> {voi}")
                 asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
         if not l: return False
         return MessageChain.create(l).asSendable()
+
+def TTS(text) -> str:
+    dst = generateTmpFileName(ext='.amr')
+    os.system(f'''ffmpeg -f lavfi -i flite=text='{text}' -codec amr_nb -ac 1 -ar 8000 {dst}''')
+    asyncio.ensure_future(rmTmpFile(dst))
+    return dst
 
 def generateTmpFile(b: bytes, fm='png') -> str:
     """生成一个30s后会删掉的临时文件"""
