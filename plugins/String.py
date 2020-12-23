@@ -872,7 +872,7 @@ async def 答案之书en(*attrs,kwargs={}):
     return [Plain(ans.strip())]
 
 async def KMP(*attrs,kwargs={}):
-    pat,s = ' '.join(attrs).split(',')
+    pat, s = attrs[0], attrs[1]
     fail = [-1]
     fval = [-1]
     p1 = 0 
