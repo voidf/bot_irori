@@ -1,37 +1,44 @@
 # 写在前面
 
-irori的代码风格**非常扭曲**，如果你不喜欢看长长长长的函数定义和大dict的话请善用折叠和查找功能
+irori面向过程，代码风格**非常扭曲**，如果你不喜欢看长长长长的函数定义和大dict的话请善用代码折叠和查找功能
 
 比如vscode在每个函数左边有个小箭头
+
+
+# 项目结构
+
+| 文件 | 存在意义 |
+| --- | --- |
+| authdata | 指定登录必须的认证信息和mirai-http-api地址 |
+| cfg.json | 全局策略设置文件，参见README.md |
+| irori.py | 程序的主入口 |
+| Fetcher.py | 爬虫函数包 |
+| Utils.py | 功能性函数包（待拆分） |
+| Callable.py | 热重载的核心，将扫描到的插件导入到命令映射表 |
+| Routiner.py | 订阅业务和定时任务的核心 |
+| Sniffer.py | 监听器消息处理核心 |
+| plugins/ | 插件文件夹 |
+| config.py | 仅仅是用于docker快速部署用到的小脚本，与主程序无关 |
 
 # 基本原理
 
 程序的入口是[irori.py](irori.py),每次的消息会走进那里的监听器。
 
-对于每条消息，她会将其以空格隔开，查找[Callable.py](Callable.py)里面有没有对应的命令，如果有则调用然后退出，没有则下放到查找有没有满足条件的sniffer。
+对于每条消息，她会将其以空格隔开，将双减号开头的参数解析并塞入extDict然后查找[Callable.py](Callable.py)里面有没有对应的命令，如果有则调用然后退出，没有则下放到查找有没有满足条件的sniffer。
 
-`Callable.py`是热重载的核心，每次收到热重载命令会重载这个文件。所以如果是修改`irori.py`这个入口的话没法热重载，只能自己停止重新运行。
+`Callable.py`是热重载的核心，每次收到热重载命令会重载这个文件。所以其实只有Callable里面涉及到的包会重载，即plugins目录下的所有插件以及Callable本身。
 
-`Callable.py`本质上只是把各个大类的各种函数装进functionMap里，以及函数说明和简写，为它们加上热重载
+`Callable.py`执行的工作是只是将plugins下所有业务代码载入命令映射表。命令调用的主题在入口irori.py处进行
 
-多提一下，[GLOBAL.py](GLOBAL.py)也不支持热重载。
+项目本身包含9个自带插件，可以用#h查看
 
-我的项目包含9个命令大类，可以用#h查看
+# 我就是想让她动起来
 
-以及辅助用的`GLOBAL.py`(装全局变量)和[Utils.py](Utils.py)(装一些静态函数)
-
-# 从复读开始
-
-我们随便打开一个类，比如[Generator.py](Generator.py),往里面众多函数下面加一个：
+我们在[plugins/](plugins/)下建一个py文件，比如[myplugin.py](plugins/myplugins.py)然后照着以下这么写
 
 ```python
-def 复读(*attrs,**kwargs):return [Plain(' '.join(attrs))]
-```
-
-然后在底下的`GeneratorMap`里面加入我们希望触发这个函数的命令：
-
-```python
-'#repeat':复读
+async def 复读(*attrs, kwargs={}):
+    return [Plain(' '.join(attrs))]
 ```
 
 这样就建立好了`#repeat`这个消息和函数`复读`之间的联系。

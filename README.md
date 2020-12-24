@@ -92,8 +92,7 @@ release里可以找到即拆即用的mirai环境包
 
 解压release里的环境包
 
-双击`run.bat`或者终端敲入`run.sh`就动起来了，现在可以直接跳[配置api](https://github.com/voidf/bot_irori#配置api)
-
+双击`run.bat`或者终端敲入`run.sh`就动起来了
 
 然后用你需要当bot的QQ号和密码来登录。
 
@@ -203,6 +202,7 @@ sudo 系列命令只有在消息的发送来源包括在masters内的时候会�
 + [x] irori-OpenJudge（但是自建果然不如对接
 + [ ] irori农场（
 + [ ] 文档重构
++ [ ] TG消息同步和推送
 
 + 卫星
 
@@ -269,3 +269,5 @@ sudo 系列命令只有在消息的发送来源包括在masters内的时候会�
 ![](Assets/kusa/20.png)
 
 **欢迎投稿（**
+
+# 本项目采用AGPLv3.0协议开源
