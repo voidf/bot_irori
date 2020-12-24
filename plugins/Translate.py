@@ -57,6 +57,12 @@ except Exception as e:
 def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
 
 def deepl_translate(src, l1='ZH', l2='EN'):
+    """
+    src:源文本
+
+    l1:源语言
+
+    l2:目标语言"""
     smjb = random.randint(10000000, 99999999)
     get_translate_lnk = 'https://www2.deepl.com/jsonrpc'
     get_translate_headers = {
@@ -100,6 +106,7 @@ def deepl_translate(src, l1='ZH', l2='EN'):
     }
     r4 = requests.post(get_translate_lnk, headers=get_translate_headers, json=get_translate_data)
     res = json.loads(r4.text)
+    print(r4.text)
     return res['result']['translations'][0]['beams'][0]['postprocessed_sentence']
 
 def BDtranslate(req):
@@ -282,7 +289,27 @@ def googleTrans(req):
     return result[0][0][0]
 
 async def deepl(*attrs, kwargs={}):
-    """向deepl发送烤肉请求，注意一段时间内请求过多会被ban"""
+    """向deepl发送烤肉请求，注意一段时间内请求过多会被ban
+用法：
+    #deepl <源语言> <目标语言> <待翻译文本>
+也可以订阅快速翻译（碰到英文句子即触发）：
+    #deepl --q
+或：
+    #deepl --q=[目标语言*]
+    * 目标语言为以下中的一种，默认为ZH
+    "DE" - German
+    "EN" - English
+    "FR" - French
+    "IT" - Italian
+    "JA" - Japanese
+    "ES" - Spanish
+    "NL" - Dutch
+    "PL" - Polish
+    "PT" - Portuguese (all Portuguese varieties mixed)
+    "RU" - Russian
+    "ZH" - Chinese
+同传模式（每句都触发）：
+    #deepl ="""
     player = getPlayer(**kwargs)
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         removeSniffer(player,'#deepl')
