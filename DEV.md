@@ -34,7 +34,7 @@ irori面向过程，代码风格**非常扭曲**，如果你不喜欢看长长�
 
 # 我就是想让她动起来
 
-我们在[plugins/](plugins/)下建一个py文件，比如[myplugin.py](plugins/myplugins.py)然后照着以下这么写
+我们在[plugins/](plugins/)下建一个py文件，比如[myplugin.py](plugins/myplugin.py)然后照着以下这么写
 
 ```python
 async def 复读(*attrs, kwargs={}):
