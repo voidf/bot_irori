@@ -54,6 +54,60 @@ except Exception as e:
     appid = ''
     secretKey = ''
 
+def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
+
+def deepl_translate(src, l1='ZH', l2='EN'):
+    """
+    src:源文本
+
+    l1:源语言
+
+    l2:目标语言"""
+    smjb = random.randint(10000000, 99999999)
+    get_translate_lnk = 'https://www2.deepl.com/jsonrpc'
+    get_translate_headers = {
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9",
+        "cache-control": "no-cache",
+        "content-length": "435",
+        "content-type": "application/json",
+        "dnt": "1",
+        "origin": "https://www.deepl.com",
+        "pragma": "no-cache",
+        "referer": "https://www.deepl.com/translator",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+    }
+    get_translate_data = {
+        "jsonrpc": "2.0", 
+        "method": "LMT_handle_jobs", 
+        "params": {
+            "jobs": [
+                {
+                    "kind": "default", 
+                    "raw_en_sentence": src, 
+                    "raw_en_context_before": [], 
+                    "raw_en_context_after":[], 
+                    "preferred_num_beams":4, 
+                    "quality":"fast"
+                }
+            ], 
+            "lang": {
+                "user_preferred_langs": [l2, l1], 
+                "source_lang_user_selected": "auto", 
+                "target_lang": l2
+            }, 
+            "priority": -1, 
+            "timestamp": jsontimestampnow()
+        }, 
+        "id": smjb
+    }
+    r4 = requests.post(get_translate_lnk, headers=get_translate_headers, json=get_translate_data)
+    res = json.loads(r4.text)
+    print(r4.text)
+    return res['result']['translations'][0]['beams'][0]['postprocessed_sentence']
 
 def BDtranslate(req):
     trans = None
@@ -234,6 +288,45 @@ def googleTrans(req):
                 return result[7][1]
     return result[0][0][0]
 
+async def deepl(*attrs, kwargs={}):
+    """向deepl发送烤肉请求，注意一段时间内请求过多会被ban
+用法：
+    #deepl <源语言> <目标语言> <待翻译文本>
+也可以订阅快速翻译（碰到英文句子即触发）：
+    #deepl --q
+或：
+    #deepl --q=[目标语言*]
+    * 目标语言为以下中的一种，默认为ZH
+    "DE" - German
+    "EN" - English
+    "FR" - French
+    "IT" - Italian
+    "JA" - Japanese
+    "ES" - Spanish
+    "NL" - Dutch
+    "PL" - Polish
+    "PT" - Portuguese (all Portuguese varieties mixed)
+    "RU" - Russian
+    "ZH" - Chinese
+同传模式（每句都触发）：
+    #deepl ="""
+    player = getPlayer(**kwargs)
+    if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
+        removeSniffer(player,'#deepl')
+        return [Plain('我住嘴了')]
+    if '-q' in kwargs or '-quick' in kwargs:
+        tr = kwargs.get('-q', kwargs.get('-quick', 'ZH'))
+        if not tr: tr = 'ZH'
+        tr = tr.upper()
+        overwriteSniffer(player,'#deepl', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'EN', tr)
+        return [Plain(f'快速翻译启动,结束打E')]
+    if len(attrs) > 2:
+        if attrs[2] == '=':
+            overwriteSniffer(player,'#deepl','.*',attrs[0], attrs[1])
+            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
+        return [Plain(text=deepl_translate(l1=attrs[0], l2=attrs[1], src=' '.join(attrs[2:])))]
+    else:
+        return [Plain(text='原谅我不知道你在说什么（')]
 
 async def 能不能好好说话(*attrs, kwargs={}):
     if attrs:
