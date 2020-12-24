@@ -6,7 +6,7 @@ from typing import *
 
 
 def removeSniffer(player, event):
-    print(chkcfg(player).quick_calls.pop(event, "?"))
+    print(chkcfg(player).quick_calls.pop(event, "未找到对应sniffer"))
     try:
         with open(f'sniffer/{player}', 'r') as f:
             j = json.load(f)
