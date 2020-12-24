@@ -1,115 +1,51 @@
-from graia.broadcast.entities.event import BaseEvent
-from graia.broadcast.entities.dispatcher import BaseDispatcher
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from graia.broadcast.protocols.executor import ExecutorProtocol
-from graia.broadcast.entities.listener import Listener
-from graia.broadcast import Broadcast
-from graia.broadcast.entities.decorater import Decorater
-from graia.broadcast.builtin.decoraters import Depend, Middleware
-from graia.broadcast.interfaces.decorater import DecoraterInterface
-from graia.broadcast.exceptions import PropagationCancelled
-from graia.application.event.messages import GroupMessage
-import random
-import asyncio
-import time
-import copy
-import datetime
+import requests
+translator = 'https://www.deepl.com/translator'
 
-# class GroupMessage(MiraiEvent):
-#     type: str = "GroupMessage"
-#     messageChain: MessageChain
-#     sender: Member
+translator_h = {
+    "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+    "accept-encoding":"gzip, deflate, br",
+    "accept-language":"zh-CN,zh;q=0.9",
+    "cache-control":"no-cache",
+    "dnt":"1",
+    "pragma":"no-cache",
+    "referer":"https://www.deepl.com/pro-account",
+    "sec-fetch-mode":"navigate",
+    "sec-fetch-site":"same-origin",
+    "sec-fetch-user":"?1",
+    "upgrade-insecure-requests":"1",
+    "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+}
 
-#     class Dispatcher(BaseDispatcher):
-#         mixin = [MessageChainCatcher, ApplicationDispatcher]
+options_lnk = 'https://s.deepl.com/web/statistics'
 
-#         @staticmethod
-#         def catch(interface: DispatcherInterface):
-#             if interface.annotation is Group:
-#                 return interface.event.sender.group
-#             elif interface.annotation is Member:
-#                 return interface.event.sender
+options_headers = {
+    "accept":"*/*",
+    "accept-encoding":"gzip, deflate, br",
+    "accept-language":"zh-CN,zh;q=0.9",
+    "access-control-request-headers":"content-type",
+    "access-control-request-method":"POST",
+    "cache-control":"no-cache",
+    "dnt":"1",
+    "origin":"https://www.deepl.com",
+    "pragma":"no-cache",
+    "referer":"https://www.deepl.com/translator",
+    "sec-fetch-mode":"cors",
+    "sec-fetch-site":"same-site",
+    "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+}
 
-class parseminus(BaseDispatcher):
-    @staticmethod
-    async def catch(interface: DispatcherInterface):
-        print(interface.name)
-        if interface.name == "extDict":
-            print('etx')
-            return {'a':233}
 
-class D1(BaseDispatcher):
-    @staticmethod
-    def catch(interface: DispatcherInterface):
-        if interface.annotation == dict:
-            return random.random()
+d = {
+    'text':'混元形意太极拳',
+    'source_lang':'ZH',
+    'target_lang':'EN',
 
-class D2(BaseDispatcher):
-    mixin = [D1]
-    @staticmethod
-    async def catch(interface: DispatcherInterface):
-        if interface.annotation == "13":
-            r = await interface.execute_with(interface.name, "123", interface.default)
-            return r
+}
+s = requests.sessions.Session()
+# r1 = s.get(lnk, headers=h)
+r2 = s.options(options_lnk, headers=options_headers)
 
-class TestEvent(BaseEvent):
-    extDict: dict
+print(r2.text)
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [D2]
-
-        @staticmethod
-        def catch(interface: DispatcherInterface):
-            # print(interface.parameter_contexts)
-            if interface.name == "u":
-                yield 1
-            elif interface.annotation == str:
-                yield 12
-
-event = TestEvent()
-loop = asyncio.get_event_loop()
-broadcast = Broadcast(loop=loop, debug_flag=True)
-
-i = 0
-l = asyncio.Lock()
-
-async def r(extDict: dict):
-    global i
-    async with l:
-        i += 1
-
-# for _ in range(15):
-@broadcast.receiver(TestEvent, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
-async def test():
-    print(datetime.datetime.now())
-        # print(extDict)
-
-@broadcast.receiver(TestEvent, headless_decoraters=[Depend(r)], dispatchers=[parseminus])
-async def test2(extDict: dict):
-    print(extDict)
-
-@broadcast.receiver(TestEvent, headless_decoraters=[Depend(r)])
-async def test3():
-    print('coconmsl')
-
-async def main(start):
-    print("将在 1 s 后开始测试.")
-    for i in range(1, 2):
-        print(i)
-        await asyncio.sleep(1)
-    print("测试开始.", start)
-    for _ in range(10):
-        broadcast.postEvent(TestEvent())
-    end = time.time()
-    print(f"事件广播完毕, 总共 10 个, 当前时间: {end}, 用时: {end - start - 5}")
-
-start = time.time()
-loop.run_until_complete(main(start))
-
-end = time.time()
-print(f"测试结束, 1s 后退出, 用时 {end - start - 5}")
-loop.run_until_complete(asyncio.sleep(1))
-
-print(i)
-#import pdb; pdb.set_trace()
-print("退出....", time.time() - start)
+while 1:
+    print(eval(input('>>>')))
