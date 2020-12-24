@@ -1,28 +1,35 @@
+# 注意，v3兼容的分支已经不再维护
+
+> 由于使用了v4的消息广播，现在只会单独对v4分支进行维护，并在docker构建稳定后迁移至master分支
+>
+> 原master分支将会作为v3分支封存
+
 # bot-irori 
 
-~~单文件的基于mirai-http-api的bot实例脚本（丑得一逼的排版~~
+irori是一个比较扭曲的，偏面向过程的，支持二次开发的QQ机器人
 
-虽然不再是单文件了但码得还是很乱
+底层协议依赖mirai，并使用graia框架
 
-mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以了（
+release里可以找到即拆即用的mirai环境包
 
-## ~~没用的~~features
+## features
 
-+ 兼容kuriyama和graia（逃
-+ 热重载 `sudo reload`
-+ 拉库 `sudo pull`，强制拉库`sudo pull -f`
-+ 多实例管理 `sudo use <uuid>`、`sudo instances`
-+ QQ群开shell（危
-+ QQ群用eval和exec（危
-+ 长文字可以渲染为图片发送
++ git更新即时重载
++ 允许多重存在，并支持多实例管理
++ 聊天窗口进行系统命令调用或开shell
++ 插件化的消息处理业务代码管理
++ 三种模式处理消息：命令，监听器，定时订阅
++ 返回消息多态化：可以选择粘贴至ubuntu pastebin，渲染为图片，或者合成为语音
 
-## 有那么点点用的功能
+## 比较受欢迎的功能
 
++ [x] 每日求签~~算命~~
++ [x] 答案之书（不知道为什么群友总能玩出新花样
++ [x] 谷歌翻译，百度翻译（fufu提供的爬虫
 + [x] ddl事件安排及提醒
++ [x] 表达式即时求值的计算器
 + [x] LaTeX公式渲染（其实是爬虫
 + [x] CodeForces、AtCoder、牛客的比赛提醒推送
-+ [x] 谷歌翻译，百度翻译（fufu提供的爬虫
-+ [x] 答案之书（不知道为什么群友总能玩出新花样
 
 完整功能请部署后使用#h查看
 
@@ -45,16 +52,16 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 >  + [install_docker_centos.sh](install_docker_centos.sh)
 > 里面的命令
 
-`docker run -it voidf/irori`
+`docker run -it voidf/irori:v4`
 
 或者如果你嫌国外镜像下载不够快的话：
 
-`docker run -it voidf/irori --registry-mirror=https://docker.mirrors.ustc.edu.cn`
+`docker run -it voidf/irori:v4 --registry-mirror=https://docker.mirrors.ustc.edu.cn`
 
 ## 快速部署（精简版）
 
 1. 克隆本仓库
-2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`http或s://mirai-http-api实例host:端口/`
+2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`[http或https]://[mirai-http-api实例host]:[端口]/`
 3. 安装python3，然后`pip3 install -r requirements.txt`
 4. 安装java，记得配好环境变量
 5. 将[release里的env](http://d0.ananas.chaoxing.com/download/aad7ee20c57d3b402b7f254b4f3373de)文件解压
@@ -63,7 +70,7 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 ## 安装使用（啰嗦版）
 
-先装[python](https://www.python.org/downloads/)最好是3.7左右这样的版本,最好是64位，即安装包上写有AMD64字样的exe包
+先装[python](https://www.python.org/downloads/)最好是3.8左右这样的版本,最好是64位，即安装包上写有AMD64字样的exe包
 
 安装时一路往下，记得勾上**加入环境变量**即 **add to PATH** 或者**add to environment variable**什么的，和**pip**。
 
@@ -83,35 +90,10 @@ mirai项目有时候会出锅 稳定性一般 出问题了重搞亿次就可以�
 
 `pip install -r requirements.txt`
 
-> 其实kuriyama和graia其实可以只装一个，irori可以只用两者其一，但毕竟用新不用旧，还是下graia罢
-
-快速配置环境的话可以直接捣鼓一下release里的东西
-
-env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*虵*有关，%~~加急~~
-
-解压以后就是整个我自己用的环境了
+解压release里的环境包
 
 双击`run.bat`或者终端敲入`run.sh`就动起来了，现在可以直接跳[配置api](https://github.com/voidf/bot_irori#配置api)
 
-~~当然如果你想跟着下面也行~~
-
-接下来有两种方法 如果你想快速上手推荐第一种 如果你想体验像我一样搞几个小时也零成果的~~快感~~ 那么请选第二种
-
-（1）首先去搞[一键包](https://github.com/LXY1226/MiraiOK) 我记得一键包好像是给装Java运行环境的 也可能记错了 如果没有的话 方法二里有装Java的方法 搞完之后 请退出甚至卸载一切杀毒软件（哭 因为~~傻~~杀毒软件会误删你的exe 好的现在你有exe了 你去找一个文件夹把它放进去 然后双击 噼里啪啦出来了一堆 你只需要看最后一行 让你输入qq号 密码 照做就可以 之后你去plugins文件夹下看一下是否有APIHTTP 如果没有 下面有链接 自寻一下 下载下来放进去 然后重启mirai 看到生成一个文件夹 里面有setting.yml 那么就成功了
-
-（2）装java运行环境[Oracle jdk](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)或者[AdoptOpenJDK](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.7%2B10.2/OpenJDK11U-jdk_x64_windows_hotspot_11.0.7_10.msi)勾上**JAVA_HOME**（记得配置环境变量**Add to PATH**，不然就得去安装目录像`D:\java\bin\java.exe -jar mirai-console-wrapper-0.2.0-all.jar`这样才能用（
-
-然后去找[mirai-console-wrapper](https://github.com/mamoe/mirai-console-wrapper)
-
-然后在mirai-console-wrapper的jar文件同目录新建或者你运行一次它得到一个plugins这样的目录。
-
-在plugins文件夹里面放[mirai-api-http](https://github.com/mamoe/mirai-api-http/releases)
-
-现在运行mirai-console-wrapper:
-
-`java -jar mirai-console-wrapper-0.2.0-all.jar`
-
-然后会提示要选哪个版本~~反正我只有Pure能用~~，选择自己需要的打上去敲回车就好。
 
 然后用你需要当bot的QQ号和密码来登录。
 
@@ -133,13 +115,13 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 `python irori.py`
 
-大概就能用了（如果炸了试试重启`mirai-console-wrapper-0.2.0-all.jar`,记得千万别关掉这个cmd窗口（
-
-然后把bot所在qq和你自己拉一个群
+然后把bot所在qq和你自己拉一个群或者私聊你的bot
 
 输入#h查看帮助
 
 魔改随意，虽然我主要是自己用
+
+~~不会吧不会吧，不会真的有除了我以外的人用这么难用的bot吧~~
 
 ## 进阶：cfg.json配置模板
 
@@ -175,25 +157,29 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 可以从仓库给定的`cfg.json.template`直接修改，将后缀`.template`和文件里的所有井号注释删去，改为自己合适的设置然后保存即可。
 
+## 系统命令手册
+
+sudo 系列命令只有在消息的发送来源包括在masters内的时候会执行。
+
+| 命令 | 描述 |
+| ------ | ----- |
+| sudo su | 进入su模式，每条消息都会先判断是否命中系统调用命令 |
+| sudo exit | 退出su模式 |
+| sudo pull | 从git仓库拉取代码，但新的代码只在reload后生效 |
+| sudo reload | 热重载代码，但irori.py, GLOBAL.py, Sniffer.py, Routiner.py这些不会被重载 |
+| sudo exec | 执行一条python语句 |
+| sudo eval | 执行一条python语句，并返回结果（由于不支持赋值等无返回值操作，故提供exec） |
+| sudo pexc | 如果运行时出现异常，则在QQ消息中返回这个异常 |
+| sudo cexc | 禁用QQ消息中返回异常 |
+| sudo run | 在宿主机上运行一条命令 |
+| sudo terminal | 在宿主机上打开一个交互终端 |
+| sudo instances | 展示目前在线的所有irori实例 |
+| sudo use | `use *` 代表所有实例都会响应消息, `use <uuid>` 可设置仅指定uuid的实例会响应 |
+
+
 ## 参与开发
 
 参见[DEV.md](DEV.md)或者本仓库的Wiki
-
-## 老版本kuriyama(0.2.3)留下来的坑
-
-> py安装目录/dist-packages/mirai/event/message/components.py
-> 129行和229行
-> 
-> `- return f"{{{self.imageId.upper()}}}.jpg"`
-> 
-> `+ return self.imageId.upper()`
-
-> py安装目录/dist-packages/mirai/event/enums.py
-> 12行后
-> 
-> `+ BotLeaveEventActive = "BotLeaveEventActive"`
-> 
-> `+ BotLeaveEventKick = "BotLeaveEventKick"`
 
 ## TODOs:
 
@@ -205,6 +191,9 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] 选课
 + [ ] 对接屑站转发抽奖
 + [ ] 自用本校工具箱
++ [ ] 百度TTS和谷歌TTS
++ [ ] 重构CF爬虫
++ [ ] 增加MML合成音频标准
 
 + 大坑
   
@@ -213,6 +202,15 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 + [ ] TRPG
 + [x] irori-OpenJudge（但是自建果然不如对接
 + [ ] irori农场（
++ [ ] 文档重构
+
++ 卫星
+
++ [ ] 《奇点》
++ [ ] irori前端面板
++ [ ] 聊天机器人
++ [ ] 形象重绘 ~~机伤网站关了（悲~~
++ [ ] ~~出道~~
 
 ## 引用项目:
 
@@ -226,7 +224,7 @@ env本质上是一个[zipx](http://www.bandisoft.com/)压缩包，密码是和*�
 
 [KutouAkira/bot_fufu](https://github.com/KutouAkira/bot_fufu)
 
-# 你群沙雕日常
+# 妙妙屋沙雕日常
 
 > 不会吧不会吧，不会真的有人什么都问答案之书吧？
 

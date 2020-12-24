@@ -389,6 +389,6 @@ else:
         await hajime(bot)
     
 
-print(f"============irori running with python-mirai version {GLOBAL.py_mirai_version} at {platform.platform()}=============")
+print(f"===irori running with python-mirai version {GLOBAL.py_mirai_version} at {platform.platform()}===")
 if GLOBAL.py_mirai_version == 3: irori.run()
 else: qqbot.launch_blocking()
