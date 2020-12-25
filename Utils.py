@@ -231,6 +231,7 @@ def evaluate_expression(exp: str) -> str:
     last_mono = 'ope'
     cur_operator = '' # 只放双目
     float_token = False
+    decimal_token = False
     complex_token = False
 
     def binocular_calculate(f: str):
@@ -243,17 +244,19 @@ def evaluate_expression(exp: str) -> str:
         print("unary calculated:",unary_calculate_map[f](A))
         operands.append(unary_calculate_map[f](A))
     def handle_operand():
-        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono
+        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower, decimal_token
         handled = ''.join(x)
         if float_token:
             handled += '.' + ''.join(xx)
+        if decimal_token:
+            handled += 'e' + ''.join(xpower)
         if complex_token:
             handled += 'j'
         if handled:
             print(f'Handled operand:{handled}')
             if complex_token:
                 t = complex(handled)
-            elif float_token:
+            elif float_token or decimal_token or len(handled) > 1000:
                 t = float(handled)
             else:
                 t = int(handled)
@@ -261,8 +264,10 @@ def evaluate_expression(exp: str) -> str:
             last_mono = 'num'
         float_token = False
         complex_token = False
+        decimal_token = False
         x = []
         xx = []
+        xpower = []
 
         
     def calculate_from_stack():
@@ -289,7 +294,9 @@ def evaluate_expression(exp: str) -> str:
         cur_operator = ''
 
     for c in exp:
-        if c in '.j' + string.digits:
+        if c == '-' and decimal_token and not xpower:
+            xpower.append(c)
+        elif c in '.je' + string.digits:
             if cur_operator:
                 maintain_stack()
                 last_mono = 'ope'
@@ -298,8 +305,12 @@ def evaluate_expression(exp: str) -> str:
                 float_token = True
             elif c == 'j':
                 complex_token = True
+            elif c == 'e':
+                decimal_token = True
             elif c in string.digits:
-                if float_token:
+                if decimal_token:
+                    xpower.append(c)
+                elif float_token:
                     xx.append(c)
                 else:
                     x.append(c)
