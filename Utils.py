@@ -225,6 +225,7 @@ def evaluate_expression(exp: str) -> str:
     operands = []
     x = []
     xx = []
+    xpower = []
 
     suffix_exp = [] # 放2元组(本体, 类型)罢了
 
