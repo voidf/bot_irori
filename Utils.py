@@ -233,6 +233,9 @@ def evaluate_expression(exp: str) -> str:
     cur_operator = '' # 只放双目
     float_token = False
     decimal_token = False
+    hex_token = False
+    octal_token = False
+    binary_token = False
     complex_token = False
 
     def binocular_calculate(f: str):
@@ -245,7 +248,8 @@ def evaluate_expression(exp: str) -> str:
         print("unary calculated:",unary_calculate_map[f](A))
         operands.append(unary_calculate_map[f](A))
     def handle_operand():
-        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower, decimal_token
+        nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower
+        nonlocal hex_token,octal_token,binary_token
         handled = ''.join(x)
         if float_token:
             handled += '.' + ''.join(xx)
@@ -255,7 +259,13 @@ def evaluate_expression(exp: str) -> str:
             handled += 'j'
         if handled:
             print(f'Handled operand:{handled}')
-            if complex_token:
+            if hex_token:
+                t = int(handled, 16)
+            elif octal_token:
+                t = int(handled, 8)
+            elif binary_token:
+                t = int(handled, 2)
+            elif complex_token:
                 t = complex(handled)
             elif float_token or decimal_token or len(handled) > 1000:
                 t = float(handled)
@@ -266,11 +276,14 @@ def evaluate_expression(exp: str) -> str:
         float_token = False
         complex_token = False
         decimal_token = False
+        hex_token = False
+        octal_token = False
+        binary_token = False
         x = []
         xx = []
         xpower = []
 
-        
+
     def calculate_from_stack():
         for op, typ in suffix_exp:
             # op, typ = suffix_exp.pop()
@@ -297,11 +310,21 @@ def evaluate_expression(exp: str) -> str:
     for c in exp:
         if c == '-' and decimal_token and not xpower:
             xpower.append(c)
+        elif c == 'b' and x == ['0']:
+            binary_token = True
+            x.append(c)
+        elif c == 'o' and x == ['0']:
+            octal_token = True
+            x.append(c)
+        elif c == 'x' and x == ['0']:
+            hex_token = True
+            x.append(c)
+        elif c in 'abcdefABCDEF' and hex_token:
+            x.append(c)
         elif c in '.je' + string.digits:
             if cur_operator:
                 maintain_stack()
                 last_mono = 'ope'
-            
             if c == '.':
                 float_token = True
             elif c == 'j':
