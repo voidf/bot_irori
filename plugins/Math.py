@@ -370,6 +370,7 @@ async def 逆波兰(*attrs, kwargs={}):
                     op2.append(int(i))
     except:
         op1 = ['evaluate failed.']
+    print(op1, op2)
     return [Plain(f'{op1[0]}\n{op2[0]}')]
 
 async def 老线代bot了(*attrs, kwargs={}):
