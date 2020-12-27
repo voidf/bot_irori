@@ -352,22 +352,22 @@ async def 逆波兰(*attrs, kwargs={}):
     try:
         for i in attrs:
             if i in binocular_calculate_map:
-                A = op2.pop()
-                B = op2.pop()
-                op2.append(binocular_calculate_map[i](B,A))
+                A = op1.pop()
+                B = op1.pop()
+                op1.append(binocular_calculate_map[i](B,A))
             else:
                 if 'j' in i:
-                    op2.append(complex(i))
+                    op1.append(complex(i))
                 elif '.' in i or 'e' in i:
-                    op2.append(float(i))
+                    op1.append(float(i))
                 elif 'x' in i:
-                    op2.append(int(i, 16))
+                    op1.append(int(i, 16))
                 elif 'o' in i:
-                    op2.append(int(i, 8))
+                    op1.append(int(i, 8))
                 elif 'b' in i:
-                    op2.append(int(i, 2))
+                    op1.append(int(i, 2))
                 else:
-                    op2.append(int(i))
+                    op1.append(int(i))
     except:
         op1 = ['evaluate failed.']
     print(op1, op2)
