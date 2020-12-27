@@ -37,7 +37,6 @@ import time
 import datetime
 import urllib
 import mido
-import imageio
 import GLOBAL
 from Utils import *
 importMirai()
