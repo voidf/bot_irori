@@ -346,7 +346,7 @@ async def 逆波兰(*attrs, kwargs={}):
         if i in binocular_calculate_map:
             A = op2.pop()
             B = op2.pop()
-            op2.append(f'{B}{i}{A}')
+            op2.append(f'({B}{i}{A})')
         else:
             op2.append(i)
     try:
