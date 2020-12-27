@@ -226,6 +226,7 @@ def evaluate_expression(exp: str) -> str:
     """处理不带空格和其他空字符的中缀表达式"""
     operators = [] # 除括号和单目外，优先级单调递增
     operands = []
+    operands_str = []
     x = []
     xx = []
     xpower = []
@@ -298,7 +299,6 @@ def evaluate_expression(exp: str) -> str:
 
 
     def calculate_suffix_exp():
-        nonlocal operands_str
         operands_str = copy.deepcopy(operands)
         for op, typ in suffix_exp:
             # op, typ = suffix_exp.pop()
