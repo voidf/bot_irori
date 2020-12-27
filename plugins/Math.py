@@ -334,6 +334,43 @@ async def 计算器(*attrs, kwargs={}):
         return [Plain('禁用快速计算')]
     return [Plain(evaluate_expression(''.join(attrs).replace(' ','').strip()))]
 
+async def 逆波兰(*attrs, kwargs={}):
+    """计算逆波兰表达式
+    :param exp: 待求表达式（默认空格分隔）exp
+    :return:
+        Union[int, float, complex]: result"""
+    player = getPlayer(**kwargs)
+    op1 = []
+    op2 = []
+    for i in attrs:
+        if i in binocular_calculate_map:
+            A = op2.pop()
+            B = op2.pop()
+            op2.append(f'{B}{i}{A}')
+        else:
+            op2.append(i)
+    try:
+        for i in attrs:
+            if i in binocular_calculate_map:
+                A = op2.pop()
+                B = op2.pop()
+                op2.append(binocular_calculate_map[i](B,A))
+            else:
+                if 'j' in i:
+                    op2.append(complex(i))
+                elif '.' in i or 'e' in i:
+                    op2.append(float(i))
+                elif 'x' in i:
+                    op2.append(int(i, 16))
+                elif 'o' in i:
+                    op2.append(int(i, 8))
+                elif 'b' in i:
+                    op2.append(int(i, 2))
+                else:
+                    op2.append(int(i))
+    except:
+        op1 = ['evaluate failed.']
+    return [Plain(f'{op1[0]}\n{op2[0]}')]
 
 async def 老线代bot了(*attrs, kwargs={}):
     print(attrs)
