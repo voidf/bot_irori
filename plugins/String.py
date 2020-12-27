@@ -840,6 +840,7 @@ async def 答案之书(*attrs,kwargs={}):
             appendSniffer(player,'#答案之书',r'\？')
             appendSniffer(player,'#答案之书',r'¿')
             appendSniffer(player,'#答案之书',r'吗')
+            appendSniffer(player,'#答案之书',r'啥')
             appendSniffer(player,'#答案之书',r'怎么')
             appendSniffer(player,'#答案之书',r'如何')
             appendSniffer(player,'#答案之书',r'为什么')

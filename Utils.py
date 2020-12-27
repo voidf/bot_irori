@@ -1,29 +1,31 @@
-import os
-import requests
 import asyncio
+import base64
+import copy
 import datetime
-
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import traceback
+import functools
+import importlib
+import json
+import os
 import random
 import string
-import functools
-import GLOBAL
-import json
-from typing import *
-from PIL import Image as PImage
-from PIL import ImageFont,ImageDraw
-import base64
-import importlib
 import sys
+import traceback
+from typing import *
+
+import requests
+from bs4 import BeautifulSoup
+from PIL import Image as PImage
+from PIL import ImageDraw, ImageFont
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+
+import GLOBAL
 from Fetcher import *
+from GLOBAL import (ApplicationLaunched, ApplicationShutdowned, At, Broadcast,
+                    Face, Friend, FriendMessage, Group, GroupMessage, Image,
+                    Member, MessageChain, Mirai, Plain, QQFaces, Session,
+                    Source, Voice, importMirai)
 
-
-from GLOBAL import importMirai
-from GLOBAL import Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
-from GLOBAL import MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice
 importMirai()
 
 youbi = {
@@ -37,6 +39,7 @@ youbi = {
 }
 
 from GLOBAL import SessionConfigures
+
 
 def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
@@ -238,15 +241,25 @@ def evaluate_expression(exp: str) -> str:
     binary_token = False
     complex_token = False
 
-    def binocular_calculate(f: str):
+    def binocular_calculate(f: str, operands):
         A = operands.pop()
         B = operands.pop()
-        print("bino calculated:",binocular_calculate_map[f](B,A))
         operands.append(binocular_calculate_map[f](B,A))
-    def unary_calculate(f: str):
+        print("bino calculated:", operands[-1])
+    def unary_calculate(f: str, operands):
         A = operands.pop()
-        print("unary calculated:",unary_calculate_map[f](A))
         operands.append(unary_calculate_map[f](A))
+        print("unary calculated:", operands[-1])
+    def binocular_concate(f: str, operands):
+        A = operands.pop()
+        B = operands.pop()
+        operands.append(f"({B}{f}{A})")
+        print("bino concated:", operands[-1])
+    def unary_concate(f: str, operands):
+        A = operands.pop()
+        operands.append(f"({f}{A})")
+        print("unary concated:", operands[-1])
+
     def handle_operand():
         nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower
         nonlocal hex_token,octal_token,binary_token
@@ -284,15 +297,19 @@ def evaluate_expression(exp: str) -> str:
         xpower = []
 
 
-    def calculate_from_stack():
+    def calculate_suffix_exp():
+        nonlocal operands_str
+        operands_str = copy.deepcopy(operands)
         for op, typ in suffix_exp:
             # op, typ = suffix_exp.pop()
             if typ == 'operand':
                 operands.append(op)
             elif typ == 'unary':
-                unary_calculate(op)
+                unary_calculate(op, operands)
+                unary_concate(op, operands_str)
             else:
-                binocular_calculate(op)
+                binocular_calculate(op, operands)
+                binocular_concate(op, operands_str)
     def maintain_stack():
         nonlocal cur_operator
         if cur_operator != '(':
@@ -370,8 +387,8 @@ def evaluate_expression(exp: str) -> str:
     while operators:
         suffix_exp.append(operators.pop())
     print(suffix_exp)
-    calculate_from_stack()
-    return str(operands[0])
+    calculate_suffix_exp()
+    return str(operands[0]) + '\n' + str(operands_str)
 
 
 def getCredit(user: int):
@@ -487,6 +504,7 @@ async def compressMsg(l, extDict={}):
 
 import shlex
 
+
 def TTS(text, voice='slt') -> str:
     v = voice if voice in {
         'awb',
@@ -511,6 +529,7 @@ def generateTmpFile(b: bytes, fm='png') -> str:
     return fn
     
 import platform
+
 
 def nolimitAudioSize(src) -> str:
     dst = generateTmpFileName(ext='.amr')
