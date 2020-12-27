@@ -305,6 +305,7 @@ def evaluate_expression(exp: str) -> str:
             # op, typ = suffix_exp.pop()
             if typ == 'operand':
                 operands.append(op)
+                operands_str.append(f'{op}')
             elif typ == 'unary':
                 unary_calculate(op, operands)
                 unary_concate(op, operands_str)
