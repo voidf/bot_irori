@@ -373,6 +373,8 @@ async def 逆波兰(*attrs, kwargs={}):
     print(op1, op2)
     return [Plain(f'{op1[0]}\n{op2[0]}')]
 
+逆波兰.SHORTS = '#nbl'
+
 async def 老线代bot了(*attrs, kwargs={}):
     print(attrs)
     if attrs[0] in ('乘','*','mul'):
