@@ -222,7 +222,7 @@ unary_calculate_map = {
 }
 
 
-def evaluate_expression(exp: str) -> str:
+def evaluate_expression(exp: str) -> Tuple[str, str]:
     """处理不带空格和其他空字符的中缀表达式"""
     operators = [] # 除括号和单目外，优先级单调递增
     operands = []
@@ -390,7 +390,7 @@ def evaluate_expression(exp: str) -> str:
         suffix_exp.append(operators.pop())
     print(suffix_exp)
     calculate_suffix_exp()
-    return str(operands_str[0]) + '=' + str(operands[0])
+    return str(operands_str[0]), str(operands[0])
 
 
 def getCredit(user: int):
@@ -398,14 +398,12 @@ def getCredit(user: int):
         return 500
     else:
         with open(f'credits/{user}', 'r') as f:
-            return int(f.read().strip())
+            return int(f.read().strip().split('=')[-1].strip())
 
 def updateCredit(user: int, operator: str, val: int): # 危
     if operator not in GLOBAL.credit_operators: return False
     c = getCredit(user)
-    # c = eval(f'{c}{operator}{int(val)}')
-    c = c.split('=')[-1].strip()
-    c = evaluate_expression(f'{c}{operator}{int(val)}')
+    c, c2 = evaluate_expression(f'{c}{operator}{int(val)}')
     c = c.split('=')[-1].strip()
     with open(f'credits/{user}', 'w') as f:
         f.write(f'{c}')
