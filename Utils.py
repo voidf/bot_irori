@@ -390,7 +390,7 @@ def evaluate_expression(exp: str) -> str:
         suffix_exp.append(operators.pop())
     print(suffix_exp)
     calculate_suffix_exp()
-    return str(operands_str[0]) + ' = ' + str(operands[0])
+    return str(operands_str[0]) + '=' + str(operands[0])
 
 
 def getCredit(user: int):
@@ -404,7 +404,9 @@ def updateCredit(user: int, operator: str, val: int): # 危
     if operator not in GLOBAL.credit_operators: return False
     c = getCredit(user)
     # c = eval(f'{c}{operator}{int(val)}')
+    c = c.split('=')[-1].strip()
     c = evaluate_expression(f'{c}{operator}{int(val)}')
+    c = c.split('=')[-1].strip()
     with open(f'credits/{user}', 'w') as f:
         f.write(f'{c}')
     return True
