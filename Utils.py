@@ -404,9 +404,9 @@ def updateCredit(user: int, operator: str, val: int): # 危
     if operator not in GLOBAL.credit_operators: return False
     c = getCredit(user)
     c, c2 = evaluate_expression(f'{c}{operator}{int(val)}')
-    c = c.split('=')[-1].strip()
+    c2 = c2.split('=')[-1].strip()
     with open(f'credits/{user}', 'w') as f:
-        f.write(f'{c}')
+        f.write(f'{c2}')
     return True
 
 def generateTmpFileName(pref='', ext='.png', **kwargs):
