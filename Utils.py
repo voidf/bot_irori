@@ -398,7 +398,7 @@ def getCredit(user: int):
         return 500
     else:
         with open(f'credits/{user}', 'r') as f:
-            return int(f.read().strip().split('=')[-1].strip())
+            return int(f.read().strip().split('=')[-1].strip().split()[-1].strip())
 
 def updateCredit(user: int, operator: str, val: int): # 危
     if operator not in GLOBAL.credit_operators: return False
