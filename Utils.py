@@ -117,8 +117,13 @@ async def msgDistributer(**kwargs):
     """
     根据player号分发消息
     输入字典msg为源文本，typ标识其类型('E'表情,'I'图片文件目录,'P'普通文本)
-    扩展了也可以扔消息元素列表(list)进来的功能
-    用例await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
+用例：
+    await msgDistributer(msg="https://i.pximg.net/img-original/img/2020/09/27/19/46/09/84651430_p0.jpg",typ="I",player=114514)
+异步发送用例：
+    asyncio.ensure_future(msgDistributer(msg="https://i.pximg.net/img-original/img/2020/09/27/19/46/09/84651430_p0.jpg",typ="I",player=114514))
+也可以直接扔扔消息元素列表或者消息链(list)进来
+用例：
+    await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
     """
     seq = []
     
@@ -223,7 +228,11 @@ unary_calculate_map = {
 
 
 def evaluate_expression(exp: str) -> Tuple[str, str]:
-    """处理不带空格和其他空字符的中缀表达式"""
+    """处理不带空格和其他空字符的中缀表达式
+用例：
+    evaluate_expression('114+514')
+返回值：
+    [str]计算执行顺序表达字符串, [str]计算结果"""
     operators = [] # 除括号和单目外，优先级单调递增
     operands = []
     operands_str = []
@@ -393,23 +402,39 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
     return str(operands_str[0]), str(operands[0])
 
 
-def getCredit(user: int):
+def getCredit(user: int) -> int:
+    """"获取给定用户的信用点
+参数：
+    [int]user(QQ号)
+返回：
+    [int]用户的信用点"""
     if not os.path.exists(f'credits/{user}'):        
         return 500
     else:
         with open(f'credits/{user}', 'r') as f:
-            return int(f.read().strip().split('=')[-1].strip().split()[-1].strip())
+            return int(f.read().strip())
 
-def updateCredit(user: int, operator: str, val: int): # 危
+def updateCredit(user: int, operator: str, val: int) -> bool: # 危
+    """修改用户的信用点
+参数：
+    [int]user(QQ号)
+    [str]operator(操作符)
+    [int]val(操作数)
+返回：
+    [bool]是否操作成功
+用例：
+    updateCredit(114514, '+', 1) # 让
+    """
     if operator not in GLOBAL.credit_operators: return False
     c = getCredit(user)
     c, c2 = evaluate_expression(f'{c}{operator}{int(val)}')
-    c2 = c2.split('=')[-1].strip()
+    c2 = c2.strip()
     with open(f'credits/{user}', 'w') as f:
         f.write(f'{c2}')
     return True
 
 def generateTmpFileName(pref='', ext='.png', **kwargs):
+    """生成一个临时文件名"""
     return f'''tmp{pref}{randstr(GLOBAL.randomStrLength)}{ext}'''
 
 async def compressMsg(l, extDict={}):

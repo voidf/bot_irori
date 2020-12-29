@@ -250,25 +250,11 @@ appendSniffer(114514,'#repeat','\?')
 removeSniffer(114514,'#repeat')
 ```
 
-## 使用超星网盘
-
-有些时候做出来的文件不太方便传出去（还没搞出群文件或者私聊文件的接口）那么我们可以把文件传到超星网盘供用户下载。
-
-使用Utils下的uploadToChaoXing方法，传入文件的本地路径，返回的是文件的超链接
-
-但注意超星网盘单个文件不能超过200M
-
-# 设置运行版本
-
-可以在GLOBAL文件中设置irori使用的python-mirai环境，默认是4（即graia
-
-可以调成3来在kuriyama下继续运行irori
+其他大可直接参考Utils.py内的函数文档。
 
 # 发送图片
 
-为了v3和v4的兼容，最好走Utils下的generateImageFromFile方法
-
-当然如果你自己特别想用v4特性我也不拦你就是了（
+走Utils下的generateImageFromFile方法
 
 # 全局变量
 
@@ -291,6 +277,10 @@ removeSniffer(114514,'#repeat')
 
 这部分因为耦合度太高之后要大力重构
 
-# 创建你自己的新命令大类
+# 语音消息相关
 
-建议从已有的类中拷过去改，只需要把文件名改一下，底下的三个dict改一下名，然后去Callable.py里面加一下关联，你就可以用你自己的大类玩了
+如果想让irori发送各种语音消息，需要安装`ffmpeg`并且设置好环境变量以便irori调用。
+
+linux下需要编译安装ffmpeg，以让它支持`amr_nb`编码器。
+
+在踩了无数坑之后本仓库下形成了一个debian系列的[一键脚本](ffmpeg-get-install.sh)，欢迎取用测试

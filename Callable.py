@@ -122,6 +122,7 @@ async def printHelp(*attrs, kwargs={}):
 通用选项：
     --fi --force-image 强制把文本消息转换成图片发送
     --paste 强制把文本消息粘贴至ubuntu pastebin
+    --tts 【试验阶段】强制把消息转换成语音发送【仅支持英文】
     --voice 【试验阶段】如果命令支持的话，发送语音消息''')
     else:
         if attrs[0] in shorts:
