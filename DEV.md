@@ -37,17 +37,50 @@ irori面向过程，代码风格**非常扭曲**，如果你不喜欢看长长�
 我们在[plugins/](plugins/)下建一个py文件，比如[myplugin.py](plugins/myplugin.py)然后照着以下这么写
 
 ```python
+from graia.application.message.elements.internal import Plain
+
 async def 复读(*attrs, kwargs={}):
     return [Plain(' '.join(attrs))]
 ```
 
-这样就建立好了`#repeat`这个消息和函数`复读`之间的联系。
+这样你就可以直接使用命令`#复读`来调用`复读`这个函数
 
-重启`irori.py`,然后向你的bot发送`#repeat 2333`,不出意外的话bot会复读`233`。
+重启`irori.py`或者使用`sudo reload`,然后向你的bot发送`#复读 2333`,不出意外的话bot会复读`2333`。
 
-> 最好在`GeneratorDescript`下加入`'#repeat'`键值，写上你这个函数的帮助文档，一来可以支持#h查询，二来避免不必要的异常发生
+# 我想让别人知道我的命令怎么用
 
-> `GeneratorShort`里装的是函数的简写调用，如果欲有多个命令指向这个函数的话可以通过这个添加
+只需要在我们的例子中，为业务函数加上`__doc__`即文档字符串即可。具体操作如下：
+
+```python
+from graia.application.message.elements.internal import Plain
+
+async def 复读(*attrs, kwargs={}):
+    """这是一个复读命令
+用法：
+    #复读 [某些消息]"""
+    return [Plain(' '.join(attrs))]
+```
+
+这样一来使用时就可以通过`#h #复读`来查询到这个命令的帮助了。
+
+# 我同一个函数想使用多个命令来调用
+
+我们可以在函数下方为函数指定属性`SHORTS`，如下：
+
+```python
+from graia.application.message.elements.internal import Plain
+
+async def 复读(*attrs, kwargs={}):
+    """这是一个复读命令
+用法：
+    #复读 [某些消息]"""
+    return [Plain(' '.join(attrs))]
+
+复读.SHORTS = ['#rep']
+```
+
+`SHORTS`属性必须是一个列表，里面提供的所有字符串会被alias到这个函数里。注意这里不能像函数名一样忽略开头的#号，否则如上打成`rep`则消息需以`rep 2333`的形式才能触发上述效果
+
 
 ## *attrs
 
@@ -59,7 +92,7 @@ async def 复读(*attrs, kwargs={}):
 
 各个参数会依次塞入`*attrs`,它是一个不定长的tuple,请灵活运用。
 
-## **kwargs
+## kwargs
 
 捕获一些额外信息的不定长字典，常用的有：
 
@@ -121,7 +154,7 @@ player = getPlayer(**kwargs)
 
 ## 登录任务
 
-这个请直接在`irori.py`的`@irori.subroutine`下面加
+这个请直接在`irori.py`的`hajime`函数下面加
 
 # Utils相关
 
