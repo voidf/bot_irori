@@ -332,7 +332,8 @@ async def 计算器(*attrs, kwargs={}):
     elif attrs[0] in GLOBAL.unsubscribes:
         removeSniffer(player, '#计算器')
         return [Plain('禁用快速计算')]
-    return [Plain(evaluate_expression(''.join(attrs).replace(' ','').strip()))]
+    exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
+    return [Plain(f"{exp} = {res}")]
 
 async def 逆波兰(*attrs, kwargs={}):
     """计算逆波兰表达式
