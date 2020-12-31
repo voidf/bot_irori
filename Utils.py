@@ -537,7 +537,7 @@ import shlex
 
 def BaiduTTS(text: str) -> str:
     """拿百度TTS的链接"""
-    return BaiduTTSLnk = f'http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text={text}'
+    return f'http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text={text}'
 
 
 def FLTTS(text, voice='slt') -> str:
