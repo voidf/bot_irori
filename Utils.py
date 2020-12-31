@@ -398,8 +398,9 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
     while operators:
         suffix_exp.append(operators.pop())
     print(suffix_exp)
+    extmsg = f'{suffix_exp}'
     calculate_suffix_exp()
-    return str(operands_str[0]), str(operands[0])
+    return f'{extmsg}\n{operands_str[0]}', str(operands[0])
 
 
 def getCredit(user: int) -> int:
