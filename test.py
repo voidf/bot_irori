@@ -156,5 +156,7 @@ def deepl_translate(src, l1='ZH', l2='EN'):
     res = json.loads(r4.text)
     print(res['result']['translations'][0]['beams'][0]['postprocessed_sentence'])
 
+BaiduTTSLnk = ' http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text='
+
 while 1:
     print(eval(input('>>>')))

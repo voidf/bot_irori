@@ -453,11 +453,15 @@ async def compressMsg(l, extDict={}):
     s = ''.join(nl)
 
     if ('-tts' in extDict or '-TTS' in extDict) and s:
-        out = TTS(s, extDict['-tts'])
+        extDict['voices'] = [BaiduTTS(s)]
+        extDict['-voice'] = True
+
+    elif ('-fltts' in extDict or '-FLTTS' in extDict) and s:
+        out = FLTTS(s, extDict['-fltts'])
         byte = getFileBytes(out)
         voi = await GLOBAL.app.uploadVoice(byte)
         asyncio.ensure_future(MessageChainSpliter([voi], **extDict))
-
+    
     if "-paste" in extDict and s:
 
         data = {
@@ -531,8 +535,12 @@ async def compressMsg(l, extDict={}):
 
 import shlex
 
+def BaiduTTS(text: str) -> str:
+    """拿百度TTS的链接"""
+    return BaiduTTSLnk = f'http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text={text}'
 
-def TTS(text, voice='slt') -> str:
+
+def FLTTS(text, voice='slt') -> str:
     v = voice if voice in {
         'awb',
         'kal',
