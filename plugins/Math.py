@@ -235,8 +235,21 @@ async def CalKatalan(*attrs,kwargs={}):
 
 async def 统计姬from104(*attrs, kwargs={}):
     l=[float(x) for x in attrs]
+    s = 0
+    for i in l:
+        s+=i**2
+    s/=len(l)
     ostr = []
     ostr.append(Plain(f"Mean 平均数:{statistics.mean(l)}\n"))
+    ostr.append(Plain(f"Mean Square 平方均值:{s}\n"))
+    if len(l) & 1 == 0:
+        d = 0
+        for p, i in enumerate(l[len(l)>>1]):
+            d+=i-l[p]
+        d/=(len(l)>>1)**2
+        ostr.append(Plain(f"Mean of Successional Difference 逐差均值:{s}\n"))
+
+    
     ostr.append(Plain(f"Median 中位数:{statistics.median(l)}\n"))
     ostr.append(Plain(f"Low Median 低中位数:{statistics.median_low(l)}\n"))
     ostr.append(Plain(f"High Median 高中位数:{statistics.median_high(l)}\n"))
