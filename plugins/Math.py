@@ -244,6 +244,9 @@ async def 统计姬from104(*attrs, kwargs={}):
     ostr.append(Plain(f"Mean Square 平方均值:{s}\n"))
     if len(l) & 1 == 0:
         d = 0
+
+        print(l)
+        print(len(l)>>1)
         for p, i in enumerate(l[len(l)>>1]):
             d+=i-l[p]
         d/=(len(l)>>1)**2
