@@ -41,7 +41,9 @@ youbi = {
 from GLOBAL import SessionConfigures
 
 
-def chkcfg(player):return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
+def chkcfg(player):
+    player = int(player)
+    return GLOBAL.cfgs.setdefault(player,SessionConfigures(player))
 
 def getmem(mono): return mono.id if getattr(mono, 'id', None) else int(mono)
 
@@ -441,7 +443,7 @@ def generateTmpFileName(pref='', ext='.png', **kwargs):
 async def compressMsg(l, extDict={}):
     """会把Plain对象展开，但同时也会打乱由图片，文字，回复等成分组成的混合消息链"""
     print(extDict)
-    player = extDict.get("player",0)
+    player = int(extDict.get("player",0))
     tc = chkcfg(player)
     
     nl = []

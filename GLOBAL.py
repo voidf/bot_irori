@@ -994,6 +994,7 @@ class SessionConfigures():
 	super_users = set()
 	print_exception = False
 	def __init__(self,player):
+		player = int(player)
 		self.compress_threshold = lengthLim
 		self.font_size = compressFontSize
 		if -player in enable_this:self.enable_this=False
