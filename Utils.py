@@ -328,7 +328,7 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
                     binocular_concate(op, operands_str)
                     binocular_calculate(op, operands)
             except:
-                operands[0] = "evaluate failed"
+                operands = ["evaluate failed"]
                 
     def maintain_stack():
         nonlocal cur_operator
