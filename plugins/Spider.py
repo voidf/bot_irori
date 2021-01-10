@@ -657,7 +657,7 @@ async def 对(*attrs,kwargs={}):
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     }
     couplet_lnk = f"https://ai-backend.binwang.me/chat/couplet/{''.join(attrs).strip()}"
-    resp = json.loads(requests.get(couplet_lnk, headers=couplet_hds).json())['output']
+    resp = requests.get(couplet_lnk, headers=couplet_hds).json()['output']
     return [Plain(resp)]
 
 
