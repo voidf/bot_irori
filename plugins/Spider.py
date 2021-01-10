@@ -638,6 +638,28 @@ async def 刷CF(*attrs,kwargs={}):
     试过{tried_count}题"""
     )]
 
+async def 对(*attrs,kwargs={}):
+    """给出上句对下句"""
+    couplet_hds = {
+        "Accept":"*/*",
+        "Accept-Encoding":"gzip, deflate, br",
+        "Accept-Language":"zh-CN,zh;q=0.9",
+        "Cache-Control":"no-cache",
+        "Connection":"keep-alive",
+        "DNT":"1",
+        "Host":"ai-backend.binwang.me",
+        "Origin":"https://ai.binwang.me",
+        "Pragma":"no-cache",
+        "Referer":"https://ai.binwang.me/couplet/",
+        "Sec-Fetch-Dest":"empty",
+        "Sec-Fetch-Mode":"cors",
+        "Sec-Fetch-Site":"same-site",
+        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+    }
+    couplet_lnk = f"https://ai-backend.binwang.me/chat/couplet/{''.join(attrs).strip()}"
+    resp = json.loads(requests.get(couplet_lnk, headers=couplet_hds).json)['output']
+    return [Plain(resp)]
+
 
 functionMap = {
     '#LaTeX':爬LaTeX,
