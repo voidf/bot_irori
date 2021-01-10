@@ -274,7 +274,7 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
 
     def handle_operand():
         nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower
-        nonlocal hex_token,octal_token,binary_token
+        nonlocal hex_token, octal_token, binary_token
         handled = ''.join(x)
         if float_token:
             handled += '.' + ''.join(xx)
@@ -295,7 +295,10 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
             elif float_token or decimal_token or len(handled) > 1000:
                 t = float(handled)
             else:
-                t = int(handled)
+                try:
+                    t = int(handled)
+                except:
+                    t = handled # 考虑未知数
             suffix_exp.append((t, 'operand'))
             last_mono = 'num'
         float_token = False
@@ -314,15 +317,19 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
         operands_str = copy.deepcopy(operands)
         for op, typ in suffix_exp:
             # op, typ = suffix_exp.pop()
-            if typ == 'operand':
-                operands.append(op)
-                operands_str.append(f'{op}')
-            elif typ == 'unary':
-                unary_calculate(op, operands)
-                unary_concate(op, operands_str)
-            else:
-                binocular_calculate(op, operands)
-                binocular_concate(op, operands_str)
+            try:
+                if typ == 'operand':
+                    operands_str.append(f'{op}')
+                    operands.append(op)
+                elif typ == 'unary':
+                    unary_concate(op, operands_str)
+                    unary_calculate(op, operands)
+                else:
+                    binocular_concate(op, operands_str)
+                    binocular_calculate(op, operands)
+            except:
+                operands[0] = "evaluate failed"
+                
     def maintain_stack():
         nonlocal cur_operator
         if cur_operator != '(':
@@ -351,24 +358,8 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
             x.append(c)
         elif c in 'abcdefABCDEF' and hex_token:
             x.append(c)
-        elif c in '.je' + string.digits:
-            if cur_operator:
-                maintain_stack()
-                last_mono = 'ope'
-            if c == '.':
-                float_token = True
-            elif c == 'j':
-                complex_token = True
-            elif c == 'e':
-                decimal_token = True
-            elif c in string.digits:
-                if decimal_token:
-                    xpower.append(c)
-                elif float_token:
-                    xx.append(c)
-                else:
-                    x.append(c)
-        else:
+            # c in '.je' + string.digits:
+        elif c in GLOBAL.operator_charset:
             handle_operand()
             if c == ')':
                 while operators[-1][0]!='(':
@@ -390,6 +381,24 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
                 operators.append((c, 'binocular'))    
             elif cur_operator + c in GLOBAL.binocular_operators:
                 cur_operator += c
+        else:
+            if cur_operator:
+                maintain_stack()
+                last_mono = 'ope'
+            if c == '.':
+                float_token = True
+            elif c == 'j':
+                complex_token = True
+            elif c == 'e':
+                decimal_token = True
+            else:
+                if decimal_token:
+                    xpower.append(c)
+                elif float_token:
+                    xx.append(c)
+                else:
+                    x.append(c)
+            
 
     handle_operand()
 
@@ -400,7 +409,7 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
     while operators:
         suffix_exp.append(operators.pop())
     print(suffix_exp)
-    extmsg = f'{suffix_exp}'
+    extmsg = f'{[i[0] for i in suffix_exp]}'
     calculate_suffix_exp()
     return f'{extmsg}\n{operands_str[0]}', str(operands[0])
 
