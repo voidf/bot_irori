@@ -313,7 +313,7 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
 
 
     def calculate_suffix_exp():
-        nonlocal operands_str
+        nonlocal operands_str, operands
         operands_str = copy.deepcopy(operands)
         for op, typ in suffix_exp:
             # op, typ = suffix_exp.pop()
