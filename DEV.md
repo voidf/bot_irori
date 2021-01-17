@@ -37,10 +37,8 @@ irori面向过程，代码风格**非常扭曲**，如果你不喜欢看长长�
 我们在[plugins/](plugins/)下建一个py文件，比如[myplugin.py](plugins/myplugin.py)然后照着以下这么写
 
 ```python
-from graia.application.message.elements.internal import Plain
-
 async def 复读(*attrs, kwargs={}):
-    return [Plain(' '.join(attrs))]
+    return ' '.join(attrs) # 现在也可以直接返回一个整数或者字符串
 ```
 
 这样你就可以直接使用命令`#复读`来调用`复读`这个函数
