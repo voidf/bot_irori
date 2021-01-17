@@ -762,6 +762,7 @@ import warnings
 # 数论相关
 
 def comb(n,b):
+    """从n个数里面选b个的方案数"""
     res = 1
     b = min(b,n-b)
     for i in range(b):
@@ -784,7 +785,31 @@ def quickpow(x,p,m = -1):
             p>>=1
     return res
 
-def A000110_list(m, mod=0): # 集合的划分数
+def A072233_list(n: int, m: int, mod=0) -> list:
+    """n个无差别球塞进m个无差别盒子方案数"""
+    mod = int(mod)
+    f = [[0] * (m + 1)] * (n + 1)
+    f[0][0] = 1
+    for i in range(1, n+1):
+        for j in range(1, min(i+1, m+1)): # 只是求到m了话没必要打更大的
+            f[i][j] = f[i-1][j-1] + f[i-j][j]
+            if mod: f[i][j] %= mod
+    return f
+
+def A048993_list(n: int, m: int, mod=0) -> list:
+    """第二类斯特林数"""
+    mod = int(mod)
+    f = [1] + [0] * m
+    for i in range(1, n+1):
+        for j in range(min(m, i), 0, -1):
+            f[j] = f[j-1] + f[j] * j
+            if mod: f[j] %= mod
+        f[0] = 0
+    return f
+
+
+def A000110_list(m, mod=0):
+    """集合划分方案总和，或者叫贝尔数"""
     mod = int(mod)
     A = [0 for i in range(m)]
     # m -= 1

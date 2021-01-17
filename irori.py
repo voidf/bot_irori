@@ -244,6 +244,8 @@ async def cmdResolver(player, s, message, extDict) -> None:
             if a not in tc.restrict_cmd and (not tc.allow_cmd or a in tc.allow_cmd):
 
                 l = await Callable.funs[a](*b, kwargs=extDict)
+                if not isinstance(l, list):
+                    l = [Plain(f"{l}")]
 
                 if a in GLOBAL.credit_cmds:
                     updateCredit(member, *GLOBAL.credit_cmds[a])
@@ -261,6 +263,8 @@ async def cmdResolver(player, s, message, extDict) -> None:
                     for sniffKey in mono['sniff']:
                         if re.search(sniffKey,getMessageChainText(message), re.S):
                             l = await Callable.funs[ev](*mono['attrs'], *s, kwargs=extDict)
+                            if not isinstance(l, list):
+                                l = [Plain(f"{l}")]
                             # if l:
                             asyncio.ensure_future(msgDistributer(list=l, **extDict))
                             break
