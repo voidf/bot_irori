@@ -525,7 +525,7 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-async def 球盒(*attrs, **kwargs={}):
+async def 球盒(*attrs, kwargs={}):
     """求解把n个球放进m个盒子里面有多少种方案的问题。
 必须指定盒子和球以及允不允许为空三个属性。
 用法：
