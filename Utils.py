@@ -170,7 +170,7 @@ async def msgDistributer(**kwargs):
                     break
             else:
                 isempty = False
-                    break
+                break
         if isempty: return
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
