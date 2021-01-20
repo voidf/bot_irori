@@ -128,7 +128,7 @@ async def msgDistributer(**kwargs):
         for ii in seq:
             print(ii)
             for i in ii[1]:
-                if i.type == 'Plain':
+                if isinstance(i, Plain):
                     if i.text:
                         return False
                 else:
