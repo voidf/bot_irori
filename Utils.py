@@ -111,6 +111,18 @@ async def MessageChainSpliter(chain: list, **kwargs):
             for seq in chain:
                 await GLOBAL.app.sendFriendMessage(kwargs['mem'], MessageChain.create([seq]).asSendable())
 
+def chkempty(seq):
+    isempty = True
+    for ii in seq:
+        print(ii)
+        for i in ii[1]:
+            if i.type == 'Plain':
+                if i.text:
+                    return False
+            else:
+                return False
+    return True
+
 async def msgDistributer(**kwargs):
     """
     根据player号分发消息
@@ -162,17 +174,7 @@ async def msgDistributer(**kwargs):
     if need_compress: seq = await compressMsg(seq, extDict=kwargs)
     print(f'\n{seq}\n')
     if seq:
-        isempty = True
-        for i in seq:
-            print(i)
-            if i[1].type == 'Plain':
-                if i[1].text:
-                    isempty = False
-                    break
-            else:
-                isempty = False
-                break
-        if isempty: return
+        if chkempty(seq): return
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
