@@ -164,6 +164,7 @@ async def msgDistributer(**kwargs):
     if seq:
         isempty = True
         for i in seq:
+            print(i)
             if i.type == 'Plain':
                 if i.text:
                     isempty = False
