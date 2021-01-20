@@ -69,7 +69,6 @@ def fetchCodeForcesContests():
         contest['length'] = f"{i['durationSeconds']/60}min"
         contest['countdown'] = str(datetime.timedelta(seconds=i['relativeTimeSeconds']))
 
-
     # r = requests.get('https://codeforces.com/contests?complete=true')
     # print(r)
     # soup = BeautifulSoup(r.text, 'html.parser')

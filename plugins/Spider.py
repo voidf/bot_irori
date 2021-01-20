@@ -230,6 +230,8 @@ async def 爬CF(*attrs,kwargs={}):
                 li.append(Plain(v['routine'].strftime('%Y/%b/%d %H:%M')+'  '))
                 li.append(Plain(v['length']+'  '))
                 li.append(Plain(v['countdown']+'\n'))  
+    if not li:
+        li = '没有即将开始的比赛'
     return li
 
 async def 爬AtCoder(*attrs,kwargs={}):
