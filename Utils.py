@@ -63,10 +63,6 @@ def generateImageFromFile(fn:str) -> Image:
     else: return Image.fromLocalFile(fn)
 
 
-async def rmTmpFile(fi:str):
-    await asyncio.sleep(60)
-    os.remove(fi)
-
 async def contestsBeginNotice(g,contest,ti):
     if ti<0:
         return
@@ -166,6 +162,16 @@ async def msgDistributer(**kwargs):
     if need_compress: seq = await compressMsg(seq, extDict=kwargs)
     print(f'\n{seq}\n')
     if seq:
+        isempty = True
+        for i in seq:
+            if i.type == 'Plain':
+                if i.text:
+                    isempty = False
+                    break
+            else:
+                isempty = False
+                    break
+        if isempty: return
         if 'player' in kwargs:
             kwargs['player'] = int(kwargs['player'])
             if kwargs['player'] > 1<<39:
@@ -746,7 +752,7 @@ async def renderHtml(dst_lnk, na) -> str:
     driver.quit()
     return ostr
 
-import warnings
+# import warnings
 
 # def uploadToChaoXing(fn: Union[bytes,str]) -> str:
 #     warnings.warn("超星网盘现在要登录了", DeprecationWarning)

@@ -18,6 +18,10 @@ import base64
 import importlib
 import sys
 
+async def rmTmpFile(fi:str):
+    await asyncio.sleep(60)
+    os.remove(fi)
+
 def randstr(l: int) -> str: return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
 
 def fetchAtCoderContests() -> dict:

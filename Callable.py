@@ -113,7 +113,7 @@ async def printHelp(*attrs, kwargs={}):
         l.append('已导入的模块：')
         for k, v in plugindocs.items():
             l.append(f'''\t{k} {v}''')
-        l.append('''输入#h <类名> 以查询模块下命令
+        l.append('''输入#h <模块名> 以查询模块下命令
 使用#h <命令名> 可以查询详细用法
 使用#h search <关键字> 可以按照关键字查找相关命令
 尖括号表示参数必要，方括号表示参数可选，实际使用中不必一定需要
@@ -151,9 +151,9 @@ async def printHelp(*attrs, kwargs={}):
             checked = set()
             for k, v in funs.items():
                 if re.search(key, k, re.S) or re.search(key, v.__doc__, re.S):
-                    l.append(f'''\t{k}\t{v.__doc__.strip()[:show_limit]
-                    if len(v.__doc__.strip()[:show_limit])<=show_limit
-                    else v.__doc__.strip()[:show_limit]+'...'}\n''' )
+                    l.append(f'''\t{k}\t{v.__doc__.strip()}\n''' )
+            if not l:
+                l = "没有结果喵"
         else:
             l.append('【错误】参数不合法\n')
             ext = await printHelp()
