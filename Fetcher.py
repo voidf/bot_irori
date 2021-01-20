@@ -61,6 +61,7 @@ def fetchCodeForcesContests():
     r = requests.get('https://codeforces.com/api/contest.list')
     li = {}
     for i in r.json()['result']:
+        print(i)
         if i['phase'] == 'FINISHED':
             break
         contest = li.setdefault(i['id'], {})
