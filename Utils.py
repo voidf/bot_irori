@@ -111,18 +111,6 @@ async def MessageChainSpliter(chain: list, **kwargs):
             for seq in chain:
                 await GLOBAL.app.sendFriendMessage(kwargs['mem'], MessageChain.create([seq]).asSendable())
 
-def chkempty(seq):
-    isempty = True
-    for ii in seq:
-        print(ii)
-        for i in ii[1]:
-            if i.type == 'Plain':
-                if i.text:
-                    return False
-            else:
-                return False
-    return True
-
 async def msgDistributer(**kwargs):
     """
     根据player号分发消息
@@ -135,6 +123,17 @@ async def msgDistributer(**kwargs):
 用例：
     await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
     """
+    def chkempty(seq):
+        isempty = True
+        for ii in seq:
+            print(ii)
+            for i in ii[1]:
+                if i.type == 'Plain':
+                    if i.text:
+                        return False
+                else:
+                    return False
+        return True
     seq = []
     
     if 'msg' in kwargs and kwargs['msg']:

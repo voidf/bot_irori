@@ -58,28 +58,40 @@ def fetchAtCoderContests() -> dict:
 
 
 def fetchCodeForcesContests():
-    r = requests.get('https://codeforces.com/contests?complete=true')
-    print(r)
-    soup = BeautifulSoup(r.text, 'html.parser')
+    r = requests.get('https://codeforces.com/api/contest.list')
     li = {}
-    for i in soup('table')[0]('tr'):
-        if any(i('td')):  # 标题 作者 日期 时长 开始倒计时 （爬到的是UTC+3
-            contest = li.setdefault(i['data-contestid'], {})
-            pos = i('td')[0].text.find('Enter')
-            if pos != -1:
-                print('正在运行的比赛')
-                contest['title'] = i('td')[0].text[:pos-1].strip()
-            else:
-                try:
-                    contest['title'] = i('td')[0].string.strip()
-                    contest['authors'] = [au.string.strip()
-                                          for au in i('td')[1]('a')]
-                    contest['routine'] = datetime.datetime.strptime(
-                        i('td')[2].a.span.string.strip(), '%b/%d/%Y %H:%M') + datetime.timedelta(hours=5)
-                    contest['length'] = i('td')[3].string.strip()
-                    contest['countdown'] = i('td')[4].text.strip()
-                except:
-                    print(traceback.format_exc())
+    for i in r.json()['result']:
+        if i['phase'] == 'FINISHED':
+            break
+        contest = li.setdefault(i['id'], {})
+        contest['title'] = i['name']
+        contest['routine'] = datetime.datetime.fromtimestamp(i['startTimeSeconds'])
+        contest['length'] = f"{i['durationSeconds']/60}min"
+        contest['countdown'] = str(datetime.timedelta(seconds=i['relativeTimeSeconds']))
+
+
+    # r = requests.get('https://codeforces.com/contests?complete=true')
+    # print(r)
+    # soup = BeautifulSoup(r.text, 'html.parser')
+    # li = {}
+    # for i in soup('table')[0]('tr'):
+    #     if any(i('td')):  # 标题 作者 日期 时长 开始倒计时 （爬到的是UTC+3
+    #         contest = li.setdefault(i['data-contestid'], {})
+    #         pos = i('td')[0].text.find('Enter')
+    #         if pos != -1:
+    #             print('正在运行的比赛')
+    #             contest['title'] = i('td')[0].text[:pos-1].strip()
+    #         else:
+    #             try:
+    #                 contest['title'] = i('td')[0].string.strip()
+    #                 contest['authors'] = [au.string.strip()
+    #                                       for au in i('td')[1]('a')]
+    #                 contest['routine'] = datetime.datetime.strptime(
+    #                     i('td')[2].a.span.string.strip(), '%b/%d/%Y %H:%M') + datetime.timedelta(hours=5)
+    #                 contest['length'] = i('td')[3].string.strip()
+    #                 contest['countdown'] = i('td')[4].text.strip()
+    #             except:
+    #                 print(traceback.format_exc())
     return li
 
 

@@ -227,7 +227,6 @@ async def 爬CF(*attrs,kwargs={}):
                 li.append(Plain(f'有正在进行的比赛：{v["title"]}\n\n'))
             else:
                 li.append(Plain(v['title']+'  '))
-                li.append(Plain(','.join(v['authors'])+'  '))
                 li.append(Plain(v['routine'].strftime('%Y/%b/%d %H:%M')+'  '))
                 li.append(Plain(v['length']+'  '))
                 li.append(Plain(v['countdown']+'\n'))  
