@@ -558,6 +558,23 @@ async def 球盒(*attrs, kwargs={}):
     else:
         return f"解析不了的属性：{attrs[0]}，我们只吃长度为3的01串喵"
 
+async def 十转(*attrs, kwargs={}):
+    """十进制转换为其他进制工具：
+输入格式：
+    #十转 <目标进制> <源十进制数>
+例：
+    #十转 5 261"""
+    l = []
+    b = int(attrs[0])
+    x = int(attrs[1])
+    if x==0:
+        return 0
+    while x:
+        l.append(str(x%b))
+        x//=b
+    l.reverse()
+    return f"{l}\n{''.join(l)}"
+
 async def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
     
 functionMap = {

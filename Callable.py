@@ -153,7 +153,7 @@ async def printHelp(*attrs, kwargs={}):
                 if re.search(key, k, re.S) or re.search(key, v.__doc__, re.S):
                     l.append(f'''\t{k}\t{v.__doc__.strip()}\n''' )
             if not l:
-                l = "没有结果喵"
+                l = ["没有结果喵"]
         else:
             l.append('【错误】参数不合法\n')
             ext = await printHelp()
