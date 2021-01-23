@@ -36,7 +36,6 @@ import urllib
 import mido
 from Sniffer import *
 from Utils import *
-from asgiref.sync import async_to_sync, sync_to_async
 
 importMirai()
 
