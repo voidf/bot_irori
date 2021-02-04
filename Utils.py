@@ -129,12 +129,13 @@ async def msgDistributer(**kwargs):
         print(dir(seq))
         for ii in seq:
             print(ii)
-            for i in ii[1]:
-                if isinstance(i, Plain):
-                    if i.text:
-                        return False
-                else:
+            
+            # for i in ii[1]:
+            if isinstance(ii, Plain):
+                if ii.text:
                     return False
+            else:
+                return False
         return True
     seq = []
     
