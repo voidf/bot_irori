@@ -125,11 +125,11 @@ async def msgDistributer(**kwargs):
     """
     def chkempty(seq):
         isempty = True
-        print(seq)
-        print(dir(seq))
+        # print(seq)
+        # print(dir(seq))
         for ii in seq:
             print(ii)
-            
+
             # for i in ii[1]:
             if isinstance(ii, Plain):
                 if ii.text:
