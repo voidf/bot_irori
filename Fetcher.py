@@ -28,7 +28,7 @@ def fetchAtCoderContests() -> dict:
     j = {}
     l = []
     r = requests.get('https://atcoder.jp/contests/',
-                     headers=GLOBAL.AtCoderHeaders)
+                     headers=GLOBAL.AtCoderHeaders, timeout=30)
     s = BeautifulSoup(r.text, 'html.parser')
     try:
         for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
@@ -58,7 +58,7 @@ def fetchAtCoderContests() -> dict:
 
 
 def fetchCodeForcesContests():
-    r = requests.get('https://codeforces.com/api/contest.list')
+    r = requests.get('https://codeforces.com/api/contest.list', timeout=30)
     li = {}
     for i in r.json()['result']:
         print(i)
@@ -98,7 +98,7 @@ def fetchCodeForcesContests():
 def fetchNowCoderContests() -> list:
     l = []
     res = requests.get(
-        'https://ac.nowcoder.com/acm/contest/vip-index?&headNav=www')
+        'https://ac.nowcoder.com/acm/contest/vip-index?&headNav=www', timeout=30)
     bs_res = BeautifulSoup(res.text, 'html.parser')
     items = bs_res.find('div', class_='platform-mod js-current')
     for item in items.find_all(class_='platform-item'):
