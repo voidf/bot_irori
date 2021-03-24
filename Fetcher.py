@@ -68,7 +68,7 @@ def fetchCodeForcesContests():
         contest['title'] = i['name']
         contest['routine'] = datetime.datetime.fromtimestamp(i['startTimeSeconds'])
         contest['length'] = f"{i['durationSeconds']/60}min"
-        contest['countdown'] = str(datetime.timedelta(seconds=i['relativeTimeSeconds']))
+        contest['countdown'] = str(datetime.timedelta(seconds=-i['relativeTimeSeconds']))
 
     # r = requests.get('https://codeforces.com/contests?complete=true')
     # print(r)

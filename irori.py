@@ -225,6 +225,7 @@ def msgprework(message: MessageChain, extDict: dict) -> list:
 
 async def cmdResolver(player, s, message, extDict) -> None:
     print(extDict)
+    print(f"RAW_CMD:{s}\n")
     tc = chkcfg(player)
     member = getmem(extDict['mem'])
     try:
@@ -274,8 +275,9 @@ async def cmdResolver(player, s, message, extDict) -> None:
             await msgDistributer(list=[Plain(traceback.format_exc())], **extDict)
         return
 
-@irori.receiver("GroupMessage", headless_decoraters=[Depend(irori_statistics)])
+@irori.receiver("GroupMessage")
 async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:Member):
+    await irori_statistics(message, member=member)
     GLOBAL.app = app
     player = group.id+2**39
     extDict = {
@@ -289,8 +291,9 @@ async def GroupHandler(message: MessageChain, app: Mirai, group: Group, member:M
     if m not in botList:
         await cmdResolver(player, s, message, extDict)
 
-@irori.receiver("FriendMessage", headless_decoraters=[Depend(irori_statistics)])
+@irori.receiver("FriendMessage")
 async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
+    await irori_statistics(message, hurenzu=hurenzu)
     GLOBAL.app = app
     player = hurenzu.id
 

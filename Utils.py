@@ -125,14 +125,17 @@ async def msgDistributer(**kwargs):
     """
     def chkempty(seq):
         isempty = True
+        # print(seq)
+        # print(dir(seq))
         for ii in seq:
             print(ii)
-            for i in ii[1]:
-                if isinstance(i, Plain):
-                    if i.text:
-                        return False
-                else:
+
+            # for i in ii[1]:
+            if isinstance(ii, Plain):
+                if ii.text:
                     return False
+            else:
+                return False
         return True
     seq = []
     
@@ -690,12 +693,12 @@ def CFNoticeManager(j,**kwargs):
                 asy = asyncio.ensure_future(contestsBeginNotice(gp,v['title'],timew.total_seconds()))
                 CFNoticeQueue[k] = asy
                 asy.add_done_callback(functools.partial(clearCFFuture,k,gp))
-        if timew and feat == 'R' and k + 'RDR' not in CFNoticeQueue:
+        if timew and feat == 'R' and f"{k}RDR" not in CFNoticeQueue:
             asyR = asyncio.ensure_future(CFProblemRender(gp,k,timew.total_seconds()+3640))
-            CFNoticeQueue[k + 'RDR']=asyR
-            asyR.add_done_callback(functools.partial(clearCFFuture,k + 'RDR',gp))
-        elif feat == 'Y' and k + 'RDR' in CFNoticeQueue:
-            t = CFNoticeQueue.pop(k + 'RDR')
+            CFNoticeQueue[f"{k}RDR"]=asyR
+            asyR.add_done_callback(functools.partial(clearCFFuture,f"{k}RDR",gp))
+        elif feat == 'Y' and f"{k}RDR" in CFNoticeQueue:
+            t = CFNoticeQueue.pop(f"{k}RDR")
             t.cancel()
 
 def OTNoticeManager(j,**kwargs):

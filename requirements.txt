@@ -1,4 +1,4 @@
-pydantic==1.7.0
+pydantic
 numpy==1.19.3
 bs4
 requests[socks]
@@ -11,5 +11,6 @@ colorclass==2.2.0
 mido
 pexpect
 graia-application-mirai
-graia-broadcast==0.5.0
+graia-broadcast
+devtools
 xlrd==1.2.0
