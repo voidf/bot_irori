@@ -403,6 +403,21 @@ async def 数电笔记(*attrs, kwargs={}):
     ins = ' '.join(attrs)
     if ins == 'ls':
         return [Plain('\n'.join(GLOBAL.DEKnowledge.keys()))]
+    elif ins == 'reload':
+        ret_msg = [Plain('知识库已更新,现有词条：\n')]
+        for i in os.listdir('DigitalElectronicsTech'):
+            if i[-6:]=='.json5':
+                with open('DigitalElectronicsTech/'+i,'r') as f: 
+                    j = json5.load(f)
+                for k,v in j.items():
+                    ret_msg.append(Plain('\t- '+k+'\n'))
+                    GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
+                    if 'img' in v:
+                        for vi in v['img']:
+                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
+                    for an in v['AN']:
+                        GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
+        return ret_msg
     elif ins in GLOBAL.DEKnowledge:
         return GLOBAL.DEKnowledge[ins]
     else:
