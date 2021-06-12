@@ -45,10 +45,14 @@ def importMirai():
 		py_mirai_version = 3
 importMirai()
 
-with open('authdata','r') as f:
-	qq = int(f.readline().strip())
-	authKey = f.readline().strip()
-	host = f.readline().strip() # httpapi所在主机的地址端口,如果 setting.yml 文件里字段 "enableWebsocket" 的值为 "true" 则需要将 "/" 换成 "/ws", 否则将接收不到消息.
+import json
+
+with open('cfg.json','r',encoding='utf-8') as f:
+	cfg = json.load(f)
+	qq = int(cfg['authdata']['qq'])
+	authKey = cfg['authdata']['token']
+	host = cfg['authdata']['url']
+	# httpapi所在主机的地址端口,如果 setting.yml 文件里字段 "enableWebsocket" 的值为 "true" 则需要将 "/" 换成 "/ws", 否则将接收不到消息.
 
 if py_mirai_version == 3:
 	mirai_api_http_locate = host.replace('https://', '')
