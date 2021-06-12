@@ -21,8 +21,8 @@
     "appid": "2020123456789",                                                       # 设置百度翻译的appid
     "secretKey": "ajusdhgiudhfgiohsdkil",                                           # 百度翻译的密钥
     "echoMsg": false,                                                               # 是否打印收到的消息链
-    "dbcfg":{"host":"mongodb://localhost:27017/irori_data"},                        # mongoDB的连接配置
-    "loggercfg":{"file":"", "level":"debug"},                                       # 留空为不存文件
+    "db":{"host":"mongodb://localhost:27017/irori_data"},                        # mongoDB的连接配置
+    "logger":{"file":"", "level":"debug"},                                       # 留空为不存文件
     "authdata":{"qq":114514, "token":"1919810", "url":"https://localhost:1919/"},   # 认证
     "lengthLim":1919,                                                               # 文字转图片的字符串长度阈值
     "AVGHost": "http://127.0.0.1:1919",                                             # AVG主机地址（没有或不需要可留空

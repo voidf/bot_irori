@@ -57,43 +57,30 @@ locate = re.findall("""来自：(.*?)\n""",requests.get('https://2021.ip138.com/
 
 
 if not os.path.exists('credits/'): os.mkdir('credits/')
-try:
-    with open('cfg.json','r',encoding='utf-8') as jfr:
-        cfg = json.load(jfr)
-        banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
-        allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
-        botList = set(cfg.get('botList',[]))
-        GLOBAL.proxy = cfg.get('proxy',{})
-        muteList = set(cfg.get('muteList',[]))
-        masterID = set(cfg.get('masters',[]))
-        GLOBAL.enable_this = set(cfg.get('enables',[0]))
-        GLOBAL.lengthLim = cfg.get('lengthLim',500)
-        GLOBAL.compressFontSize = cfg.get('fontSize',18)
-        GLOBAL.echoMsg = cfg.get('echoMsg',False)
-        GLOBAL.AVGHost = cfg.get('AVGHost','')
-        GLOBAL.OJHost = cfg.get('OJHost','')
 
-
-except:
-    traceback.print_exc()
-    banGroup = {}
-    allowGroup={}
-    botList = set()
-    muteList = set()
-    GLOBAL.proxy = {}
-    masterID = set()
-    GLOBAL.enable_this = {0}
-    GLOBAL.lengthLim = 500
-    GLOBAL.compressFontSize = 18
-    GLOBAL.echoMsg = False
-    GLOBAL.AVGHost = ''
-    GLOBAL.OJHost = ''
-
+from GLOBAL import cfg
+banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
+allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
+botList = set(cfg.get('botList',[]))
+GLOBAL.proxy = cfg.get('proxy',{})
+muteList = set(cfg.get('muteList',[]))
+masterID = set(cfg.get('masters',[]))
+GLOBAL.enable_this = set(cfg.get('enables',[0]))
+GLOBAL.lengthLim = cfg.get('lengthLim',500)
+GLOBAL.compressFontSize = cfg.get('fontSize',18)
+GLOBAL.echoMsg = cfg.get('echoMsg',False)
+GLOBAL.AVGHost = cfg.get('AVGHost','')
+GLOBAL.OJHost = cfg.get('OJHost','')
 
 import Callable
 
-from GLOBAL import irori, qqbot
+import database_utils
 
+from GLOBAL import irori
+try:
+    from GLOBAL import qqbot
+except:
+    pass
 
 async def irori_statistics(
     message: MessageChain,
