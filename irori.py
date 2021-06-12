@@ -38,7 +38,6 @@ import json5
 from Utils import *
 from Routiner import *
 from Sniffer import *
-from graia.broadcast.builtin.decoraters import Depend
 importMirai()
 identifier = uuid.uuid1().hex
 

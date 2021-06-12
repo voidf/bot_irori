@@ -2,9 +2,6 @@ from graia.broadcast.entities.event import BaseEvent
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast import Broadcast
-from graia.broadcast.entities.decorater import Decorater
-from graia.broadcast.builtin.decoraters import Depend, Middleware
-from graia.broadcast.interfaces.decorater import DecoraterInterface
 from graia.broadcast.exceptions import PropagationCancelled
 from graia.application.event.messages import GroupMessage
 from graia.application.message.chain import MessageChain
