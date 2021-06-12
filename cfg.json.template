@@ -1,29 +1,30 @@
 {
     "banGroup": {
         "114514":["#CF"]
-    }, # 不允许114514群用#CF命令
+    },                                                                              # 不允许114514群用#CF命令
     "allowGroup": {
         "1919810": ["#CF","#AT"]
-    }, # 仅允许1919810群用#CF，#AT两个命令
+    },                                                                              # 仅允许1919810群用#CF，#AT两个命令
     "botList": [
         1926,
         817
-    ], # 每个群内忽略QQ号为1926和817的两个群员的发言
+    ],                                                                              # 每个群内忽略QQ号为1926和817的两个群员的发言
     "onlineMsg": {
         "998244353": ["雷真殿に迷惑をかけているのではあるまいな？","ありませんか？"]
-    }, # 向群998244353从后面的列表中抽一个字符串发送登录提醒
+    },                                                                              # 向群998244353从后面的列表中抽一个字符串发送登录提醒
     "proxy": {
         "http": "socks5://11.4.51.4:810",
         "https": "socks5://11.4.51.4:810"
-    }, # 设置代理（目前只有#看看病 用到
-    "masters": [233, 666], # 设置系统级命令的管理员（player号
-    "enables": [0], # 默认使能状态，0为默认处理任何对象的消息，否则只处理提供的player号
-    "appid": "2020123456789", # 设置百度翻译的appid
-    "secretKey": "ajusdhgiudhfgiohsdkil", # 百度翻译的密钥
-    "echoMsg": false, # 是否打印收到的消息链
-    "dbcfg":{"host":"mongodb://localhost:27017/irori_data"}, # mongoDB的连接配置
-    "loggercfg":{"file":"", "level":"debug"}, # 留空为不存文件
-    "lengthLim":1919, # 文字转图片的字符串长度阈值
-    "AVGHost": "http://127.0.0.1:1919", # AVG主机地址（没有或不需要可留空
-    "OJHost": "http://127.0.0.1:14569" # OJ主机地址（没有或不需要可留空
+    },                                                                              # 设置代理（目前只有#看看病 用到
+    "masters": [233, 666],                                                          # 设置系统级命令的管理员（player号
+    "enables": [0],                                                                 # 默认使能状态，0为默认处理任何对象的消息，否则只处理提供的player号
+    "appid": "2020123456789",                                                       # 设置百度翻译的appid
+    "secretKey": "ajusdhgiudhfgiohsdkil",                                           # 百度翻译的密钥
+    "echoMsg": false,                                                               # 是否打印收到的消息链
+    "dbcfg":{"host":"mongodb://localhost:27017/irori_data"},                        # mongoDB的连接配置
+    "loggercfg":{"file":"", "level":"debug"},                                       # 留空为不存文件
+    "authdata":{"qq":114514, "token":"1919810", "url":"https://localhost:1919/"},   # 认证
+    "lengthLim":1919,                                                               # 文字转图片的字符串长度阈值
+    "AVGHost": "http://127.0.0.1:1919",                                             # AVG主机地址（没有或不需要可留空
+    "OJHost": "http://127.0.0.1:14569"                                              # OJ主机地址（没有或不需要可留空
 }
