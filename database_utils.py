@@ -119,3 +119,10 @@ class SentenceSubscribe(RefPlayerBase, Document):
 
 class WeatherSubscribe(Document, RefPlayerBase):
     city = ListField(StringField())
+
+class SlidingPuzzle(Document, RefPlayerBase):
+    bg = ImageField()
+    mat = ListField(ListField(IntField()))
+
+class Asobi2048Data(RefPlayerBase, Document):
+    mat = ListField(ListField(IntField()))

@@ -64,7 +64,7 @@ def generateImageFromFile(fn:str) -> Image:
 
 
 async def contestsBeginNotice(g,contest,ti):
-    if ti<0:
+    if ti < 0:
         return
     print('进入等待队列，阻塞%f秒'%ti)
     await asyncio.sleep(ti)

@@ -40,6 +40,10 @@ from Utils import *
 from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 importMirai()
 
+
+from mongoengine import *
+from database_utils import *
+
 async def asobi2048(*attrs, kwargs={}):
     player = getPlayer(**kwargs)
     f = False
@@ -48,8 +52,7 @@ async def asobi2048(*attrs, kwargs={}):
     if not attrs:
         return [Plain('想玩2048的话请像 #2048 w 这样写')]
 
-    if not os.path.exists('2048/'):
-        os.mkdir('2048/')
+    asobientity = Asobi2048Data.chk(player)
     try:
         if attrs[0] == 'init':
             try:
@@ -59,7 +62,7 @@ async def asobi2048(*attrs, kwargs={}):
             except:
                 pass
             raise NameError('2048RESET')
-        grids = numpy.loadtxt(f'2048/{player}mat.txt')
+        grids = numpy.array(asobientity.mat)
         n = len(grids)
         
     except:
@@ -146,12 +149,12 @@ async def asobi2048(*attrs, kwargs={}):
                             grids[i][k] = grids[i][j]
                             grids[i][j] = 0
                             f = True
-    elif attrs[0].lower() in ('cancel','terminate','quit','exit','seeyou','bye','sayonara','sayounara','madane','yamero','停','关','やめろ'):
+    elif attrs[0].lower() in GLOBAL.unsubscribes:
         removeSniffer(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
         overwriteSniffer(player,'#2048','.*')
-        return [Plain(text=random.choice(['开始切咧，让我闭嘴大声yamero','快速游戏模式开启，关闭请使用bye']))]
+        return [Plain(text=random.choice(['断言：你知道你在干什么————刷屏模式开始……', '快速游戏模式开启，关闭请使用bye']))]
     if f:
         zeromap = []
         for i in range(n):
@@ -161,7 +164,8 @@ async def asobi2048(*attrs, kwargs={}):
         x,y = random.choice(zeromap)
         grids[x][y] = random.randint(1,2)*2
     outputString = []
-    numpy.savetxt(f'2048/{player}mat.txt',grids,fmt='%d')
+    asobientity = grids.tolist()
+    asobientity.save()
     for i in grids:
         for j in i:
             outputString.append(Plain(text='%6d'%j))
@@ -169,12 +173,6 @@ async def asobi2048(*attrs, kwargs={}):
     return outputString
 
 
-from mongoengine import *
-from database_utils import *
-
-class SlidingPuzzle(Document, RefPlayerBase):
-    bg = ImageField()
-    mat = ListField(ListField(IntField()))
 
 
 async def asobiSlidingPuzzle(*attrs,kwargs={}):
