@@ -170,11 +170,7 @@ async def 信用点查询(*attrs, kwargs={}):
 from mongoengine import *
 from database_utils import *
 
-class Vote(Document, RefPlayerBase):
-    title = StringField()
-    items = DictField()
-    memberChoices = DictField()
-    limit = IntField(default=5)
+
 
 async def 投票姬(*attrs, kwargs={}):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
@@ -251,7 +247,7 @@ async def 投票姬(*attrs, kwargs={}):
             ostr.append(Plain(text=f'''投票成功，条目{selectedItem}当前已有{len(j['items'][selectedItem])}票\n'''))
     j.save()
     return ostr
-
+from GLOBAL import logging
 async def ddl通知姬(*attrs, kwargs={}):
     async def Noticer(g,mb,kotoba,delays):
         print('delay:',delays)
@@ -268,25 +264,34 @@ async def ddl通知姬(*attrs, kwargs={}):
         print('delay:',delays)
         try:
             await asyncio.sleep(delays)
-            with open(f'ddl/{g}','r') as fr:
-                j = json.load(fr)
+
+            DDLentity = DDLLog.chk(g)
             del ddlQueuer[tit]
-            del j[tit]
-            with open(f'ddl/{g}','w') as fw:
-                json.dump(j,fw)
+            del DDLentity.content[tit]
+            DDLentity.save()
+
             if delays > -10:
                 if g>=2**39:
-                    if random.randint(0,4):
-                        await msgDistributer(player=g,list=[At(mb),Plain(tit+'大限已至，我扔掉了。')])
-                    else:
-                        await msgDistributer(player=g,list=[At(mb),Plain(tit+'变臭力，只能扔了（悲')])
+                    await msgDistributer(player=g,list=[At(mb),Plain(tit+
+                        ''.join(
+                            random.choices(
+                                ['变臭力，只能扔了（悲', '大限已至，我扔掉了。'],
+                                weights=[0.25, 0.75],k=1
+                            )
+                        )
+                    )])
+
                 else:
-                    if random.randint(0,4):
-                        await msgDistributer(player=g,list=[Plain(tit+'大限已至，我扔掉了。')])
-                    else:
-                        await msgDistributer(player=g,list=[Plain(tit+'变臭力，只能扔了（悲')])
-        except Exception as e:
-            print(e)
+                    await msgDistributer(player=g,list=[Plain(tit+
+                        ''.join(
+                            random.choices(
+                                ['变臭力，只能扔了（悲', '大限已至，我扔掉了。'],
+                                weights=[0.25, 0.75],k=1
+                            )
+                        )
+                    )])
+        except:
+            logging.error(traceback.format_exc())
 
     def notice2(g,mb,tit,dtime):
         if tit in ddlQueuer:
@@ -305,20 +310,16 @@ async def ddl通知姬(*attrs, kwargs={}):
     else:
         player = getPlayer(**kwargs)
         ddlQueuer = GLOBAL.ddlQueuerGlobal.setdefault(player,{})
+    
+    entity = DDLLog.chk(player)
 
-    if not os.path.exists('ddl/'):
-        os.mkdir('ddl/')
-    try:
-        with open(f'ddl/{player}','r') as fr:
-            j = json.load(fr)
-    except:
-        j = {}
+
     ostr = []
     try:
         if len(attrs):
             if attrs[0] == 'new':
                 s = attrs[1]
-                if s in j:
+                if s in entity.content:
                     return [Plain('日程表里有了相同的东西，考虑换个名？')]
                 
                 cp = datetime.datetime.now()
@@ -328,7 +329,7 @@ async def ddl通知姬(*attrs, kwargs={}):
                 if len(ss) == 0:
                     return [Plain('未输入时间')]
                 elif len(ss)>6:
-                    return [Plain('我不会算这种时间格式(首)(张口闭眼状)')]
+                    return [Plain('我不会算这种时间格式(张口闭眼状)')]
                 ss.reverse()
                 while len(ss)<6:
                     if len(ss) == 1:
@@ -346,23 +347,21 @@ async def ddl通知姬(*attrs, kwargs={}):
                 t = datetime.datetime(*(int(i) for i in ss))
                 if t>datetime.datetime.now():
                     dt = t-datetime.datetime.now()
-                    j[s] = [','.join(ss),getattr(kwargs['mem'],'id',kwargs['mem'])]
+                    entity.content[s] = [','.join(ss),getattr(kwargs['mem'],'id',kwargs['mem'])]
                     notice2(player,getattr(kwargs['mem'],'id',kwargs['mem']),s,dt)
                 else:
                     return [Plain(random.choice(['你的日程真的没问题喵（？','噔 噔 咚！这件事已经过期了']))]
-                
                 ostr.append(Plain(random.choice(['好啦好啦会提醒你了啦','防侠提醒加入成功...TO BE CONTINUE ==>','不是，调个闹钟不比我香吗¿'])))
             elif attrs[0] in ('rm','del'):
                 s = attrs[1]
                 for i in ddlQueuer.setdefault(s,[]):
                     i.cancel()
                 del ddlQueuer[s]
-                del j[s]
+                del entity.content[s]
                 ostr.append(Plain(s+'，脱 了 出 来'))
-                # t = datetime.datetime.strptime('.'.join(ss),'%Y.%m.%d.%H.%M.%S')
             elif attrs[0] in ('ls','chk'):
                 ooss = []
-                for k,v in j.items():
+                for k,v in entity.content.items():
                     ooss.append(k+' => ' +v[0] +' from ' +str(v[1]))
                 if len(ooss):
                     ostr.append(Plain('\n'.join(ooss)))
@@ -370,23 +369,21 @@ async def ddl通知姬(*attrs, kwargs={}):
                     if random.randint(0,4):
                         ostr.append(Plain('日程表像我高数卷面一样干净整洁呐'))
                     else:
-                        ostr.append(Plain('日程表空白得比先辈的牙还白'))
-            elif attrs[0] == '-*/cls/*-':
+                        ostr.append(Plain('日程表为空'))
+            elif attrs[0] == '-*/clear/*-':
                 for k,v in ddlQueuer.items():
-                    for j in v:
-                        j.cancel()
+                    for jj in v:
+                        jj.cancel()
                 ddlQueuer = {}
-                j = {}
+                entity.content = {}
                 ostr.append(Plain('已经，没有什么好期待的了'))
             elif attrs[0] in ('tasks','view'):
                 ostr.append(Plain(f'{ddlQueuer}'))
             elif attrs[0] in ('t','time','now'):
                 ostr.append(Plain(f'{datetime.datetime.now()}'))
-        with open(f'ddl/{player}','w') as fw:
-            json.dump(j,fw)
-        
+        entity.save()
     except Exception as e:
-        print(e)
+        logging.error(traceback.format_exc())
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
@@ -460,17 +457,15 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
     print(kwargs['mem'])
     print(dir(kwargs['mem']))
     mem = getmem(kwargs['mem'])
-    fn = f'DailySign/{mem}'
+    player = getPlayer(**kwargs)
+    entity = DailySignLog.chk(player)
     from Assets.签到语料 import 宜, 忌, 运势
-    if not os.path.exists('DailySign'): os.mkdir('DailySign')
-    if not os.path.exists(fn): 
-        with open(fn,'w') as f: json.dump({},f)
-    with open(fn,'r') as f: current_user = json.load(f)
+
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
-    if current_user.get('last_sign','1919-8-10') != datetime.datetime.now().strftime('%Y-%m-%d'):
-        if to_datetime(current_user.get('last_sign','1919-8-10')) != to_datetime(datetime.datetime.now().strftime('%Y-%m-%d')) - datetime.timedelta(days=1):
-            current_user['combo'] = 0
-        current_user['combo'] = current_user.get('combo', 0) + 1
+    if entity.last_sign.day != datetime.datetime.now().day:
+        if entity.last_sign.day != (datetime.datetime.now() - datetime.timedelta(days=1)).day:
+            entity['combo'] = 0
+        entity['combo'] += 1
         fortune = random.choice(运势)
         y = random.sample(宜.items(),generate_key_count)
         t忌 = copy.deepcopy(忌)
@@ -480,14 +475,16 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
         if fortune in ('大凶','危'): y = [('诸事不宜','')]
         for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
-        cd = random.randint(1,8) * current_user['combo']
-        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{current_user['combo']}天\n\n今日奖励：信用点{cd}点"
+        cd = random.randint(1,8) * entity['combo']
+        ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
         print(updateCredit(mem, '+', cd))
-        current_user['info'] = ans
-        current_user['last_sign'] = datetime.datetime.now().strftime('%Y-%m-%d')
-        with open(fn,'w') as f: json.dump(current_user,f)
-    else: current_user['info'] = '您今天已经求过签啦！以下是求签结果：\n' + current_user['info']
-    return [Plain(current_user['info'])]
+        entity['info'] = ans
+        entity['last_sign'] = datetime.datetime.now()
+        entity.save()
+        DailySignBackUP(player=Player.chk(player), combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
+        
+    else: entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
+    return [Plain(entity['info'])]
 
 functionMap = {
     '#ddl':ddl通知姬,

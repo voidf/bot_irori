@@ -126,3 +126,23 @@ class SlidingPuzzle(Document, RefPlayerBase):
 
 class Asobi2048Data(RefPlayerBase, Document):
     mat = ListField(ListField(IntField()))
+
+class Vote(Document, RefPlayerBase):
+    title = StringField(unique_with=('player',))
+    items = DictField()
+    memberChoices = DictField()
+    limit = IntField(default=5)
+
+class DDLLog(RefPlayerBase, Document):
+    content = DictField()
+
+class DailySignLog(RefPlayerBase, Document):
+    combo = IntField(default=0)
+    info = StringField()
+    last_sign = DateTimeField()
+
+class DailySignBackUP(Document):
+    player = ReferenceField(Player)
+    combo = IntField(default=0)
+    info = StringField()
+    last_sign = DateTimeField()

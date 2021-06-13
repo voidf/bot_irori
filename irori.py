@@ -308,11 +308,10 @@ async def hajime(bot):
         print('未设置登录提醒（不太重要')
         traceback.print_exc()
     try:
-        if not os.path.exists('ddl/'):
-            os.mkdir('ddl/')
-        for _ in os.listdir('ddl/'): # 文件名即群号
-            with open('ddl/'+_,'r') as fr:
-                jj = json.load(fr)
+        
+        for __ in DDLLog.objects(): # 文件名即群号
+            _ = int(__.player)
+            jj = __.content
             print(jj)
             for j,v in jj.items(): # j是title，v是(时间,发送成员)
                 t = datetime.datetime.strptime(v[0],'%Y,%m,%d,%H,%M,%S')
