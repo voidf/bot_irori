@@ -482,25 +482,22 @@ async def 爬天气(*attrs,kwargs={}):
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
+class SentenceSubscribe(RefPlayerBase, Document):
+    pass
+
 async def 爬每日一句(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
-            os.remove(f'sentence/{player}')
+            SentenceSubscribe.chk(player).delete()
             return [Plain(f'别骂了别骂了，不给你推就是了')]
-            
     output = {}
     fetchSentences(output)
     print(output)
     try:
         if attrs and attrs[0] in GLOBAL.subscribes:
-            player = getPlayer(**kwargs)
-            if not os.path.exists('sentence/'):
-                os.mkdir('sentence/')
-            with open(f'sentence/{player}','w') as f:
-                f.write('\n')
+            SentenceSubscribe(player=player).save()
             output.setdefault('plain',[]).append(f'成功订阅每日一句推送,回复td退订')
-        
     except:
         print(traceback.format_exc())
     if 'img' in output:

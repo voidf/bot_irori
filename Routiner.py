@@ -158,19 +158,19 @@ async def ChatClearer():
     GLOBAL.chat_log = {}
     print('统计完毕，数据归零')
 
+class SentenceSubscribe(RefPlayerBase, Document):
+    pass
+
 @irori.receiver(Routiner17)
 async def SentenceSubscribeRoutiner():
     print('进入回环(每日一句')
-    if not os.path.exists('sentence/'): os.mkdir('sentence/')
-        # await asyncio.sleep(86400+5-(datetime.datetime.now().timestamp()+15*3600)%86400)
-    for _ in os.listdir('sentence/'):
+    for _ in SentenceSubscribe.objects():
         try:
             d={}
             fetchSentences(d)
             if 'img' in d:
-                asyncio.ensure_future(msgDistributer(msg=d['img'],typ='I',player=_))
-            asyncio.ensure_future(msgDistributer(msg='\n'.join(d['plain']),typ='P',player=_))
-
+                asyncio.ensure_future(msgDistributer(msg=d['img'],typ='I',player=int(_.player)))
+            asyncio.ensure_future(msgDistributer(msg='\n'.join(d['plain']),typ='P',player=int(_.player)))
         except:
             print('每日一句挂了！',traceback.format_exc())
 
