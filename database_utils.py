@@ -62,12 +62,10 @@ class SaveTimeBase(Base):
     def first_create(self):
         self.create_time = datetime.datetime.now()
         return self.save_changes()
-    
     def get_base_info(self, *args):
         d = super().get_base_info(*args)
         d['create_time'] = self.create_time.strftime('%Y-%m-%d')
         return d
-
     def get_all_info(self, *args):
         d = super().get_all_info(*args)
         d['create_time'] = self.create_time.strftime('%Y-%m-%d')

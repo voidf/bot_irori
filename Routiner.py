@@ -122,7 +122,6 @@ class WeatherSubscribe(Document, RefPlayerBase):
 @irori.receiver(Routiner0)
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
-    # if not os.path.exists('weather/'): os.mkdir('weather/')
 
     for _ in WeatherSubscribe.objects():
         try:

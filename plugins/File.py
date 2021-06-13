@@ -167,80 +167,72 @@ async def 信用点查询(*attrs, kwargs={}):
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
 
+from mongoengine import *
+from database_utils import *
+
+class Vote(Document, RefPlayerBase):
+    title = StringField()
+    items = DictField()
+    memberChoices = DictField()
+    limit = IntField(default=5)
+
 async def 投票姬(*attrs, kwargs={}):
     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
-    if not os.path.exists('vote/'):
-        os.mkdir('vote/')
-    try:
-        with open(f'vote/{gp}','r') as fr:
-            j = json.load(fr)
-    except:
-        j = {
-            'title':'',
-            'items':{},
-            'memberChoices':{},
-            'limit':5
-        }
+
+    player = getPlayer(**kwargs)
     
+    j = Vote.chk(player)
+   
     ostr = []
     if len(l) == 1:
         if l[0] == 'chk':
-            for k,v in j['items'].items():
+            for k,v in j.items.items():
                 ostr.append(Plain(text=f'{k}:\t{len(v)}票\n'))
             return ostr
         elif l[0] == 'my':
             ostr.append(Plain(text='宁投给了：'))
-            for i in j['memberChoices'].get(mem,[]):
+            for i in j.memberChoices.get(mem,[]):
                 ostr.append(Plain(text=f'{i} '))
             return ostr
             
     if l[0] == 'new':
         newItem = ' '.join(l[1:])
-        if newItem in j['items']:
+        if newItem in j.items:
             return [Plain(text='创建失败：已存在此条目')]
         else:
-            j['items'][newItem] = []
-            ostr.append(Plain(text=f'''添加成功,现有条目数:{len(j['items'])}\n'''))
+            j.items[newItem] = []
+            ostr.append(Plain(text=f'''添加成功,现有条目数:{len(j.items)}\n'''))
     elif l[0] in ('limit','lim'):
-        try:
-            j['limit'] = int(l[1])
-            if j['limit'] < 1:
-                raise NameError('只能设置限票数为正整数')
-            ostr.append(Plain(text=f'''现在每人可以投{j['limit']}票'''))
-        except Exception as e:
-            return [Plain(text=str(e))]
+        j.limit = int(l[1])
+        if j.limit < 1:
+            raise NameError('只能设置限票数为正整数')
+        ostr.append(Plain(text=f'''现在每人可以投{j.limit}票'''))
+
     elif l[0] in ('del','rm'):
         sel = ' '.join(l[1:])
-        if sel not in j['items']:
+        if sel not in j.items:
             return [Plain(text='删除失败：不存在此条目')]
         else:
-            del j['items'][sel]
-            for i in j['memberChoices']:
+            del j.items[sel]
+            for i in j.memberChoices:
                 try:
                     j['memberChoices'][i].remove(sel)
                     print('有选择的用户:',i)
                 except:
                     pass
             ostr.append(Plain(text='''删除成功'''))
-    elif l[0] == '-*/cls/*-':
-        j = {
-            'title':'',
-            'items':{},
-            'memberChoices':{},
-            'limit':5
-        }
+    elif l[0] == '-*/clear/*-':
+        j.delete()
         ostr.append(Plain(text='''清空成功'''))
     else:
         selectedItem = ' '.join(l)
-        print('')
         if selectedItem not in j['items']:
             return [Plain(text='投票失败：不存在此条目')]
         if selectedItem in j['memberChoices'].get(mem,[]):
             return [Plain(text='投票失败：您已投过此条目')]
         else:
-            print('合法的投票事件')
             try:
                 if mem not in j['memberChoices']:
                     j['memberChoices'][mem] = [selectedItem]
@@ -257,8 +249,7 @@ async def 投票姬(*attrs, kwargs={}):
             except Exception as e:
                 return [Plain(text=str(e))]
             ostr.append(Plain(text=f'''投票成功，条目{selectedItem}当前已有{len(j['items'][selectedItem])}票\n'''))
-    with open(f'vote/{gp}','w') as fw:
-        json.dump(j,fw)
+    j.save()
     return ostr
 
 async def ddl通知姬(*attrs, kwargs={}):
