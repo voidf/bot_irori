@@ -675,15 +675,14 @@ def clearOTFuture(key,G,src):
         traceback.print_exc()
         print(f'{key}中无比赛{G}的提醒日程')
 
-def CFNoticeManager(j,**kwargs):
+from database_utils import *
+
+def CFNoticeManager(j, feat:str, **kwargs):
     try:
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-    fn = f"CF/{gp}"
-    with open(fn,'r') as f:
-        feat = f.readline().strip()
-    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
+    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp, {})
     print(f"INITING {gp} FOR {CFNoticeQueue}")
     for k,v in j.items():
         timew = None

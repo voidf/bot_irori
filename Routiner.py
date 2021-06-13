@@ -45,42 +45,39 @@ class RoutinerIma(BaseEvent):
         def catch(interface: DispatcherInterface):
             pass
 
+class CFSubscribe(RefPlayerBase, Document):
+    mode = StringField(default='Y')
+
 @irori.receiver(RoutinerIma)
 async def CFLoopRoutiner():
-    if not os.path.exists('CF/'): os.mkdir('CF/')
-    if any([_ for _ in os.listdir('CF/') if _[-4:]!='.png']):
+    li = CFSubscribe.objects()
+    if li:
         j = fetchCodeForcesContests()
-        for _ in os.listdir('CF/'):
-            try:
-                if _[-4:]!='.png':
-                    print(f'EXECUTING{_}')
-                    CFNoticeManager(j,gp=int(_))
-            except:
-                print('CF爬虫挂了！', traceback.format_exc())
+        for _ in li:
+            CFNoticeManager(j, _.mode, gp=int(_.player)-(1<<39))
+
+class ATCoderSubscribe(RefPlayerBase, Document):
+    pass
 
 @irori.receiver(RoutinerIma)
 async def ATLoopRoutiner():
-    if not os.path.exists('AtCoder/'): os.mkdir('AtCoder/')
-    if any([_ for _ in os.listdir('AtCoder/') if _[-4:]!='.png']):
+    li = ATCoderSubscribe.objects()
+    if li:
         j = fetchAtCoderContests()
-        for _ in os.listdir('AtCoder/'):
-            try:
-                if _[-4:]!='.png':
-                    OTNoticeManager(j['upcoming'],gp=int(_))
-            except:
-                print('AT爬虫挂了！', traceback.format_exc())
+        for _ in li:
+            OTNoticeManager(j['upcoming'], gp=int(_.player)-(1<<39))
+
+
+class NowCoderSubscribe(RefPlayerBase, Document):
+    pass
 
 @irori.receiver(RoutinerIma)
 async def NCLoopRoutiner():
-    if not os.path.exists('NowCoder/'): os.mkdir('NowCoder/')
-    if any([_ for _ in os.listdir('NowCoder/') if _[-4:]!='.png']):
+    li = NowCoderSubscribe.objects()
+    if li:
         j = fetchNowCoderContests()
-        for _ in os.listdir('NowCoder/'):
-            try:
-                if _[-4:]!='.png':
-                    OTNoticeManager(j,gp=int(_))
-            except:
-                print('NC爬虫挂了！', traceback.format_exc())
+        for _ in li:
+            OTNoticeManager(j,gp=int(_.player)-(1<<39))
 
 def refreshCreditCmds():
     print('重置可用信用点命令...')

@@ -52,6 +52,14 @@ class Base():
         if not tmp:
             return cls(pk=pk).save()
         return tmp
+    @classmethod
+    def trychk(cls, pk):
+        if isinstance(pk, cls):
+            return pk
+        tmp = cls.objects(pk=pk).first()
+        if not tmp:
+            return None
+        return tmp
 
 class SaveTimeBase(Base):
     last_modify = DateTimeField()
@@ -90,3 +98,24 @@ class RefPlayerBase(Base):
             return super().chk(pk)
         else:
             return super().chk(Player.chk(pk))
+    @classmethod
+    def trychk(cls, pk):
+        if isinstance(pk, Player):
+            return super().trychk(pk)
+        else:
+            return super().trychk(Player.chk(pk))
+
+class CFSubscribe(RefPlayerBase, Document):
+    mode = StringField(default='Y')
+
+class ATCoderSubscribe(RefPlayerBase, Document):
+    pass
+
+class NowCoderSubscribe(RefPlayerBase, Document):
+    pass
+
+class SentenceSubscribe(RefPlayerBase, Document):
+    pass
+
+class WeatherSubscribe(Document, RefPlayerBase):
+    city = ListField(StringField())

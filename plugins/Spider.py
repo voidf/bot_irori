@@ -103,8 +103,6 @@ async def 爬OIWiki(*attrs,kwargs={}):
             c = j[0]
             ostr.append(Plain(text='直接把%s扔给你了\n'%c['title']))
             suflnk = c['url']
-            # print(c)
-            # print(suflnk)
         else:
             ostr.append(Plain(text='无结果'))
             return ostr
@@ -197,34 +195,24 @@ async def 爬CF(*attrs,kwargs={}):
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-    fn = f"CF/{gp}"
-    
+    player = getPlayer(**kwargs)
+    playerobj = Player.chk(player)
     CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
-            try:
-                os.remove(fn)
-            except Exception as e:
-                print(e)
-            while CFNoticeQueue:
-                i = CFNoticeQueue.popitem()
-                print(i,'删除中->',i[1].cancel())
+            CFSubscribe.chk(player).delete()
             return [Plain('取消本群的CodeForces比赛提醒服务')]
         elif attrs[0] in ('R','render'):
-            with open(fn,'w') as fr:
-                fr.write('R')
+            CFSubscribe(player=playerobj, mode='R').save()
     else:
-        with open(fn,'w') as fr:
-            fr.write('Y')
-
-    if os.path.exists(fn):
-
+        CFSubscribe(player=playerobj, mode='Y').save()
+    cfobj = CFSubscribe.trychk(playerobj)
+    if cfobj:
         CFdata = fetchCodeForcesContests()
-        CFNoticeManager(CFdata,**kwargs)
+        CFNoticeManager(CFdata, cfobj.mode, **kwargs)
         li = []
         for k,v in CFdata.items():
-
             if 'countdown' not in v:
                 li.append(Plain(f'有正在进行的比赛：{v["title"]}\n\n'))
             else:
@@ -241,39 +229,27 @@ async def 爬AtCoder(*attrs,kwargs={}):
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-    fn = f"AtCoder/{gp}"
-    
+
+    player = getPlayer(**kwargs)
     ATNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
-            try:
-                os.remove(fn)
-            except Exception as e:
-                print(e)
-            while ATNoticeQueue:
-                i = ATNoticeQueue.popitem()
-                print(i,'删除中->',i[1].cancel())
+            ATCoderSubscribe.chk(player).delete()
             return [Plain('取消本群的AtCoder比赛提醒服务')]
     else:
-        with open(fn,'w') as fr:
-            fr.write('Y')
+        ATCoderSubscribe.chk(player)
     li = []
-    if os.path.exists(fn):
-
+    if ATCoderSubscribe.objects(player=Player.chk(player)):
         ATData = fetchAtCoderContests()
-        
-
         if ATData['running']:
             li.append(Plain('正在运行的比赛：\n'))
             for cont in ATData['running']:
                 li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-                
         li.append(Plain('将来的比赛：\n'))
         for cont in ATData['upcoming']:
             li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
             cont['title'] = '【AT】'+cont['title']
-
         OTNoticeManager(ATData['upcoming'],**kwargs)
         li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
     return li
@@ -292,26 +268,18 @@ async def 爬牛客(*attrs,kwargs={}):
         gp = kwargs['gp'].id
     except:
         gp = kwargs['gp']
-    fn = f"NowCoder/{gp}"
+    player = getPlayer(**kwargs)
     
     NCNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
             
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
-            try:
-                os.remove(fn)
-            except Exception as e:
-                print(e)
-            while NCNoticeQueue:
-                i = NCNoticeQueue.popitem()
-                print(i,'删除中->',i[1].cancel())
+            NowCoderSubscribe.chk(player).delete()
             return [Plain('取消本群的牛客比赛提醒服务')]
     else:
-        with open(fn,'w') as fr:
-            fr.write('Y')
+        NowCoderSubscribe.chk(player)
     li = []
-    if os.path.exists(fn):
-
+    if NowCoderSubscribe.objects(player=Player.chk(player)):
         NCData = fetchNowCoderContests()
         for i in NCData:
             li.append(Plain(i['title']+'\n'))
@@ -457,9 +425,6 @@ async def 爬歌(*attrs,kwargs={}):
 from mongoengine import Document
 from database_utils import *
 
-class WeatherSubscribe(Document, RefPlayerBase):
-    city = ListField(StringField())
-
 async def 爬天气(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if not attrs:
@@ -481,9 +446,6 @@ async def 爬天气(*attrs,kwargs={}):
     except:
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
-
-class SentenceSubscribe(RefPlayerBase, Document):
-    pass
 
 async def 爬每日一句(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
