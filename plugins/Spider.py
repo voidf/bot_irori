@@ -456,7 +456,7 @@ from mongoengine import Document
 from database_utils import *
 
 class WeatherSubscribe(Document, Base):
-    ReferenceField(Player, reverse_delete_rule=2)
+    ReferenceField(Player, reverse_delete_rule=2, primary_key=True)
     city = StringField()
     
 async def 爬天气(*attrs,kwargs={}):

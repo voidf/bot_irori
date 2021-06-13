@@ -80,4 +80,15 @@ class Player(Document, Base):
         return int(self.pid)
     def __str__(self):
         return str(self.pid)
+    @classmethod
+    def chk(cls, pk):
+        return super().chk(str(pk))
 
+class RefPlayerBase(Base):
+    player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
+    @classmethod
+    def chk(cls, pk):
+        if isinstance(pk, Player):
+            return super().chk(pk)
+        else:
+            return super().chk(Player.chk(pk))
