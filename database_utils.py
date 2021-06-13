@@ -91,7 +91,7 @@ class Player(Document, Base):
         return super().chk(str(pk))
 
 class RefPlayerBase(Base):
-    player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
+    _player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
     @classmethod
     def chk(cls, pk):
         if isinstance(pk, Player):
@@ -104,6 +104,14 @@ class RefPlayerBase(Base):
             return super().trychk(pk)
         else:
             return super().trychk(Player.chk(pk))
+    # @player.getter
+    @property
+    def player(self):
+        return Player.chk(self._data['_player'].id)
+        # return self.player
+    # @player.getter
+    # def player(self):
+
 
 class CFSubscribe(RefPlayerBase, Document):
     mode = StringField(default='Y')
@@ -128,7 +136,7 @@ class Asobi2048Data(RefPlayerBase, Document):
     mat = ListField(ListField(IntField()))
 
 class Vote(Document, RefPlayerBase):
-    title = StringField(unique_with=('player',))
+    title = StringField()
     items = DictField()
     memberChoices = DictField()
     limit = IntField(default=5)
@@ -152,4 +160,6 @@ class CreditSubscribe(RefPlayerBase, Document):
 
 class CreditLog(RefPlayerBase, Document):
     credit = IntField(default=500)
-    
+
+class Sniffer(Document, RefPlayerBase):
+    commands = DictField()

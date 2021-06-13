@@ -140,7 +140,7 @@ async def WeatherSubscribeRoutiner():
                 if city.strip():
                     j = fetchWeather(city.strip())
                     ans += j[:3]
-            asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=int(_.player.pid)))
+            asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=int(_.player)))
 
         except:
             print('天气预报姬挂了！',traceback.format_exc())

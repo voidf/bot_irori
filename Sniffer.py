@@ -7,8 +7,6 @@ from mongoengine import *
 from database_utils import *
 from GLOBAL import logging
 
-class Sniffer(Document, RefPlayerBase):
-    commands = DictField()
 
 def removeSniffer(player, event):
     logging.debug(chkcfg(player).quick_calls.pop(event, "未找到对应sniffer"))
