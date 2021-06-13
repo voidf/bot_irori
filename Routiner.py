@@ -91,12 +91,11 @@ def refreshCreditCmds():
 @irori.receiver(Routiner0)
 async def CreditCommandRefresher():
     refreshCreditCmds()
-    if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
-    for _ in os.listdir('credits/sub/'):
+    for _ in CreditSubscribe.objects():
         try:
             cmds = list(GLOBAL.credit_cmds.keys())
             pattern = f'今天使用{",".join(cmds)}这些命令会有惊喜哦（'
-            asyncio.ensure_future(msgDistributer(msg=pattern,typ='P',player=_))
+            asyncio.ensure_future(msgDistributer(msg=pattern,typ='P',player=int(_.player)))
         except:
             print('信用点推送挂了！',traceback.format_exc())
 

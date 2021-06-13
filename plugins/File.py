@@ -36,6 +36,8 @@ import datetime
 import urllib
 import mido
 from Utils import *
+from database_utils import *
+
 importMirai()
 
 async def 中药(*attrs, kwargs={}):
@@ -74,13 +76,13 @@ async def 中药(*attrs, kwargs={}):
     return [Plain(_render())]
 
 async def 信用点命令更新订阅姬(*attrs, kwargs={}):
-    if not os.path.exists('credits/sub/'): os.mkdir('credits/sub/')
+    player = getPlayer(**kwargs)
     if attrs and attrs[0] in GLOBAL.unsubscribes:
-        os.remove(f'credits/sub/{getPlayer(**kwargs)}')
+        CreditSubscribe.chk(player).delete()
         return [Plain('取消信用点命令更新订阅')]
     ret = [f'今天使用{",".join(GLOBAL.credit_cmds)}这些命令会有惊喜哦（']
     if attrs and attrs[0] in GLOBAL.subscribes:
-        with open(f'credits/sub/{getPlayer(**kwargs)}', 'w'): pass
+        CreditSubscribe.chk(player)
         ret.append('订阅信用点命令更新')
     return [Plain('\n'.join(ret))]
 
@@ -482,7 +484,7 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
         entity['last_sign'] = datetime.datetime.now()
         entity.save()
         DailySignBackUP(player=Player.chk(player), combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
-        
+
     else: entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
     return [Plain(entity['info'])]
 

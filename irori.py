@@ -56,8 +56,6 @@ locate = re.findall("""来自：(.*?)\n""",requests.get('https://2021.ip138.com/
 }).text)[0]
 
 
-if not os.path.exists('credits/'): os.mkdir('credits/')
-
 from GLOBAL import cfg
 banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
 allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}

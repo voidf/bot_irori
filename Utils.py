@@ -431,11 +431,7 @@ def getCredit(user: int) -> int:
     [int]user(QQ号)
 返回：
     [int]用户的信用点"""
-    if not os.path.exists(f'credits/{user}'):        
-        return 500
-    else:
-        with open(f'credits/{user}', 'r') as f:
-            return int(f.read().strip())
+    return CreditLog.chk(user).credit
 
 def updateCredit(user: int, operator: str, val: int) -> bool: # 危
     """修改用户的信用点
@@ -452,8 +448,7 @@ def updateCredit(user: int, operator: str, val: int) -> bool: # 危
     c = getCredit(user)
     c, c2 = evaluate_expression(f'{c}{operator}{int(val)}')
     c2 = c2.strip()
-    with open(f'credits/{user}', 'w') as f:
-        f.write(f'{c2}')
+    CreditLog.chk(user).update(credit=int(c2))
     return True
 
 def generateTmpFileName(pref='', ext='.png', **kwargs):

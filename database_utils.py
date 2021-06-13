@@ -146,3 +146,10 @@ class DailySignBackUP(Document):
     combo = IntField(default=0)
     info = StringField()
     last_sign = DateTimeField()
+
+class CreditSubscribe(RefPlayerBase, Document):
+    pass
+
+class CreditLog(RefPlayerBase, Document):
+    credit = IntField(default=500)
+    
