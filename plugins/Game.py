@@ -168,157 +168,6 @@ async def asobi2048(*attrs, kwargs={}):
         outputString.append(Plain(text='\n'))
     return outputString
 
-async def asobiPolyline(*attrs,kwargs={}):
-    player = getPlayer(**kwargs)
-    n=1000
-    m = {
-        1:(0,-1), # 左
-        2:(-1,0), # 上
-        3:(0,1), # 右
-        4:(1,0) # 下
-    }
-    if not os.path.exists('Polyline/'):
-        os.mkdir('Polyline/')
-    try:
-        if attrs[0] == 'init':
-            try:
-                n=int(attrs[1])
-                if n < 2 or n > 2000:
-                    return [Plain(text='为了宁的游戏体验，地图只能要2~2000阶内的方阵')]
-            except:
-                pass
-            raise NameError('PolylineRESET')
-        grids = numpy.loadtxt(f'''Polyline/{player}mat.txt''')
-        n = len(grids)
-        with open(f'''Polyline/{player}ans.txt''','r') as fr:
-            s = fr.readline().strip().split(' ')
-            ctr = int(fr.readline().strip())
-        op = numpy.array([int(s[0]),int(s[1])])
-        ed = numpy.array([int(s[2]),int(s[3])])
-    except: #进行初始化操作
-        grids = numpy.zeros([n,n])
-        op = (random.randint(0,n-1),random.randint(0,n-1))
-        polylen = random.randint(1,(n-1)*n)
-        print(polylen)
-
-        p = numpy.array(op)
-        op = numpy.array(op)
-        rush = 0
-        for i in range(polylen):
-            if rush:
-                rush-=1
-            else:
-                movement = random.randint(1,4)
-                rush = random.randint(1,int(min(n,(polylen-i))**0.5))
-                
-            tmp = numpy.array(m[movement]) + p
-            if i % 10000 == 0:
-                print(rush)
-                print(i)
-                print(p)
-                print(grids[p[0]][p[1]])
-            if tmp[0] in range(n) and tmp[1] in range(n) and grids[tmp[0]][tmp[1]] == 0:
-                valid = True
-                grids[p[0]][p[1]] = movement
-                p = tmp
-            else:
-                tm = copy.deepcopy(m)
-                tm.pop(movement)
-                valid = False
-                while len(tm):
-                    movement = random.choice(list(tm))
-                    tmp = numpy.array(tm[movement]) + p
-                    if tmp[0] in range(n) and tmp[1] in range(n) and grids[tmp[0]][tmp[1]] == 0:
-                        grids[p[0]][p[1]] = movement
-                        p = tmp
-                        valid = True
-                        break
-                    tm.pop(movement)
-                    #print(tm.pop(movement))
-                #print('out')
-                if valid == False:
-                    print('getBreakSignal')
-                    polylen = i
-                    ed = p
-                    break
-        if valid:
-            ed = p
-        numpy.savetxt(f'''Polyline/{player}mat.txt''',grids,fmt='%d')
-        with open(f'''Polyline/{player}ans.txt''','w') as fw:
-            fw.write(f'{op[0]} {op[1]} {ed[0]} {ed[1]}\n0')
-        ctr = 0
-        return [Plain(text=f'折线初始化完毕,长度{polylen},flag状态{valid}')]
-    if attrs[0] == '!':
-        try:
-            x,y,X,Y = (int(_)-1 for _ in attrs[1:])
-            
-            if (x==op[0] and y==op[1] and X==ed[0] and Y==ed[1]) or (x==ed[0] and y==ed[1] and X==op[0] and Y==op[1]):
-                return [Plain(text=f'正确，目前查询次数{ctr}')]
-            else:
-                return [Plain(text='错啦！')]
-        except Exception as e:
-            return [Plain(text=f'输入格式错误，info:{e}')]
-    elif attrs[0] == '?':
-        try:
-            x,y,X,Y = (int(_)-1 for _ in attrs[1:])
-            if x>X:
-                x,X=X,x
-            if y>Y:
-                y,Y=Y,y
-            if X>=n or Y>=n or x<0 or y<0:
-                return [Plain(text='查询越界')]
-            ctr+=1
-            with open(f'''Polyline/{player}ans.txt''','w') as fw:
-                fw.write(f'{op[0]} {op[1]} {ed[0]} {ed[1]}\n')
-                fw.write(str(ctr))
-            penetrateCtr = 0
-            for i in range(x,X+1): #统计列
-                if y:
-                    if grids[i][y-1] == 3:
-                        penetrateCtr += 1
-                if y != n:
-                    if grids[i][y] == 1:
-                        penetrateCtr += 1
-                if Y+1:
-                    if grids[i][Y] == 3:
-                        penetrateCtr += 1
-                if Y+1 != n:
-                    if grids[i][Y+1] == 1:
-                        penetrateCtr += 1
-            for i in range(y,Y+1): #统计行
-                if x:
-                    if grids[x-1][i] == 4:
-                        penetrateCtr += 1
-                if x != n:
-                    if grids[x][i] == 2:
-                        penetrateCtr += 1
-                if X+1:
-                    if grids[X][i] == 4:
-                        penetrateCtr += 1
-                if X+1 != n:
-                    if grids[X+1][i] == 2:
-                        penetrateCtr += 1
-            return [Plain(text=f'穿界次数:{penetrateCtr}，查询次数:{ctr}')]
-        except Exception as e:
-            return [Plain(text=f'输入格式错误，info:{e}')]
-    elif attrs[0] == 'render':
-        col = 255
-        try:
-            col = int(attrs[1])
-        except:
-            pass
-        for pi,i in enumerate(grids):
-            for pj,j in enumerate(i):
-                if j:
-                    grids[pi][pj] = col
-        renderedPng = PImage.fromarray(grids).convert('L')
-        fn = f'''Polyline/{player}.png'''
-        with open(fn,'wb') as fw:
-            renderedPng.save(fw)
-        asyncio.ensure_future(rmTmpFile(fn))
-        return [generateImageFromFile(fn)]
-    else:
-        return [Plain(text='命令错误')]
 
 from mongoengine import *
 from database_utils import *
@@ -451,7 +300,6 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
 
 functionMap = {
     '#2048':asobi2048,
-    '#折线':asobiPolyline,
     '#华容道':asobiSlidingPuzzle
 }
 shortMap = {'#zx':'#折线','#hdpt':'#华容道'}
@@ -470,15 +318,6 @@ functionDescript = {
 例子：
     #2048 init (初始化游戏棋盘)
     #2048 w (向上滑动)
-""",
-    '#折线':
-"""
-来自教授的题目模拟，服务器随机生成一个折线，你可以查询格子x,y到X,Y之间的矩形区域被折线穿过多少次
-游戏目标是猜出这条折线的起点和终点
-格式：
-    #折线 ? <x> <y> <X> <Y> （询问格子x,y到X,Y的穿界次数）
-    #折线 ! <x> <y> <X> <Y> （回答起点和终点），
-    #折线 render （可视化折线）
 """,
     '#华容道':
 """
