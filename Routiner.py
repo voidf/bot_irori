@@ -113,35 +113,39 @@ async def JRRPclearRoutiner():
     except:
         traceback.print_exc()
         print('人品清除失败')
+from database_utils import *
+from mongoengine import *
+
+class WeatherSubscribe(Document, RefPlayerBase):
+    city = ListField(StringField())
 
 @irori.receiver(Routiner0)
 async def WeatherSubscribeRoutiner():
     print('进入回环(天气预报')
-    if not os.path.exists('weather/'): os.mkdir('weather/')
+    # if not os.path.exists('weather/'): os.mkdir('weather/')
 
-    for _ in os.listdir('weather/'):
+    for _ in WeatherSubscribe.objects():
         try:
-            with open('weather/'+_,'r') as f:
-                dt = datetime.datetime.now()
-                ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{youbi[dt.isoweekday()]}']
+            dt = datetime.datetime.now()
+            ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{youbi[dt.isoweekday()]}']
 
-                try:
-                    bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
-                    res = bs('div',attrs={'id':'jie_guo'})
-                    ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
-                    ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
-                except:
-                    ans.append('我忘了今天农历几号了')
-                    print(traceback.format_exc())
+            try:
+                bs = BeautifulSoup(requests.get('https://wannianrili.51240.com/').text,'html.parser')
+                res = bs('div',attrs={'id':'jie_guo'})
+                ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
+                ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
+            except:
+                ans.append('我忘了今天农历几号了')
+                print(traceback.format_exc())
 
-                if random.randint(0,3):
-                    ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
+            if random.randint(0,3):
+                ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
 
-                for city in f.readlines():
-                    if city.strip():
-                        j = fetchWeather(city.strip())
-                        ans += j[:3]
-            asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=_))
+            for city in _.city:
+                if city.strip():
+                    j = fetchWeather(city.strip())
+                    ans += j[:3]
+            asyncio.ensure_future(msgDistributer(msg='\n'.join(ans),typ='P',player=int(_.player.pid)))
 
         except:
             print('天气预报姬挂了！',traceback.format_exc())

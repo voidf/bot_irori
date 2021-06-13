@@ -6,6 +6,8 @@ from requests.exceptions import Timeout
 if __name__ == '__main__':
     os.chdir('..')
 import GLOBAL
+from GLOBAL import logging
+
 from bs4 import BeautifulSoup
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
@@ -455,17 +457,16 @@ async def 爬歌(*attrs,kwargs={}):
 from mongoengine import Document
 from database_utils import *
 
-class WeatherSubscribe(Document, Base):
-    ReferenceField(Player, reverse_delete_rule=2, primary_key=True)
-    city = StringField()
-    
+class WeatherSubscribe(Document, RefPlayerBase):
+    city = ListField(StringField())
+
 async def 爬天气(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
     if not attrs:
         return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
 
     if attrs[0] in GLOBAL.unsubscribes:
-        os.remove(f'weather/{player}')
+        WeatherSubscribe.objects(player=Player.chk(player)).delete()
         return [Plain(f'还我清净，拒绝推送')]
     
     output = fetchWeather(attrs[0])
@@ -473,13 +474,12 @@ async def 爬天气(*attrs,kwargs={}):
     try:
         if attrs[1] in GLOBAL.subscribes:
             player = getPlayer(**kwargs)
-            if not os.path.exists('weather/'):
-                os.mkdir('weather/')
-            with open(f'weather/{player}','a') as f:
-                f.write(attrs[0]+'\n')
+            w = WeatherSubscribe.chk(player)
+            w.city.append(attrs[0])
+            w.save()
             output.append(f'成功订阅城市{attrs[0]}的天气推送,取消请用cancel')
-    except: #还是别报错了我心慌
-        pass
+    except:
+        logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
 async def 爬每日一句(*attrs,kwargs={}):
