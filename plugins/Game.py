@@ -320,6 +320,14 @@ async def asobiPolyline(*attrs,kwargs={}):
     else:
         return [Plain(text='命令错误')]
 
+from mongoengine import *
+from database_utils import *
+
+class SlidingPuzzle(Document, RefPlayerBase):
+    bg = ImageField()
+    mat = ListField(ListField(IntField()))
+
+
 async def asobiSlidingPuzzle(*attrs,kwargs={}):
     player = getPlayer(**kwargs)
 
@@ -360,15 +368,11 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
         asyncio.ensure_future(rmTmpFile(sfn))
         return sfn
 
-
-    if not os.path.exists('SlidingPuzzle/'):
-        os.mkdir('SlidingPuzzle/')
-
-    if not os.path.exists(f'''SlidingPuzzle/{player}BG'''):
-        shutil.copy('Assets/default.png',f'''SlidingPuzzle/{player}BG''')
-
+    sp = SlidingPuzzle.chk(player)
+    if not sp.bg:
+        sp.bg = "Assets/default.png"
     
-    if not os.path.exists(f'''SlidingPuzzle/{player}.txt''') or attrs and attrs[0] == 'init':
+    if not sp.mat or attrs and attrs[0] == 'init':
         try:
             n=int(attrs[1])
             if n not in range(2,7):
@@ -397,14 +401,15 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
         print(arr)
         grids = numpy.array(arr)
         grids.resize(n,n)
-        numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
+        sp.mat = grids.tolist()
+        sp.save()
         return [
             Plain(f'移动拼图初始化完成\n{grids}'),
-            generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))
+            generateImageFromFile(splitImage(sp.bg,n,grids))
         ]
         
         
-    grids = numpy.loadtxt(f'''SlidingPuzzle/{player}.txt''')
+    grids = numpy.array(sp.mat)
     n = len(grids)
     if attrs:
         if attrs[0] in ('下','S','s','shita'):
@@ -429,18 +434,19 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
         elif attrs[0] in ('bg','changebackground','换图','换老婆'):
             if 'pic' in kwargs and kwargs['pic']:
                 src = requests.get(kwargs['pic'].url).content
-                with open(f'''SlidingPuzzle/{player}BG''','wb') as f:
-                    f.write(src)
+                sp.bg = BytesIO(src)
+                sp.save()
                 return [Plain('图片背景更新成功')]
         elif attrs[0] in ('快速模式','gamestart'):
             overwriteSniffer(player,'#华容道','.*')
             return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
-        elif attrs[0].lower() in ('cancel','terminate','quit','exit','seeyou','bye','sayonara','sayounara','madane','yamero','停','关','やめろ'):
+        elif attrs[0] in GLOBAL.unsubscribes:
             removeSniffer(player,'#华容道')
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
-    numpy.savetxt(f'''SlidingPuzzle/{player}.txt''',grids,fmt='%d')
-    return [generateImageFromFile(splitImage(f'''SlidingPuzzle/{player}BG''',n,grids))]
+    sp.mat = grids.tolist()
+    sp.save()
+    return [generateImageFromFile(splitImage(sp.bg,n,grids))]
 
 
 functionMap = {

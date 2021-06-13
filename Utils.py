@@ -863,6 +863,7 @@ def treearray_getsum(pos:int,array:list) -> int:
     return ans
 
 def calcinvs(array:list):
+    """树状数组求逆序对"""
     d = {}
     for k,v in enumerate(sorted(array)):
         d[v] = k+1
