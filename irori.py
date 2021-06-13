@@ -295,13 +295,10 @@ async def FriendHandler(message: MessageChain, hurenzu: Friend, app: Mirai):
 
 async def hajime(bot):
     GLOBAL.app = bot
-    try:
-        if not os.path.exists('sniffer/'):
-            os.mkdir('sniffer/')
-        for _ in os.listdir('sniffer/'):
-            print(int(_),syncSniffer(player=int(_)))
-    except:
-        print('嗅探器爆炸了，有点严重\n',traceback.format_exc())
+    snis = Sniffer.objects()
+    for sni in snis:
+        syncSniffer(sni.player)
+
     try:
         global cfg
         print(cfg)

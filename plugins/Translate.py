@@ -38,18 +38,20 @@ import mido
 from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
 from Utils import *
 importMirai()
+from GLOBAL import logging
 
 sys.dont_write_bytecode = True
 
 res = ''
 try:
-    with open('cfg.json', 'r') as jfr:
+    with open('cfg.json', 'r', encoding='utf-8') as jfr:
         cfg = json.load(jfr)
         proxy = cfg.get('proxy', {})
         appid = cfg.get('appid', '')
         secretKey = cfg.get('secretKey', '')
 
 except Exception as e:
+    logging.error(traceback.format_exc())
     proxy = {}
     appid = ''
     secretKey = ''
@@ -129,8 +131,8 @@ def BDtranslate(req):
         result = json.loads(result_all)
         res = result['trans_result'][0]['dst']
 
-    except Exception as e:
-        res = e
+    except:
+        res = f"{result}"
 
     finally:
         if trans:

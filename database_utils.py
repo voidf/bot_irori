@@ -44,6 +44,14 @@ class Base():
         if hasattr(self, 'id'):
             d['id'] = str(self.id)
         return d
+    @classmethod
+    def chk(cls, pk):
+        if isinstance(pk, cls):
+            return pk
+        tmp = cls.objects(pk=pk).first()
+        if not tmp:
+            return cls(pk=pk).save()
+        return tmp
 
 class SaveTimeBase(Base):
     last_modify = DateTimeField()
@@ -68,4 +76,8 @@ class SaveTimeBase(Base):
 class Player(Document, Base):
     pid = StringField(primary_key=True)
     items = DictField()
+    def __int__(self):
+        return int(self.pid)
+    def __str__(self):
+        return str(self.pid)
 

@@ -452,6 +452,9 @@ async def 爬歌(*attrs,kwargs={}):
     #     return [Plain('\n'.join(ans))]+voices
     return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
+from mongoengine import Document
+from database_utils import *
+
 class WeatherSubscribe(Document, Base):
     ReferenceField(Player, reverse_delete_rule=2)
     city = StringField()

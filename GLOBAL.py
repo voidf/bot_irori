@@ -3,6 +3,18 @@ py_mirai_version = 4 # 在这里改版本号哦！3或者4
 # from graia.application import GraiaMiraiApplication
 # from graia.application.event.messages import GroupMessage
 # from graia.application.message.chain import MessageChain
+import logging
+
+logging.basicConfig(
+	level=logging.DEBUG,  
+	format='%(asctime)s[line:%(lineno)d] %(levelname)s %(message)s',
+	datefmt='%A, %d %B %Y %H:%M:%S', 
+	filename='irori.log',  
+	filemode='w', 
+)
+
+# print = logging.debug()
+
 import asyncio, importlib, traceback
 def importMirai():
 	global py_mirai_version
