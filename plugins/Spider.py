@@ -240,7 +240,7 @@ async def 爬AtCoder(*attrs,kwargs={}):
     else:
         ATCoderSubscribe.chk(player)
     li = []
-    if ATCoderSubscribe.objects(player=Player.chk(player)):
+    if ATCoderSubscribe.objects(pk=Player.chk(player)):
         ATData = fetchAtCoderContests()
         if ATData['running']:
             li.append(Plain('正在运行的比赛：\n'))
@@ -279,7 +279,7 @@ async def 爬牛客(*attrs,kwargs={}):
     else:
         NowCoderSubscribe.chk(player)
     li = []
-    if NowCoderSubscribe.objects(player=Player.chk(player)):
+    if NowCoderSubscribe.objects(pk=Player.chk(player)):
         NCData = fetchNowCoderContests()
         for i in NCData:
             li.append(Plain(i['title']+'\n'))
@@ -431,7 +431,7 @@ async def 爬天气(*attrs,kwargs={}):
         return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
 
     if attrs[0] in GLOBAL.unsubscribes:
-        WeatherSubscribe.objects(player=Player.chk(player)).delete()
+        WeatherSubscribe.objects(pk=Player.chk(player)).delete()
         return [Plain(f'还我清净，拒绝推送')]
     
     output = fetchWeather(attrs[0])

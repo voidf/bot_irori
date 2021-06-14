@@ -32,7 +32,7 @@ def appendSniffer(player, event, pattern):  # 注意捕捉exc
 def clearSniffer(player) -> str:
     tc = chkcfg(player)
     tc.quick_calls = {}
-    Sniffer.objects(pk=player).delete()
+    Sniffer.objects(pk=Player.chk(player)).delete()
     return "[Sniffer] 清除完毕"
 
 

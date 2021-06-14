@@ -104,13 +104,9 @@ class RefPlayerBase(Base):
             return super().trychk(pk)
         else:
             return super().trychk(Player.chk(pk))
-    # @player.getter
     @property
     def player(self):
         return Player.chk(self._data['_player'].id)
-        # return self.player
-    # @player.getter
-    # def player(self):
 
 
 class CFSubscribe(RefPlayerBase, Document):
