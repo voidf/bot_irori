@@ -164,7 +164,7 @@ async def asobi2048(*attrs, kwargs={}):
         x,y = random.choice(zeromap)
         grids[x][y] = random.randint(1,2)*2
     outputString = []
-    asobientity = grids.tolist()
+    asobientity.mat = grids.tolist()
     asobientity.save()
     for i in grids:
         for j in i:
