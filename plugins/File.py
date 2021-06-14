@@ -464,8 +464,8 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
     from Assets.签到语料 import 宜, 忌, 运势
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
-    if entity.last_sign.day != datetime.datetime.now().day:
-        if entity.last_sign.day != (datetime.datetime.now() - datetime.timedelta(days=1)).day:
+    if not entity.last_sign or entity.last_sign.day != datetime.datetime.now().day:
+        if not entity.last_sign or entity.last_sign.day != (datetime.datetime.now() - datetime.timedelta(days=1)).day:
             entity['combo'] = 0
         entity['combo'] += 1
         fortune = random.choice(运势)
