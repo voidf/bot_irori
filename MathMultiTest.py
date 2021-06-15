@@ -688,90 +688,249 @@ functionDescript = {
 """
 }
 
+ProcessCNT = 9
+import multiprocessing
 from multiprocessing import Pool, Manager, Process, Semaphore
+from multiprocessing.dummy import Pool as Pool2
+import functools
+import queue
+from dataclasses import dataclass
+
+@dataclass
+class PendingTask():
+    pid: int
+    cmd: str
+    args: list
+
+@dataclass
+class Operation():
+    opr: str
+    pid: int = 0
+
+def task_monitor(func, *args, **kwargs):
+    tle = kwargs.get('tle', None)
+    p = Pool2(1)
+    res = p.apply_async(func, args=args)
+    pid = kwargs['pid']
+    # print(kwargs)
+    try:
+        out = res.get(tle)
+        # kwargs['worker'].release()
+
+        tmpd = kwargs['pcb'][pid]
+        tmpd['status'] = 'done'
+        kwargs['pcb'].update({pid:tmpd})
+        # kwargs['pcb'][pid].update(status='done')
+        
+        # print(kwargs)
+        print(pid, '执行完毕, 结果：', out)
+        kwargs['op'].put(Operation('R'))
+        return out
+    except:
+        traceback.print_exc()
+        # kwargs['worker'].release()
+
+        tmpd = kwargs['pcb'][pid]
+        tmpd['status'] = 'timeout'
+        kwargs['pcb'].update({pid:tmpd})
+
+        print(pid, '执行超时')
+        kwargs['op'].put(Operation('R'))
 
 
 
-def callmanager(cmd, pid, pcb, worker, *args):
-    worker.acquire(block=True)
-    print(pid, '开始任务')
-    # print(pcb)
-    pcb.update({pid: ['running', pcb[pid][1]]})
-    # print(pcb)
-    res = functionMap.get(cmd, 空函数)(*args)
-    print(pid, '执行完毕, 结果：', res)
-    pcb.update({pid: ['done', pcb[pid][1]]})
-    worker.release()
-    # return {'res': res,# 'pid': kwargs['pid'], 'availables': kwargs['availables'], 'processing': kwargs['processing']}
-    # **kwargs}
+# operation_queue是指令队列
+# K(pid): kill
+# J(pid): join
+# R: try run
+# Q: quit
+def callmanager(
+    operation_queue: multiprocessing.Queue, 
+    tasks_queue: multiprocessing.Queue,
+    pcb: dict,
+    worker: Semaphore): # 实际上实现了原语
+    # with Pool(ProcessCNT, maxtasksperchild=1) as pool:
+    process_map = {}
+    
+
+    while 1:
+        operation = operation_queue.get(block=True)
+        for k, v in list(pcb.items()):
+            if v['status'] not in ('pending', 'running'):
+                pcb.pop(k)
+                if k in process_map:
+                    process_map[k].kill()
+                    process_map[k].join()
+                    process_map.pop(k)
+                    worker.release()
+
+        if operation.opr == 'R':
+            if not worker.acquire(block=False):
+                continue
+            else:
+                try:
+                    task = tasks_queue.get(block=False)
+                    pid = task.pid
+                    # worker.acquire(block=False)
+                    # pid = generate_pid()
+                    print(pid, '开始任务')
+                    pcb[pid].update(status="running")
+
+                    tmpd = pcb[pid]
+                    tmpd['status'] = 'running'
+                    pcb.update({pid:tmpd})
+
+                    wrapper = functools.partial(task_monitor, functionMap.get(task.cmd, 空函数))
+                    process_map[pid] = Process(
+                        target=wrapper,
+                        args=task.args,
+                        kwargs={
+                            'tle': 100,
+                            'worker': worker,
+                            'op': operation_queue,
+                            'pcb': pcb,
+                            'pid': pid
+                        }
+                    )
+                    process_map[pid].start()
+                except queue.Empty:
+                    worker.release()
+        elif operation.opr == 'K':
+            pid = operation.pid
+            if pid not in pcb:
+                print('找不到对应pid的进程……')
+                continue
+            else:
+                if pcb[pid]['status'] == 'pending':
+                    pcb.pop(pid)
+                elif pcb[pid]['status'] == 'running':
+                    process_map[pid].kill()
+
+                    tmpd = pcb[pid]
+                    tmpd['status'] = 'killed'
+                    pcb.update({pid:tmpd})
+        elif operation.opr == 'J':
+            pid = operation.pid
+            if pid not in pcb:
+                print('找不到对应pid的进程……')
+                continue
+            else:
+                if pcb[pid]['status'] == 'pending':
+                    # pcb.pop(pid)
+                    print('join失败：进程还未被创建')
+                else:
+                    process_map[pid].join()
+        elif operation.opr == 'Q':
+            for k, v in list(pcb.items()):
+                if v['status'] in ('running',):
+                    print('丢弃进程', k)
+                    if k in process_map:
+                        process_map[k].kill()
+                        process_map[k].join()
+                        process_map.pop(k)
+                        worker.release()
+            break
+
+
+
+                
+
 
 
 if __name__ == "__main__":
-    pp = {}
-    # ProcessCNT = os.cpu_count()
-    ProcessCNT = 4
 
     with Manager() as manager:
-        processing = manager.dict()
+        pcb = manager.dict()
         worker = Semaphore(ProcessCNT)
+        tasks_queue = multiprocessing.Queue()
+        operation_queue = multiprocessing.Queue()
+        atomic_process = Process(
+            target=callmanager,
+            args=(
+                operation_queue,
+                tasks_queue,
+                pcb,
+                worker
+            )
+        )
+        atomic_process.start()
         
+        def generate_pid():
+            pid = random.randint(1, 1<<16)
+            while pid in pcb:
+                pid = random.randint(1, 1<<16)
+            return pid
         #min25 100000000000
 
         while 1:
             # try:
             raw = input('>>>').split()
-            tobepop = []
-            for k, v in pp.items():
-                if processing[k][0] == 'done':
-                    v.join()
-                    tobepop.append(k)
-            for k in tobepop:
-                pp.pop(k)
-                processing.pop(k)
+            # tobepop = []
 
             if len(raw)<1:
                 continue
             cmd, *args = raw
             if cmd in GLOBAL.unsubscribes + ('q', 'quit'):
                 # loopback.kill()
+
+                # atomic_process.kill()
+                
+                operation_queue.put(Operation('Q'))
+                atomic_process.join()
                 break
             elif cmd == 'ps':
-                print(*sorted(processing.items()), sep='\n')
-                print(*sorted(pp.items()), sep='\n')
+                print(*sorted(pcb.items()), sep='\n')
                 continue
             elif cmd == 'eval':
                 print(eval(' '.join(args)))
                 continue
             elif cmd == 'kill':
-                pid = int(args[0])
-                if pid not in processing:
-                    print('找不到这个进程')
-                else:
-                    if processing[pid][0] == 'done':
-                        pp.pop(pid).join()
-                        processing.pop(pid)
-                    else:
-                        if processing[pid][0] == 'running':
-                            worker.release()
-                        pp.pop(pid).kill()
-                        # tmpp = pp.pop(pid)
-                        # tmpp.kill()
-                        # print(tmpp)
-                        processing.pop(pid)
+                operation_queue.put(Operation('K', int(args[0])))
                 continue
+            elif cmd == 'join':
+                operation_queue.put(Operation('J', int(args[0])))
+                continue
+            else:
+                pid = generate_pid()
+                pcb[pid] = {
+                    'status':'pending',
+                    'command':' '.join(raw)
+                }
+                tasks_queue.put(
+                    PendingTask(pid, cmd, list(args))
+                )
+                operation_queue.put(Operation('R'))
+
+            # elif cmd == 'kill':
+            #     pid = int(args[0])
+            #     if pid not in processing:
+            #         print('找不到这个进程')
+            #     else:
+            #         if processing[pid][0] == 'done':
+            #             pp.pop(pid).join()
+            #             processing.pop(pid)
+            #         else:
+            #             if processing[pid][0] == 'running':
+            #                 worker.release()
+            #             pp.pop(pid).kill()
+            #             # tmpp = pp.pop(pid)
+            #             # tmpp.kill()
+            #             # print(tmpp)
+            #             processing.pop(pid)
+            #     continue
 
             # pd = availables.pop
-            pid = random.randint(0,1<<16)
-            while pid in processing:
-                pid = random.randint(0,1<<16)
+            # pid = random.randint(0,1<<16)
+            # while pid in processing:
+            #     pid = random.randint(0,1<<16)
 
-            processing[pid] = [
-                'pending',
-                ' '.join(raw),
-                #pool.apply_async(callmanager, args=args, kwds={'pid': pid, 'processing': processing}, callback=回调, error_callback=回调)
-            ]
-            pp[pid] = Process(target=callmanager, args=(cmd, pid, processing, worker, *args))
-            pp[pid].start()
+            # processing[pid] = {
+            #     'status':'pending',
+            #     'command':' '.join(raw),
+            #     #pool.apply_async(callmanager, args=args, kwds={'pid': pid, 'processing': processing}, callback=回调, error_callback=回调)
+            # }
+            # pp[pid] = Process(target=callmanager, args=(cmd, pid, processing, worker, *args))
+            # pp[pid].start()
             # pp[pid].
             
             # pool.apply_async(
