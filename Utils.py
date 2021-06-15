@@ -840,6 +840,24 @@ def getinv(a,m):
     x,y = exgcd(a,m)
     return -1 if x==1 else x%m
     
+def orafli(upp):
+    primes = []
+    marked = [False for i in range(upp+3)]
+    # prvs = [i for i in range(upp+3)]
+    pref = []
+    for i in range(2, upp):
+        if not marked[i]:
+            primes.append(i)
+            pref.append(primes[-1])
+        for j in primes:
+            if i*j >= upp:
+                break
+            marked[i*j] = True
+            # prvs[i*j] = j
+            if i % j == 0:
+                break
+    return primes, pref
+
 # 树巨结垢相关
 
 def lowbit(x:int): return x&-x

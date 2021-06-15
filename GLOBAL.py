@@ -5,18 +5,19 @@ py_mirai_version = 4 # 在这里改版本号哦！3或者4
 # from graia.application.message.chain import MessageChain
 import logging
 
-logging.basicConfig(
-	level=logging.DEBUG,  
-	format='%(asctime)s[line:%(lineno)d] %(levelname)s %(message)s',
-	datefmt='%A, %d %B %Y %H:%M:%S', 
-	filename='irori.log',  
-	filemode='w', 
-)
+# logging.basicConfig(
+# 	level=logging.DEBUG,  
+# 	format='%(asctime)s[line:%(lineno)d] %(levelname)s %(message)s',
+# 	datefmt='%A, %d %B %Y %H:%M:%S', 
+# 	filename='irori.log',  
+# 	filemode='w', 
+# )
 
 # print = logging.debug()
 
 import asyncio, importlib, traceback
 def importMirai():
+	from graia.application.message.elements.internal import Plain
 	global py_mirai_version
 	global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
 	global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice
