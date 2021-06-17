@@ -206,7 +206,7 @@ async def 爬CF(*attrs,kwargs={}):
         elif attrs[0] in ('R','render'):
             CFSubscribe(player=playerobj, mode='R').save()
     else:
-        CFSubscribe(player=playerobj, mode='Y').save()
+        CFSubscribe(pk=playerobj, mode='Y').save()
     cfobj = CFSubscribe.trychk(playerobj)
     if cfobj:
         CFdata = fetchCodeForcesContests()
