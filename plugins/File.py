@@ -460,7 +460,7 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
     print(dir(kwargs['mem']))
     mem = getmem(kwargs['mem'])
     player = getPlayer(**kwargs)
-    entity = DailySignLog.chk(player)
+    entity = DailySignLog.chk(mem)
     from Assets.签到语料 import 宜, 忌, 运势
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')

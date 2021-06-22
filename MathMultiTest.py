@@ -771,6 +771,10 @@ def callmanager(
                 try:
                     task = tasks_queue.get(block=False)
                     pid = task.pid
+                    while pid not in pcb:
+                        task = tasks_queue.get(block=False)
+                        pid = task.pid
+
                     # worker.acquire(block=False)
                     # pid = generate_pid()
                     print(pid, '开始任务')
@@ -809,6 +813,7 @@ def callmanager(
                     tmpd = pcb[pid]
                     tmpd['status'] = 'killed'
                     pcb.update({pid:tmpd})
+                    operation_queue.put(Operation('R'))
         elif operation.opr == 'J':
             pid = operation.pid
             if pid not in pcb:
