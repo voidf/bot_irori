@@ -464,6 +464,8 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
     from Assets.签到语料 import 宜, 忌, 运势
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
+    print('A', entity.last_sign.strftime('%Y-%m-%d'))
+    print('B', datetime.datetime.now().strftime('%Y-%m-%d'))
     if not entity.last_sign or entity.last_sign.strftime('%Y-%m-%d') == datetime.datetime.now().strftime('%Y-%m-%d'):
         if not entity.last_sign or entity.last_sign.strftime('%Y-%m-%d') != (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d'):
             entity['combo'] = 0
