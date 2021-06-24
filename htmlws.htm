@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            #txtContent{
+                width:90%;
+            }
+            #sendText{
+                width:20%;
+            }
+            body{
+                background-color:#303030;
+            }
+            input{
+                background-color: #303030;
+                color:#00d4b1;
+            }
+            textarea{
+                background-color: #303030;
+                color: #00ca7d;
+            }
+        </style>
+    </head>
+    <body>
+        <h3 style="text-align:center;font-size:xx-large;color: #ffffff">WS测试</h3>
+        <div id="login">
+            <div>
+                <input id="serverIP" type="text" placeholder="服务器IP" value="127.0.0.1" autofocus="autofocus" />
+                <input id="serverPort" type="text" placeholder="服务器端口" value="18081" />
+                <input id="serverPath" type="text" placeholder="路径" value="/" />
+                <input id="btnConnect" type="button" value="连接" onclick="connect()" />
+            </div>
+            
+            <div>
+                <div style="color: #ffffff;">
+                    命令执行情况
+                </div>
+                <textarea id="txtContent" readonly="readonly"></textarea>
+            </div>
+            <div>
+                <input id="sendText" type="text" placeholder="发送文本" value="" />
+                <input id="btnSend" type="button" value="发送" onclick="send()" />
+                <p id="wd" style="color:#00ca7d">你的工作路径:</p><a id="wda" target="__blank">here</a>
+            </div>
+        </div>
+    </body>
+    <script>
+        var socket;
+ 
+        function connect() {
+            var host = "ws://" + $("serverIP").value + ":" + $("serverPort").value + $("serverPath").value;
+            socket = new WebSocket(host);
+            try {
+ 
+                socket.onopen = function (msg) {
+                    $("btnConnect").disabled = true;
+                    alert("连接成功！");
+                };
+ 
+                socket.onmessage = function (msg) {
+                    if (typeof msg.data == "string") {
+                        displayContent(msg.data);
+                    }
+                    else {
+                        alert("非文本消息");
+                    }
+                };
+ 
+                socket.onclose = function (msg) { alert("socket closed!") };
+            }
+            catch (ex) {
+                log(ex);
+            }
+        }
+ 
+        function send() {
+            var st=document.getElementById("sendText")
+            var msg = st.value;
+            st.value="";
+
+            
+
+            //console.log(msg+String.fromCharCode(2,3,3));
+            socket.send(msg+String.fromCharCode(2,3,3));
+        }
+ 
+        window.onbeforeunload = function () {
+            try {
+                socket.close();
+                socket = null;
+            }
+            catch (ex) {
+            }
+        };
+ 
+        function $(id) { return document.getElementById(id); }
+ 
+
+        function displayContent(msg) {
+            $("txtContent").value += "\r\n" + msg;
+            $("txtContent").scrollTop=$("txtContent").scrollHeight;
+            console.log(msg);
+            var li=msg.split("=||..");
+            console.log(li)
+            if(li.length==2){
+                //console.log($("wd").innerHtml)
+                $("wda").href="http://"+$("serverIP").value+li[1];
+            }
+            // var scrollHeight = $("txtContent").scrollHeight;
+            // var height = $("txtContent").offsetHeight;
+            // console.log(height);
+            // console.log(scrollHeight)
+            // if(height < scrollHeight){
+            //     $("txtContent").style.height = $("txtContent").scrollHeight+'px';
+            // }
+        }
+        window.onload = function(){
+            $("txtContent").style.height = window.screen.height * 0.5 + 'px';
+            console.log(window.screen.height);
+        }
+        document.onkeydown=function(event) { if (event.keyCode == 13) { send();} }
+    </script>
+</html>

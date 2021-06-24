@@ -15,3 +15,5 @@ graia-broadcast
 devtools
 xlrd==1.2.0
 mongoengine
+pyzipper
+websockets
