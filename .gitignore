@@ -2,23 +2,9 @@
 compile_commands.json
 
 irori.log
-2048/
-vote/
 CF/
-AtCoder/
-ddl/
-Polyline/
-SlidingPuzzle/
-BinarySearchGame/
-DailySign/
 credits/
-NowCoder/
-NimGame/
 __pycache__/
-weather/
-sniffer/
-sentence/
-credits/
 *.pyc
 tmp*
 temp*
@@ -28,4 +14,4 @@ groupLimit.json
 cfg.json
 cfg.bak
 tt.py
-DailySign/
+ssl/
