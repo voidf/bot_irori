@@ -46,12 +46,10 @@ name_pool = set()
 
 terminals = {}
 
-with open('cfg.json', 'r',encoding='utf-8') as f:
-    jj = json.load(f)
-    wsuri = jj['ws']
-    sport = jj['socket_port']
-    cport = jj['control_port']
-    del jj
+import cfg
+
+sport = cfg.socket_port
+
 import string
 for digits in string.digits:
     for uppers in string.ascii_uppercase:
@@ -74,7 +72,7 @@ class SessionTicketStore:
 async def heartbeat(writer: asyncio.StreamWriter):
     try:
         while 1:
-            await asyncio.sleep(60)
+            await asyncio.sleep(5)
             writer.write(b'Doki')
     except:
         traceback.print_exc()
@@ -99,7 +97,9 @@ async def handle_inbound(
         try:
             while 1:
                 msg = await reader.read(1<<16)
-                if msg == b'doki': # 这里做业务处理
+                if not msg:
+                    break
+                if msg == b'd': # 这里做业务处理
                     print('心跳，',datetime.datetime.now())
                     continue
         except:
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         alpn_protocols=H3_ALPN,
         is_client=False,
         max_datagram_frame_size=65536,
-        idle_timeout=200
+        idle_timeout=70
         # quic_logger=logging.Logger,
         # secrets_log_file=secrets_log_file,
     )
@@ -176,6 +176,7 @@ if __name__ == "__main__":
         stream_handler=inbound_wrapper,
         session_ticket_fetcher=ticket_store.pop,
         session_ticket_handler=ticket_store.add,
+        retry=False
     )
     # monitor = await asyncio.start_server(handle_inbound, '0.0.0.0', cport)
     # addr = server.sockets[0].getsockname()

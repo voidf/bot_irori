@@ -3,8 +3,7 @@ import aioquic
 import json
 import logging
 import asyncio
-
-hostname = '127.0.0.1'
+from typing import NoReturn
 
 logging.basicConfig(
 	level=logging.DEBUG,  
@@ -12,79 +11,103 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 )
 
-with open('cfg.json', 'r',encoding='utf-8') as f:
-    jj = json.load(f)
-    sport = jj['socket_port']
-    del jj
+import cfg
+
+sport = cfg.socket_port
+hostname = cfg.socket_host
+
+class Session:
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        self._reader = reader
+        self._writer = writer
+        self._Qcontrol = asyncio.Queue()
+        self._Qtask = asyncio.Queue()
+        asyncio.ensure_future(self.keep_connect())
+    async def keep_connect(self):
+        while 1:
+            res = await self._reader.read(cfg.buffer)
+            if not res:
+                raise ConnectionResetError("连接已断开")
+            if res == b'D': # 心跳包字串
+                self._writer.write(b'd')
+            else:
+                header, ato = res.split(b' ', 1) # task, control二选一
+                if header == b'task':
+                    self._Qtask.put_nowait(ato)
+                elif header == b'control':
+                    self._Qcontrol.put_nowait(ato)
+                else:
+                    raise NotImplementedError('无法处理此协议头：未实现')
+
+    async def recv_control(self) -> bytes: return self._Qcontrol.get()
+    async def recv_task(self) -> bytes: return self._Qtask.get()
+    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
 
 
+import concurrent.futures
 import datetime
 import traceback
+from socketutils import *
 from multiprocessing.dummy import Pool as Pool2
-def task_monitor(func, *args, **kwargs):
-    tle = kwargs.get('tle', None)
+def task_monitor(taskstr):
+    task: TaskMessage = TaskMessage.parse_raw(taskstr)
+    rawstr = task.chain.onlyplain()
+    cmd, argstr = rawstr.split(' ', 1) 
+    
+    tle = task.meta.get('tle', 30)
     p = Pool2(1)
     res = p.apply_async(func, args=args)
-    pid = kwargs['pid']
-    # print(kwargs)
     try:
         out = res.get(tle)
-        # kwargs['worker'].release()
-
-        tmpd = kwargs['pcb'][pid]
-        tmpd['status'] = 'done'
-        kwargs['pcb'].update({pid:tmpd})
-        # kwargs['pcb'][pid].update(status='done')
-        # print(kwargs)
-        print(pid, '执行完毕, 结果：', out)
         return out
     except:
         traceback.print_exc()
-        # kwargs['worker'].release()
-
-        tmpd = kwargs['pcb'][pid]
-        tmpd['status'] = 'timeout'
-        kwargs['pcb'].update({pid:tmpd})
-        print(pid, '执行超时')
+        msg = '执行超时'
 import ssl
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.h3.connection import H3_ALPN
 from aioquic.asyncio.client import connect
+import functools
 async def run():
     conf = QuicConfiguration(
         alpn_protocols=H3_ALPN,
         is_client=True,
         max_datagram_frame_size=65536,
-        idle_timeout=200,
+        idle_timeout=70,
         verify_mode=ssl.CERT_NONE
         # quic_logger=logging.Logger,
         # secrets_log_file=secrets_log_file,
     )
+    loop = asyncio.get_running_loop()
     print(hostname, sport)
-    async with connect(
-        hostname,
-        sport,
-        configuration=conf
-    ) as C:
-        reader:asyncio.StreamReader
-        writer:asyncio.StreamWriter
-        reader, writer = await C.create_stream()
-        writer.write(b'worker 114514')
-        d1 = datetime.datetime.now()
-        print(d1)
-        # await writer.drain()
-        try:
-            while 1:
-                msg = await reader.read(1<<16)
-                if msg == b'Doki':
-                    print(msg, datetime.datetime.now())
-                    writer.write(b'doki')
-                    continue
-        except:
-            traceback.print_exc()
-        d2 = datetime.datetime.now()
-        print(d2)
-        print(d2-d1)
+    while 1:
+        async with connect(
+            '4kr.top',
+            8228,
+            configuration=conf
+        ) as C:
+            # reader:asyncio.StreamReader
+            # writer:asyncio.StreamWriter
+            ses = Session(*(await C.create_stream()))
+            ses.send('worker 114514')
+            # G = 
+            with concurrent.futures.ProcessPoolExecutor(1) as pool:
+                async def assign_task_loop():
+                    while 1:
+                        rawtask = await ses.recv_task()
+                        result = await loop.run_in_executor(
+                            pool, functools.partial(
+                                task_monitor, rawtask.decode('utf-8')
+                            )
+                        )
+                # async def control_loop():
+                while 1:
+                    cmd = await ses.recv_control()
+                    if cmd == b'kill':
+                        # pool.shutdown(True)
+                        for k, v in pool._processes.items():
+                            v.kill()
+
 
 
 if __name__ == "__main__":

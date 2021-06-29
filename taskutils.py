@@ -16,7 +16,6 @@ class ArgumentParser(argparse.ArgumentParser):
                 return action
             elif action.dest == name:
                 return action
-
     def error(self, message):
         exc = sys.exc_info()[1]
         if exc:
