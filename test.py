@@ -1,162 +1,141 @@
-import datetime
-import requests
+import aioquic
+
 import json
-import random
+import logging
+import asyncio
+from typing import NoReturn
+
+logging.basicConfig(
+	level=logging.DEBUG,  
+	format='%(asctime)s<%(filename)s:%(lineno)d>[%(levelname)s]%(message)s',
+	datefmt='%H:%M:%S'
+)
+
+import cfg
+
+sport = cfg.socket_port
+hostname = cfg.socket_host
+
+class Session:
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        self._reader = reader
+        self._writer = writer
+        self._Qcontrol = asyncio.Queue()
+        self._Qtask = asyncio.Queue()
+        asyncio.ensure_future(self.keep_connect())
+    async def keep_connect(self):
+        while 1:
+            res = await self._reader.read(cfg.buffer)
+            if not res:
+                raise ConnectionResetError("连接已断开")
+            if res == b'D': # 心跳包字串
+                self._writer.write(b'd')
+            else:
+                header, ato = res.split(b' ', 1) # task, control二选一
+                if header == b'task':
+                    self._Qtask.put_nowait(ato)
+                elif header == b'control':
+                    self._Qcontrol.put_nowait(ato)
+                else:
+                    raise NotImplementedError('无法处理此协议头：未实现')
+
+    async def recv_control(self) -> bytes: return self._Qcontrol.get()
+    async def recv_task(self) -> bytes: return self._Qtask.get()
+    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
 
 
-def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
 
-smjb = random.randint(10000000, 99999999)
-s = requests.sessions.Session()
+def sub_task(taskstr: str):
+    import os
+    import importlib
+    import inspect
+    import re
+    # writer.write("233")
+    # asyncio.run(writer.write("233"))
+    su = 0
+    for i in range(int(taskstr)):
+        su+=i
+        su%=int(1e9)+7
+    return str(su)
 
-def reactive_session():
+    
 
+import concurrent.futures
+import datetime
+import traceback
+from socketutils import *
+# from multiprocessing.dummy import Pool as Pool2
+# def task_monitor(taskstr: str, writer: asyncio.StreamWriter):
+#     task: TaskMessage = TaskMessage.parse_raw(taskstr)
+#     rawstr = task.chain.onlyplain()
+#     cmd, argstr = rawstr.split(' ', 1) 
+    
+#     tle = task.meta.get('tle', 30)
+#     task.meta['writer'] = writer
 
-    global s, smjb
-    get_cfduid_lnk = 'https://static.deepl.com/css/cookieBanner.$21aa7c.css'
+#     p = Pool2(1)
 
-    get_cfduid_headers = {
-        "accept": "text/css,*/*;q=0.1",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "zh-CN,zh;q=0.9",
-        "cache-control": "no-cache",
-        "dnt": "1",
-        "pragma": "no-cache",
-        "referer": "https://www.deepl.com/translator",
-        "sec-fetch-mode": "no-cors",
-        "sec-fetch-site": "same-site",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
-    }
-
-    privacy_lnk = 'https://www.deepl.com/PHP/backend/privacy.php?request_type=jsonrpc&il=ZH'
-
-    privacy_headers = {
-        "accept": "*/*",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "zh-CN,zh;q=0.9",
-        "cache-control": "no-cache",
-        "content-length": "138",
-        "content-type": "application/json",
-        "dnt": "1",
-        "origin": "https://www.deepl.com",
-        "pragma": "no-cache",
-        "referer": "https://www.deepl.com/translator",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
-    }
-
-    privacy_payload = {
-        "jsonrpc": "2.0",
-        "method": "setPrivacySettings",
-        "params": {
-            "consent": [
-                "NECESSARY",
-                "PERFORMANCE",
-                "COMFORT"
-            ],
-            "mode": "LAX_AUTO"
-        },
-        "id": smjb
-    }
-
-    LMTBID_lnk = 'https://www2.deepl.com/jsonrpc'
-
-    LMTBID_headers = {
-        "accept": "*/*",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "zh-CN,zh;q=0.9",
-        "cache-control": "no-cache",
-        "content-length": "389",
-        "content-type": "application/json",
-        "dnt": "1",
-        "origin": "https://www.deepl.com",
-        "pragma": "no-cache",
-        "referer": "https://www.deepl.com/translator",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
-    }
+    
 
 
-    LMTBID_data = {
-        "jsonrpc": "2.0",
-        "method": "LMT_handle_jobs",
-        "params": {
-            "jobs": [
-                {
-                    "kind": "default",
-                    "raw_en_sentence": "h",
-                    "raw_en_context_before": [],
-                    "raw_en_context_after":[],
-                    "preferred_num_beams":4,
-                    "quality":"fast"
-                }
-            ],
-            "lang": {
-                "user_preferred_langs": [l2, l1],
-                "source_lang_user_selected": "auto",
-                "target_lang": l2
-            },
-            "priority": -1,
-            "commonJobParams": {"formality": None},
-            "timestamp": jsontimestampnow()
-        },
-        "id": smjb
-    }
-    r = s.get(get_cfduid_lnk, headers=get_cfduid_headers)
-    r2 = s.post(privacy_lnk, headers=privacy_headers, json=privacy_payload)
-    r3 = s.post(LMTBID_lnk, headers=LMTBID_headers, json=LMTBID_data)
+#     res = p.apply_async(func, args=args)
+#     try:
+#         out = res.get(tle)
+#         return out
+#     except:
+#         traceback.print_exc()
+#         msg = '执行超时'
+import ssl
+from aioquic.quic.configuration import QuicConfiguration
+from aioquic.h3.connection import H3_ALPN
+from aioquic.asyncio.client import connect
+import functools
+async def run():
+    conf = QuicConfiguration(
+        alpn_protocols=H3_ALPN,
+        is_client=True,
+        max_datagram_frame_size=65536,
+        idle_timeout=70,
+        verify_mode=ssl.CERT_NONE
+        # quic_logger=logging.Logger,
+        # secrets_log_file=secrets_log_file,
+    )
+    loop = asyncio.get_running_loop()
+    print(hostname, sport)
+    while 1:
+        async with connect(
+            '4kr.top',
+            8228,
+            configuration=conf
+        ) as C:
+            # reader:asyncio.StreamReader
+            # writer:asyncio.StreamWriter
+            ses = Session(*(await C.create_stream()))
+            await ses.send('worker 114514')
+            # G = 
+            async def L1(upp):
+                with concurrent.futures.ProcessPoolExecutor(1) as pool:
+                    result = await loop.run_in_executor(
+                        pool, functools.partial(
+                            sub_task, upp
+                        )
+                    )
+                    print(result)
+                    await ses.send(result)
+                    return result
+            
+            l = await asyncio.gather(*(
+                L1(100000000) for i in range(16)
+            ))
+            
+            print(l)
+            # await asyncio.sleep(3)
+            # print('done')
+            break
 
-def deepl_translate(src, l1='ZH', l2='EN'):
-    get_translate_lnk = 'https://www2.deepl.com/jsonrpc'
 
-    get_translate_headers = {
-        "accept": "*/*",
-        "accept-encoding": "gzip, deflate, br",
-        "accept-language": "zh-CN,zh;q=0.9",
-        "cache-control": "no-cache",
-        "content-length": "435",
-        "content-type": "application/json",
-        "dnt": "1",
-        "origin": "https://www.deepl.com",
-        "pragma": "no-cache",
-        "referer": "https://www.deepl.com/translator",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
-    }
 
-    get_translate_data = {
-        "jsonrpc": "2.0", 
-        "method": "LMT_handle_jobs", 
-        "params": {
-            "jobs": [
-                {
-                    "kind": "default", 
-                    "raw_en_sentence": src, 
-                    "raw_en_context_before": [], 
-                    "raw_en_context_after":[], 
-                    "preferred_num_beams":4, 
-                    "quality":"fast"
-                }
-            ], 
-            "lang": {
-                "user_preferred_langs": [l2, l1], 
-                "source_lang_user_selected": "auto", 
-                "target_lang": l2
-            }, 
-            "priority": -1, 
-            "timestamp": jsontimestampnow()
-        }, 
-        "id": smjb
-    }
-
-    r4 = s.post(get_translate_lnk, headers=get_translate_headers, json=get_translate_data)
-    res = json.loads(r4.text)
-    print(res['result']['translations'][0]['beams'][0]['postprocessed_sentence'])
-
-BaiduTTSLnk = ' http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text='
-
-while 1:
-    print(eval(input('>>>')))
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+    

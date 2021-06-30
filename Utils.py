@@ -21,10 +21,9 @@ from selenium.webdriver.common.keys import Keys
 
 import GLOBAL
 from Fetcher import *
-from GLOBAL import (ApplicationLaunched, ApplicationShutdowned, At, Broadcast,
-                    Face, Friend, FriendMessage, Group, GroupMessage, Image,
-                    Member, MessageChain, Mirai, Plain, QQFaces, Session,
-                    Source, Voice, importMirai)
+from GLOBAL import (At, Face, Image,
+                    MessageChain, Plain, QQFaces,
+                    importMirai)
 
 importMirai()
 
@@ -92,7 +91,7 @@ async def fuzzT(g,s,e,w=''):
         if _%10==0:
             await asyncio.sleep(0.2)
         await msgDistributer(gp=g,msg=f'{chr(_)}{_}{w}')
-# from graia.application.message.chain import MessageChain
+
 async def MessageChainSpliter(chain: list, **kwargs):
     """只在v4工作的函数，把消息链拆开，一条条发送"""
     if chain:

@@ -41,7 +41,7 @@ logging.basicConfig(
 busy_pool = {}
 worker_pool = {}
 
-worker_alias = {}
+# worker_alias = {}
 name_pool = set()
 
 terminals = {}
@@ -72,8 +72,8 @@ class SessionTicketStore:
 async def heartbeat(writer: asyncio.StreamWriter):
     try:
         while 1:
-            await asyncio.sleep(5)
-            writer.write(b'Doki')
+            await asyncio.sleep(cfg.heartbeat_time)
+            writer.write(b'D')
     except:
         traceback.print_exc()
 
@@ -86,13 +86,12 @@ async def handle_inbound(
     message = data.decode()
     print(message)
     role, vkey = message.split(' ')
-    addr = writer.get_extra_info('peername')
 
     async def worker():
-        worker_pool[addr] = (reader, writer)
         new_name = name_pool.pop()
-        worker_alias[new_name] = addr
-        logging.info(f"new worker standby ... {new_name} => {addr}")
+        worker_pool[new_name] = (reader, writer)
+        
+        logging.info(f"new worker standby ... {new_name} => ")
         asyncio.ensure_future(heartbeat(writer))
         try:
             while 1:
@@ -102,12 +101,16 @@ async def handle_inbound(
                 if msg == b'd': # 这里做业务处理
                     print('心跳，',datetime.datetime.now())
                     continue
+                else:
+                    print(msg)
         except:
             traceback.print_exc()
         finally:
-            worker_pool.pop(addr)
+            print('回收 {new_name} => ', worker_pool.pop(new_name))
+            name_pool.add(new_name)
+            
     async def terminal():
-        logging.info(f"new terminal standby ... => {addr}")
+        logging.info(f"new terminal standby ... ")
         ap = ArgumentParser()
         ap.add_argument('cmd', default='help', choices=['exec', 'eval', 'run', 'send'], help="欢迎使用irori终端，以上是目前支持的命令，输入help或未匹配上面的命令会出现此提示。")
         async def sys_exec(args: list): return f"""{exec(' '.join(args))}"""
@@ -178,8 +181,7 @@ if __name__ == "__main__":
         session_ticket_handler=ticket_store.add,
         retry=False
     )
-    # monitor = await asyncio.start_server(handle_inbound, '0.0.0.0', cport)
-    # addr = server.sockets[0].getsockname()
+
     logging.info(f'Socket Serving started at 0.0.0.0 {sport}')
 
 

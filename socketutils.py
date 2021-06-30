@@ -44,6 +44,7 @@ import datetime
 
 # 抄graia的
 class Element(BaseModel):
+    type: str
     def tostr(self) -> str:
         return ''
 
@@ -59,11 +60,31 @@ class MessageChain(BaseModel):
                 for ii in Element.__subclasses__():
                     if ii.__name__ == i["type"]:
                         tobeappend = ii.parse_obj(i)
-            if tobeappend.type == "Plain" and handled_elements and handled_elements[-1].type == "Plain":
-                handled_elements[-1].text += tobeappend.text
-                continue
+            if tobeappend.type == "Plain":
+                if not tobeappend.text:
+                    continue
+                if handled_elements and handled_elements[-1].type == "Plain":
+                    handled_elements[-1].text += tobeappend.text
+                    continue
             handled_elements.append(tobeappend)
         return cls(__root__=handled_elements)
+    @classmethod
+    def get_empty(cls) -> "MessageChain":
+        return MessageChain(__root__=[])
+    @classmethod
+    def auto_make(cls, obj: Any) -> "MessageChain":
+        if isinstance(obj, str):
+            if obj:
+                return cls(__root__=[])
+            return cls(__root__=[Plain(obj)])
+        if isinstance(obj, Element):
+            return cls(__root__=[obj])
+        if isinstance(obj, (list, tuple)):
+            return MessageChain.parse_obj(obj)
+        if isinstance(obj, MessageChain):
+            return obj
+        print(f'转换错误：不可转换的实体{obj}')
+        return cls(__root__=[])
     def tostr(self) -> str:
         output = []
         for i in self.__root__:
@@ -75,6 +96,14 @@ class MessageChain(BaseModel):
             if i.type == "Plain":
                 output.append(i.tostr())
         return ' '.join(output)
+    def pop_first_cmd(self) -> str:
+        for p, i in enumerate(self.__root__):
+            if i.type == 'Plain':
+                cmd, i.text = i.text.split(' ', 1)
+                if not i.text:
+                    self.__root__.pop(p)
+                return cmd
+        return ''
 
 
 class Plain(Element):
@@ -87,11 +116,7 @@ class Plain(Element):
 
 class Source(Element):
     id: int
-    time: datetime
-    class Config:
-        json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
-        }
+    time: int
 
 class Quote(Element):
     id: int
