@@ -94,16 +94,18 @@ class QUICServerSession():
     
     async def keep_connect(self):
         while 1:
-            res = self._reader.read(cfg.buffer)
+            res = await self._reader.read(cfg.buffer)
+            logging.info(res)
             if not res:
-                raise ConnectionResetError("连接已断开")
+                self._Q.put_nowait(ConnectionResetError("连接已断开"))
+                return
             if res == b'd': # 心跳包字串
                 continue
             else:
                 self._Q.put_nowait(res)
 
     async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
-    async def recv(self) -> bytes: return self._Q.get()
+    async def recv(self) -> bytes: return await self._Q.get()
 
 async def handle_inbound(
     reader: asyncio.StreamReader, 
@@ -114,7 +116,7 @@ async def handle_inbound(
     logging.info(message)
     role, vkey, *meta = message.split(' ', 2) # TODO: meta的player一次请求还是反向学习
     if vkey != cfg.quic_key:
-        writer.close()
+        # writer.close()
         logging.critical("Detected invalid key %s", vkey)
         # logging.critical(vkey)
         return
@@ -135,7 +137,7 @@ async def handle_inbound(
                 logging.info('Received: %s', msg)
                 ent: CoreEntity = CoreEntity.parse_raw(msg)
                 sendto: QUICServerSession = adapters[player_adapter[ent.player]]
-                sendto.send(msg)
+                await sendto.send(msg)
 
         except:
             # traceback.print_exc()
@@ -168,7 +170,7 @@ async def handle_inbound(
             else:
                 sendto: QUICServerSession = adapters[player_adapter[ap.target]]
                 ent.chain = MessageChain.auto_make(ap.content)
-                sendto.send(ent) # 保证送出去的还是CoreEntity
+                await sendto.send(ent.json()) # 保证送出去的还是CoreEntity
                 return '发送成功'
         switcher_t = {
             'exec': sys_exec,
@@ -234,7 +236,7 @@ async def handle_inbound(
                     wses: QUICServerSession = worker_pool[wname]
                     logging.info("worker %s gain work", wname)
                     busy_pool[wname] = ent.meta['ts'] = datetime.datetime.now().timestamp()
-                    await wses.send(ent.json())
+                    await wses.send('task ' + ent.json()) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:
             at_dead()
@@ -259,7 +261,7 @@ if __name__ == "__main__":
         alpn_protocols=H3_ALPN,
         is_client=False,
         max_datagram_frame_size=cfg.buffer,
-        idle_timeout=70
+        idle_timeout=cfg.idle_tle
         # quic_logger=logging.Logger,
         # secrets_log_file=secrets_log_file,
     )

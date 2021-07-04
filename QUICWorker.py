@@ -13,10 +13,10 @@ logging.basicConfig(
 
 import cfg
 
-sport = cfg.socket_port
-hostname = cfg.socket_host
+sport = cfg.quic_port
+hostname = cfg.quic_host
 
-class Session:
+class QUICWorkerSession:
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
@@ -29,6 +29,7 @@ class Session:
             if not res:
                 raise ConnectionResetError("连接已断开")
             if res == b'D': # 心跳包字串
+                logging.debug('Heartbeat')
                 self._writer.write(b'd')
             else:
                 header, ato = res.split(b' ', 1) # task, control二选一
@@ -39,8 +40,8 @@ class Session:
                 else:
                     raise NotImplementedError('无法处理此协议头：未实现')
 
-    async def recv_control(self) -> bytes: return self._Qcontrol.get()
-    async def recv_task(self) -> bytes: return self._Qtask.get()
+    async def recv_control(self) -> bytes: return await self._Qcontrol.get()
+    async def recv_task(self) -> bytes: return await self._Qtask.get()
     async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
 
 
@@ -106,7 +107,6 @@ def sub_task(taskstr: str, writer: asyncio.StreamWriter):
                     else v.__doc__.strip()[:show_limit]+'...'}\n''' )
             elif attrs[0] == "search" and len(attrs) > 1:
                 key = attrs[1]
-                checked = set()
                 for k, v in tot_funcs.items():
                     if re.search(key, k, re.S) or re.search(key, v.__doc__, re.S):
                         l.append(f'''\t{k}\t{v.__doc__.strip()}\n''' )
@@ -199,8 +199,8 @@ async def run():
     conf = QuicConfiguration(
         alpn_protocols=H3_ALPN,
         is_client=True,
-        max_datagram_frame_size=65536,
-        idle_timeout=70,
+        max_datagram_frame_size=cfg.buffer,
+        idle_timeout=cfg.idle_tle,
         verify_mode=ssl.CERT_NONE
         # quic_logger=logging.Logger,
         # secrets_log_file=secrets_log_file,
@@ -209,16 +209,16 @@ async def run():
     print(hostname, sport)
     while 1:
         async with connect(
-            '4kr.top',
-            8228,
+            cfg.quic_host,
+            cfg.quic_port,
             configuration=conf
         ) as C:
             # reader:asyncio.StreamReader
             # writer:asyncio.StreamWriter
-            ses = Session(*(await C.create_stream()))
-            ses.send('worker 114514')
+            ses = QUICWorkerSession(*(await C.create_stream()))
+            await ses.send(f'W {cfg.quic_key}')
             # G = 
-            with concurrent.futures.ProcessPoolExecutor(1) as pool:
+            with concurrent.futures.ProcessPoolExecutor(cfg.max_worker) as pool:
                 async def clear_pool(delay: float):
                     await asyncio.sleep(delay)
                     for k, v in pool._processes.items():
