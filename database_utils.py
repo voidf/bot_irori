@@ -1,11 +1,11 @@
-from GLOBAL import cfg
 from mongoengine import *
 from typing import TypeVar, get_type_hints
 import datetime
+import cfg
 
 INVISIBLE = TypeVar('INVISIBLE')
 
-connect(**cfg['db'])
+connect(**cfg.db)
 
 class Base():
     """每次都写get_base_info好烦"""

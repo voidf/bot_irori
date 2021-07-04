@@ -246,9 +246,19 @@ class MiraiReq(BaseModel):
     subCommand: str = None
     content: dict = {} #
 
-# 内部传输用
-class TaskMessage(BaseModel):
+# Core内部传输用
+class CoreEntity(BaseModel):
     chain: MessageChain
     player: str
     source: str
     meta: dict
+    mode: str #发往的方向 A: Adapter; W: Worker
+
+# Core用鉴权对象
+from mongoengine import *
+from database_utils import RefPlayerBase, Base
+class Role(Document):
+    permit = ListField(StringField())
+
+class Admin(RefPlayerBase, Document):
+    role = ReferenceField(Role)

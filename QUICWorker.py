@@ -51,7 +51,7 @@ def sub_task(taskstr: str, writer: asyncio.StreamWriter):
     import inspect
     import re
 
-    task: TaskMessage = TaskMessage.parse_raw(taskstr)
+    task: CoreEntity = CoreEntity.parse_raw(taskstr)
 
     app_dir = 'applications'
     app_doc = {}
