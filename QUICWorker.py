@@ -46,7 +46,7 @@ class QUICWorkerSession:
 
 
 
-def sub_task(taskstr: str, writer: asyncio.StreamWriter):
+def sub_task(taskstr: str):
     import os
     import importlib
     import inspect
@@ -54,13 +54,13 @@ def sub_task(taskstr: str, writer: asyncio.StreamWriter):
 
     task: CoreEntity = CoreEntity.parse_raw(taskstr)
 
-    app_dir = 'applications'
+    app_dir = 'basicutils/applications/'
     app_doc = {}
     app_fun = {}
     tot_funcs = {}
     tot_alias = {}
 
-    async def printHelp(chain: MessageChain, meta: dict = {}):
+    def printHelp(chain: MessageChain, meta: dict = {}):
         """不传参打印命令表，传参则解释命令"""
         kwargs = meta
         attrs = chain.onlyplain().split(' ')
@@ -114,14 +114,16 @@ def sub_task(taskstr: str, writer: asyncio.StreamWriter):
                     l = ["没有结果喵"]
             else:
                 l.append('【错误】参数不合法\n')
-                ext = await printHelp(MessageChain())
+                ext = printHelp(MessageChain())
             
         return [Plain('\n'.join(l))] + img + ext
 
     for applications in os.listdir(app_dir):
         pkgname = os.path.splitext(applications)[0]
-        if pkgname == '__pycache__': continue
-        module = importlib.import_module(app_dir+'.'+pkgname)
+        if os.path.isdir(app_dir + applications):
+            continue
+        # if pkgname == '__pycache__': continue
+        module = importlib.import_module(app_dir.replace('/', '.')+pkgname)
         importlib.reload(module)
         names = module.__dict__.get("__all__", [x for x in module.__dict__ if x[:1] != '_'])
         globals().update({k: getattr(module, k) for k in names})
@@ -155,13 +157,22 @@ def sub_task(taskstr: str, writer: asyncio.StreamWriter):
     cmd = task.chain.pop_first_cmd()
     cmd = tot_alias.get(cmd, cmd)
     if cmd in tot_funcs:
-        reply = asyncio.run(tot_funcs[cmd](task.chain, task.meta))
+        try:
+            reply = tot_funcs[cmd](task.chain, task.meta)
+        except:
+            reply = MessageChain.auto_make(traceback.format_exc())
         if not reply:
             return
-        if isinstance(reply, str):
-            reply = MessageChain(__root__=[Plain(reply)])
-        if isinstance(reply, Plain):
-            reply = MessageChain(__root__=[reply])
+        if not isinstance(reply, MessageChain):
+            reply = MessageChain.auto_make(reply)
+        # elif isinstance(reply, Plain):
+        #     reply = MessageChain(__root__=[reply])
+        # elif isinstance(reply, list):
+        #     reply = MessageChain.auto_make
+        # else:
+            # reply = MessageChain(__root__=[str(reply)])
+        return reply
+
 
     
 
@@ -231,8 +242,7 @@ async def run():
                         asyncio.ensure_future(clear_pool(30))
                         result = await loop.run_in_executor(
                             pool, functools.partial(
-                                sub_task, rawtask.decode('utf-8'),
-                                ses._writer
+                                sub_task, rawtask.decode('utf-8')
                             )
                         )
                 asyncio.ensure_future(assign_task_loop())

@@ -41,10 +41,14 @@ from pydantic import BaseModel # 为了用json
 from pydantic import Field
 from typing import *
 import datetime
+import logging
 
 # 抄graia的
 class Element(BaseModel):
     type: str
+    meta: Optional[dict] = None
+    def json(self):
+        return super().json(exclude_none=True)
     def tostr(self) -> str:
         return ''
 
@@ -83,8 +87,8 @@ class MessageChain(BaseModel):
             return MessageChain.parse_obj(obj)
         if isinstance(obj, MessageChain):
             return obj
-        print(f'转换错误：不可转换的实体{obj}')
-        return cls(__root__=[])
+        logging.error(f'转换错误：不可转换的实体{obj}')
+        return cls(__root__=[Plain(str(obj))])
     def tostr(self) -> str:
         output = []
         for i in self.__root__:
@@ -249,9 +253,9 @@ class MiraiReq(BaseModel):
 # Core内部传输用
 class CoreEntity(BaseModel):
     chain: MessageChain
-    player: str
-    source: str
-    meta: dict
+    player: str # 发送来源player号
+    source: str # 发送来源syncid
+    meta: dict  # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
     mode: str #发往的方向 A: Adapter; W: Worker
 
 # Core用鉴权对象

@@ -1,42 +1,22 @@
 """数学类"""
 import os
-if __name__ == '__main__':
-    os.chdir('..')
-import GLOBAL
-from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
-from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import quine_mccluskey.qmccluskey
-import re
+# if __name__ == '__main__':
+    # os.chdir('..')
+import basicutils.CONST as GLOBAL
+from basicutils.quine_mccluskey import qmccluskey
 import asyncio
-import requests
-import json5
-import json
 import numpy
-import random
-import base64
-import qrcode
-import io
-import string
 import math
-import urllib
 import copy
-import ctypes
 import functools
 import traceback
 import http.client
 import statistics
-import csv
-import hashlib
-import zlib
 import time
 import datetime
-import urllib
-import mido
 from Utils import *
 from Sniffer import *
+from basicutils.socketutils import *
 
 '''
 否.......... !
@@ -188,7 +168,7 @@ def read_matrix_matlab(s):
                 li[i][j] = float(li[i][j])
     return numpy.matrix(li)
 
-async def CalC(chain: MessageChain, meta: dict = {}):
+def CalC(chain: MessageChain, meta: dict = {}):
     """#组合数 [#C]
     两个参数计算组合数，一个参数计算阶乘
 例:
@@ -197,50 +177,42 @@ async def CalC(chain: MessageChain, meta: dict = {}):
     #C 20
     计算阶乘20!
     """
-    try:
-        if len(attrs)==3:
-            a,b=(int(i) for i in attrs[1:3])
-            if a<b:
-                a,b=b,a
-            if a>GLOBAL.CaLimit or b>GLOBAL.CbLimit:
-                return [Plain(text='太大了我放不下(>///<)')]
-            c = 1
-            for i in range(a-b,a):
-                c*=i+1
-            return [Plain(text=str(c))]
-        elif len(attrs)==2:
-            a,b=(int(i) for i in attrs[:2])
-            if a<b:
-                a,b=b,a
-            if a>GLOBAL.CaLimit or b>GLOBAL.CbLimit:
-                return [Plain(text='太大了我放不下(>///<)')]
-            return [Plain(text=str(comb(a,b)))]
-        elif len(attrs)==1:
-            b=int(attrs[0])
-            if b>GLOBAL.CbLimit:
-                return [Plain(text='太大了我放不下(>///<)')]
-            return [Plain(text=str(math.factorial(b)))]
-        else:
-            return []
-    except Exception as e:
-        return [Plain(str(e))]
+    attrs = chain.tostr().split(' ')
+    if len(attrs)==3:
+        a,b=(int(i) for i in attrs[1:3])
+        if a<b:
+            a,b=b,a
+        c = 1
+        for i in range(a-b,a):
+            c*=i+1
+        return str(c)
+    elif len(attrs)==2:
+        a,b=(int(i) for i in attrs[:2])
+        if a<b:
+            a,b=b,a
+        return [Plain(text=str(comb(a,b)))]
+    elif len(attrs)==1:
+        b=int(attrs[0])
+        return [Plain(text=str(math.factorial(b)))]
 
-async def CalA(*attrs,kwargs={}):
+
+def CalA(chain: MessageChain, meta: dict = {}):
+    """#排列数 [#A]
+
+    """
     return await CalC('A',*attrs,kwargs=kwargs)
 
-async def CalKatalan(*attrs,kwargs={}):
+def CalKatalan(*attrs,kwargs={}):
     try:
         if len(attrs):
             a = int(attrs[0])
-            if a>GLOBAL.CbLimit:
-                return [Plain(text='太大了我放不下(>///<)')]
             return [Plain(str(comb(2*a,a)//(a+1)))]
         else:
             return []
     except Exception as e:
         return [Plain(str(e))]
 
-async def 统计姬from104(*attrs, kwargs={}):
+def 统计姬from104(*attrs, kwargs={}):
     l=[float(x) for x in attrs]
     s = 0
     for i in l:
@@ -269,7 +241,7 @@ async def 统计姬from104(*attrs, kwargs={}):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-async def QM化简器(*attrs, kwargs={}):
+def QM化简器(*attrs, kwargs={}):
     """用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
 用法：
     #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
@@ -293,13 +265,13 @@ async def QM化简器(*attrs, kwargs={}):
             argsvariables=kwargs.get('-var', '')
         ))]
 
-async def 打印真值表(*attrs, kwargs={}):
+def 打印真值表(*attrs, kwargs={}):
     s = FindTruth(' '.join(attrs))
     return [Plain('\n'.join(s.outPut))]
 
-async def 逆元(*attrs, kwargs={}): return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(*attrs, kwargs={}): return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-async def 欧拉函数(*attrs, kwargs={}):
+def 欧拉函数(*attrs, kwargs={}):
     """求给定值的欧拉函数
     :param x: 待求值x
     :return:
@@ -319,7 +291,7 @@ async def 欧拉函数(*attrs, kwargs={}):
         return [Plain(f'{x}是质数\n{res}')]
     return [Plain(f'{res}')]
 
-async def 孙子定理(*attrs, kwargs={}):
+def 孙子定理(*attrs, kwargs={}):
     il = ' '.join(attrs).strip().split()
     li = []
     for i in il:
@@ -343,7 +315,7 @@ async def 孙子定理(*attrs, kwargs={}):
             r = ((getinv(M2//G, M1//G) * (C1 - C2) // G) % (M1 // G) * M2 + C2) % f
         return [Plain(str(r))]
 
-async def 计算器(*attrs, kwargs={}):
+def 计算器(*attrs, kwargs={}):
     """计算中缀表达式
     :param exp: 待求表达式（python风格）exp
     :return:
@@ -358,7 +330,7 @@ async def 计算器(*attrs, kwargs={}):
     exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
     return [Plain(f"{exp} = {res}")]
 
-async def 逆波兰(*attrs, kwargs={}):
+def 逆波兰(*attrs, kwargs={}):
     """计算逆波兰表达式
     :param exp: 待求表达式（默认空格分隔）exp
     :return:
@@ -399,7 +371,7 @@ async def 逆波兰(*attrs, kwargs={}):
 
 逆波兰.SHORTS = ['#nbl']
 
-async def 老线代bot了(*attrs, kwargs={}):
+def 老线代bot了(*attrs, kwargs={}):
     print(attrs)
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
@@ -449,7 +421,7 @@ async def 老线代bot了(*attrs, kwargs={}):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-async def 离散闭包用工具(*attrs, kwargs={}):
+def 离散闭包用工具(*attrs, kwargs={}):
     m = {} # 数转名
     r = {} # 名转数
     def addval(v):
@@ -532,7 +504,7 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-async def 球盒(*attrs, kwargs={}):
+def 球盒(*attrs, kwargs={}):
     """求解把n个球放进m个盒子里面有多少种方案的问题。
 必须指定盒子和球以及允不允许为空三个属性。
 用法：
@@ -565,7 +537,7 @@ async def 球盒(*attrs, kwargs={}):
     else:
         return f"解析不了的属性：{attrs[0]}，我们只吃长度为3的01串喵"
 
-async def 十转(*attrs, kwargs={}):
+def 十转(*attrs, kwargs={}):
     """十进制转换为其他进制工具：
 输入格式：
     #十转 <目标进制> <源十进制数>
@@ -582,7 +554,7 @@ async def 十转(*attrs, kwargs={}):
     l.reverse()
     return f"{l}\n{''.join(l)}"
 
-async def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
     
 functionMap = {
     '#QM':QM化简器,

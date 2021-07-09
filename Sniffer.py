@@ -5,7 +5,7 @@ from Utils import chkcfg
 from typing import *
 from mongoengine import *
 from database_utils import *
-from GLOBAL import logging
+import logging
 
 
 def removeSniffer(player, event):

@@ -131,7 +131,6 @@ async def handle_inbound(
         # asyncio.ensure_future(heartbeat(writer))
         try:
             while 1:
-                # msg = await reader.read(cfg.buffer)
                 msg = (await ses.recv()).decode('utf-8')
                 # print(msg)
                 logging.info('Received: %s', msg)
@@ -149,6 +148,12 @@ async def handle_inbound(
             
     async def adapter():
         logging.info(f"new adapter standby ... ")
+        syncid = random.randint(0, (1<<31) - 1)
+        while syncid in adapters:
+            syncid = random.randint(0, (1<<31) - 1)
+        adapters[syncid] = ses
+        await ses.send(str(syncid))
+
         # ap = ArgumentParser()
         # ap.add_argument('cmd', default='help', choices=['exec', 'eval', 'run', 'send'], help="")
         async def sys_exec(args: list): return f"""{exec(' '.join(args))}"""
@@ -172,17 +177,6 @@ async def handle_inbound(
                 ent.chain = MessageChain.auto_make(ap.content)
                 await sendto.send(ent.json()) # 保证送出去的还是CoreEntity
                 return '发送成功'
-        switcher_t = {
-            'exec': sys_exec,
-            'eval': sys_eval,
-            'run': sys_run,
-            'send': sys_send,
-            'adapters': sys_adapters,
-        }
-        syncid = random.randint(0, (1<<31) - 1)
-        while syncid in adapters:
-            syncid = random.randint(0, (1<<31) - 1)
-
         def at_dead():
             """回收一个adapter连接"""
             adapters.pop(syncid)
@@ -191,10 +185,18 @@ async def handle_inbound(
                     player_adapter.pop(k)
             logging.info('Adapter %s disconnected', syncid)
 
-        adapters[syncid] = ses
+        switcher_t = {
+            'exec': sys_exec,
+            'eval': sys_eval,
+            'run': sys_run,
+            'send': sys_send,
+            'adapters': sys_adapters,
+        }
+
+
         try:
             while 1:
-                data = (await reader.read(cfg.buffer)).decode('utf-8')
+                data = (await ses.recv()).decode('utf-8')
                 logging.debug("Adapter received: %s", data)
                 if len(data) == 0:
                     at_dead()
