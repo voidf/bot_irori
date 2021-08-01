@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import importlib
-import logging
+# import logger
 import time
 from collections import deque
 from email.utils import formatdate
@@ -18,7 +18,7 @@ from aioquic.quic.events import DatagramFrameReceived, ProtocolNegotiated, QuicE
 from aioquic.tls import SessionTicket
 
 import random
-from taskutils import ArgumentParser
+from basicutils.taskutils import ArgumentParser
 import json
 import os
 import traceback
@@ -28,13 +28,14 @@ try:
 except ImportError:
     uvloop = None
 
+import logging
 logging.basicConfig(
 	level=logging.DEBUG,  
 	format='%(asctime)s<%(filename)s:%(lineno)d>[%(levelname)s]%(message)s',
 	datefmt='%H:%M:%S'
 )
 
-# logger = logging.Logger('')
+from loguru import logger
 
 busy_pool = {}
 worker_pool = {}
@@ -49,7 +50,7 @@ player_adapter = {} # player -> adapter映射表
 
 import cfg
 
-sport = cfg.quic_port
+sport = cfg.bind_port
 
 import string
 for digits in string.digits:
@@ -72,7 +73,7 @@ class SessionTicketStore:
 
 
 import datetime
-from socketutils import *
+from basicutils.socketutils import *
 
 class QUICServerSession():
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -90,12 +91,12 @@ class QUICServerSession():
                 self._writer.write(b'D')
         except:
             traceback.print_exc()
-            logging.warning(traceback.format_exc())
+            logger.warning(traceback.format_exc())
     
     async def keep_connect(self):
         while 1:
             res = await self._reader.read(cfg.buffer)
-            logging.info(res)
+            logger.info(res)
             if not res:
                 self._Q.put_nowait(ConnectionResetError("连接已断开"))
                 return
@@ -107,18 +108,19 @@ class QUICServerSession():
     async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
     async def recv(self) -> bytes: return await self._Q.get()
 
+@logger.catch
 async def handle_inbound(
     reader: asyncio.StreamReader, 
     writer: asyncio.StreamWriter
 ):
     data = await reader.read(cfg.buffer)
     message = data.decode()
-    logging.info(message)
+    logger.info(message)
     role, vkey, *meta = message.split(' ', 2) # TODO: meta的player一次请求还是反向学习
     if vkey != cfg.quic_key:
         # writer.close()
-        logging.critical("Detected invalid key %s", vkey)
-        # logging.critical(vkey)
+        logger.critical("Detected invalid key {}", vkey)
+        # logger.critical(vkey)
         return
     ses = QUICServerSession(reader, writer)
 
@@ -127,27 +129,27 @@ async def handle_inbound(
         # worker_pool[new_name] = (reader, writer)
         worker_pool[new_name] = ses
         
-        logging.info(f"new worker standby ... {new_name}")
+        logger.info(f"new worker standby ... {new_name}")
         # asyncio.ensure_future(heartbeat(writer))
         try:
             while 1:
                 msg = (await ses.recv()).decode('utf-8')
                 # print(msg)
-                logging.info('Received: %s', msg)
+                logger.info('Received: {}', msg)
                 ent: CoreEntity = CoreEntity.parse_raw(msg)
                 sendto: QUICServerSession = adapters[player_adapter[ent.player]]
                 await sendto.send(msg)
 
         except:
             # traceback.print_exc()
-            logging.warning(traceback.format_exc())
+            logger.warning(traceback.format_exc())
         finally:
-            print('回收 {new_name} => ', worker_pool.pop(new_name, '不在worker表中'))
-            print('回收 {new_name} => ', busy_pool.pop(new_name, '不在busy表中'))
+            logger.warning('回收 {} => ', worker_pool.pop(new_name, '不在worker表中'))
+            logger.warning('回收 {} => ', busy_pool.pop(new_name, '不在busy表中'))
             name_pool.add(new_name)
             
     async def adapter():
-        logging.info(f"new adapter standby ... ")
+        logger.info(f"new adapter standby ... ")
         syncid = random.randint(0, (1<<31) - 1)
         while syncid in adapters:
             syncid = random.randint(0, (1<<31) - 1)
@@ -183,7 +185,7 @@ async def handle_inbound(
             for k, v in tuple(player_adapter.items()):
                 if v == syncid:
                     player_adapter.pop(k)
-            logging.info('Adapter %s disconnected', syncid)
+            logger.info('Adapter {} disconnected', syncid)
 
         switcher_t = {
             'exec': sys_exec,
@@ -197,7 +199,7 @@ async def handle_inbound(
         try:
             while 1:
                 data = (await ses.recv()).decode('utf-8')
-                logging.debug("Adapter received: %s", data)
+                logger.debug("Adapter received: %s", data)
                 if len(data) == 0:
                     at_dead()
                     break
@@ -222,7 +224,7 @@ async def handle_inbound(
                     resp: str = await switcher_t.get(c, sys_help)(ato)
                     if not resp:
                         resp = 'No returns'
-                    logging.critical(resp)
+                    logger.critical(resp)
                     ent.chain = MessageChain.auto_make(resp)
                     await ses.send(ent.json())
                     # writer.write(resp.encode('utf-8'))
@@ -236,22 +238,26 @@ async def handle_inbound(
                     else:
                         wname = random.choice(tuple(worker_pool.keys()))
                     wses: QUICServerSession = worker_pool[wname]
-                    logging.info("worker %s gain work", wname)
+                    logger.info("worker {} gain work", wname)
                     busy_pool[wname] = ent.meta['ts'] = datetime.datetime.now().timestamp()
                     await wses.send('task ' + ent.json()) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:
             at_dead()
-            raise e
+            logger.error(traceback.format_exc())
+            # raise e
         
     switcher = {
         'W': worker,
         'A': adapter
     }
-    asyncio.ensure_future(
-        switcher[role]()
-    )
+    await switcher[role]()
+    # asyncio.ensure_future(
+    #     switcher[role]()
+    # )
+    logger.critical("Session exit!")
 
+@logger.catch
 def inbound_wrapper(reader, writer):
     asyncio.ensure_future(handle_inbound(reader, writer))
 
@@ -260,11 +266,11 @@ def inbound_wrapper(reader, writer):
 
 if __name__ == "__main__":
     conf = QuicConfiguration(
-        alpn_protocols=H3_ALPN,
+        # alpn_protocols=H3_ALPN,
         is_client=False,
-        max_datagram_frame_size=cfg.buffer,
-        idle_timeout=cfg.idle_tle
-        # quic_logger=logging.Logger,
+        # max_datagram_frame_size=cfg.buffer,
+        # idle_timeout=cfg.idle_tle,
+        # quic_logger=logger.Logger,
         # secrets_log_file=secrets_log_file,
     )
 
@@ -276,18 +282,20 @@ if __name__ == "__main__":
         '0.0.0.0', sport, 
         configuration=conf, 
         stream_handler=inbound_wrapper,
-        session_ticket_fetcher=ticket_store.pop,
-        session_ticket_handler=ticket_store.add,
+        # session_ticket_fetcher=ticket_store.pop,
+        # session_ticket_handler=ticket_store.add,
         retry=False
     )
 
-    logging.info(f'QUIC listening on 0.0.0.0 {sport}')
+    logger.info(f'QUIC listening on 0.0.0.0 {sport}')
 
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(server)
-
+    logger.info(server)
+    # asyncio.run(server)
     try:
         loop.run_forever()
+        logger.critical('Done')
     except KeyboardInterrupt:
         traceback.print_exc()

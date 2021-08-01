@@ -76,6 +76,13 @@ class MessageChain(BaseModel):
     def get_empty(cls) -> "MessageChain":
         return MessageChain(__root__=[])
     @classmethod
+    def auto_merge(cls, *iterables: Iterable) -> "MessageChain":
+        li = []
+        for i in iterables:
+            chain = MessageChain.auto_make(i)
+            li.extend(chain.__root__)
+        return MessageChain.auto_make(li)
+    @classmethod
     def auto_make(cls, obj: Any) -> "MessageChain":
         if isinstance(obj, str):
             if obj:
@@ -89,6 +96,8 @@ class MessageChain(BaseModel):
             return obj
         logging.error(f'转换错误：不可转换的实体{obj}')
         return cls(__root__=[Plain(str(obj))])
+    def __iter__(self):
+        return self.__root__.__iter__()
     def tostr(self) -> str:
         output = []
         for i in self.__root__:
@@ -260,7 +269,7 @@ class CoreEntity(BaseModel):
 
 # Core用鉴权对象
 from mongoengine import *
-from database_utils import RefPlayerBase, Base
+from .database_utils import RefPlayerBase, Base
 class Role(Document):
     permit = ListField(StringField())
 

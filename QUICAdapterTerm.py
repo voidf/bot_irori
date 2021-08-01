@@ -4,7 +4,8 @@ import json
 import logging
 import asyncio
 from typing import NoReturn
-from taskutils import ArgumentParser
+from basicutils.taskutils import ArgumentParser
+from loguru import logger
 
 logging.basicConfig(
 	level=logging.DEBUG,  
@@ -29,7 +30,7 @@ class QUICTerminalSession:
             if not res:
                 raise ConnectionResetError("连接已断开")
             if res == b'D': # 心跳包字串
-                logging.debug('Heartbeat')
+                logger.debug('Heartbeat')
                 self._writer.write(b'd')
             else:
                 self._Q.put_nowait(res)
@@ -41,7 +42,7 @@ class QUICTerminalSession:
 import concurrent.futures
 import datetime
 import traceback
-from socketutils import *
+from basicutils.socketutils import *
 import aioconsole
 
 import ssl
@@ -60,7 +61,7 @@ async def run():
         max_datagram_frame_size=cfg.buffer,
         idle_timeout=cfg.idle_tle,
         verify_mode=ssl.CERT_NONE
-        # quic_logger=logging.Logger,
+        # quic_logger=logger.Logger,
         # secrets_log_file=secrets_log_file,
     )
     loop = asyncio.get_running_loop()
@@ -77,12 +78,12 @@ async def run():
             await ses.send(f'A {cfg.quic_key}')
             
             syncid = (await ses.recv()).decode('utf-8')
-            logging.critical("您的终端号：%s", syncid)
+            logger.critical("您的终端号：{}", syncid)
 
             async def pulling_loop():
                 while 1:
                     msg = await ses.recv()
-                    logging.info('消息：%s', msg.decode('utf-8'))
+                    logger.info('消息：{}', msg.decode('utf-8'))
             asyncio.ensure_future(pulling_loop())
             app = ArgumentParser('command')
             app.add_argument('cmd', choices=[
@@ -106,7 +107,7 @@ async def run():
                             mode='W'
                         )
                         tosend = ent.json()
-                        logging.debug('SEND %s', tosend)
+                        logger.debug('SEND {}', tosend)
                         await ses.send(tosend)
 
                 except KeyboardInterrupt:

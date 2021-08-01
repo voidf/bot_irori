@@ -36,6 +36,7 @@ async def download_(fspk: str):
     else:
         return Response(fs.content.read())
 
+# uvicorn irori-OSS:app --host 0.0.0.0 --port 11111 --ssl-keyfile ssl/A.key --ssl-certfile ssl/A.crt
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app)

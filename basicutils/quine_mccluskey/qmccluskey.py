@@ -2,7 +2,7 @@ import sys
 #sys.path.append("F:/py/SelfMadeMiraiPythonScript/quine_mccluskey")
 sys.path.append('./quine_mccluskey')
 from colorclass import Windows
-from core.qm.qm import QM
+from .core.qm.qm import QM
 # TODO
 # add validation for variables from CLI and GUI
 

@@ -194,13 +194,13 @@ def CalC(chain: MessageChain, meta: dict = {}):
     elif len(attrs)==1:
         b=int(attrs[0])
         return [Plain(text=str(math.factorial(b)))]
-
+from socketutils import MessageChain
 
 def CalA(chain: MessageChain, meta: dict = {}):
     """#排列数 [#A]
 
     """
-    return await CalC('A',*attrs,kwargs=kwargs)
+    return CalC(MessageChain.auto_merge("A", chain), meta)
 
 def CalKatalan(*attrs,kwargs={}):
     try:

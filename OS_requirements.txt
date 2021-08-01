@@ -1,7 +1,11 @@
+# backend
 aioquic
 mongoengine
-pillow
 aioconsole
+pillow
+
+# debug
+loguru
 
 # Math
 numpy
