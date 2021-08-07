@@ -38,6 +38,7 @@ class QUICServerSession:
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
+        self._alive = True
         self._Q = asyncio.Queue()
         asyncio.ensure_future(self.heartbeat())
         asyncio.ensure_future(self.keep_connect())
@@ -45,6 +46,9 @@ class QUICServerSession:
     async def heartbeat(self):
         try:
             while 1:
+                if not self._alive:
+                    logger.warning('Connection lost')
+                    return
                 await asyncio.sleep(20)
                 self._writer.write(b'D')
         except:
@@ -55,6 +59,7 @@ class QUICServerSession:
             res = await self._reader.read(buffersize)
             if not res:
                 self._Q.put_nowait(ConnectionResetError("ConnectionReset"))
+                self._alive = False
                 return
             if res == b'd':
                 logger.debug(res)
@@ -88,6 +93,7 @@ async def handle_inbound(
     worker_pool[new_name] = ses
     logger.info(f"new worker standby ... {new_name}")
     try:
+        # raise NameError('233')
         while 1:
             msg = (await ses.recv()).decode('utf-8')
             logger.info('Received: {}', msg)
@@ -100,7 +106,10 @@ async def handle_inbound(
     logger.critical("Session exit!")
 
 def inbound_wrapper(reader, writer):
-    asyncio.ensure_future(handle_inbound(reader, writer))
+    try:
+        asyncio.ensure_future(handle_inbound(reader, writer))
+    except:
+        logger.warning(traceback.format_exc())
 
 if __name__ == "__main__":
     conf = QuicConfiguration(
@@ -123,6 +132,7 @@ if __name__ == "__main__":
     logger.info(f'QUIC listening on 0.0.0.0 {8110}')
 
     loop = asyncio.get_event_loop()
+    loop.set_debug(True)
     loop.run_until_complete(server)
     try:
         loop.run_forever()

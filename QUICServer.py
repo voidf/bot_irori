@@ -1,3 +1,5 @@
+# 只能运行在linux上，wsl也行
+
 import argparse
 import asyncio
 import importlib
@@ -79,6 +81,7 @@ class QUICServerSession():
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
+        self._alive = True
         self._Q = asyncio.Queue()
         asyncio.ensure_future(self.heartbeat())
         asyncio.ensure_future(self.keep_connect())
@@ -87,6 +90,9 @@ class QUICServerSession():
     async def heartbeat(self):
         try:
             while 1:
+                if not self._alive:
+                    logger.warning('Connection lost')
+                    return
                 await asyncio.sleep(cfg.heartbeat_time)
                 self._writer.write(b'D')
         except:
@@ -98,6 +104,7 @@ class QUICServerSession():
             res = await self._reader.read(cfg.buffer)
             logger.info(res)
             if not res:
+                self._alive = False
                 self._Q.put_nowait(ConnectionResetError("连接已断开"))
                 return
             if res == b'd': # 心跳包字串
