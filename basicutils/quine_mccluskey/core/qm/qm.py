@@ -4,7 +4,7 @@
 #change 
 import sys
 from colorclass import Color, Windows
-from .core.qm.petrick import multiply, remove_dups, multiply_all,reduce_expr,min_len_terms,count_literals, fewest_literals
+from ...core.qm.petrick import multiply, remove_dups, multiply_all,reduce_expr,min_len_terms,count_literals, fewest_literals
 from terminaltables import AsciiTable
 import string
 import random

@@ -121,6 +121,7 @@ def sub_task(taskstr: str):
             return [Plain('\n'.join(l))] + img + ext
 
         for applications in os.listdir(app_dir):
+            logger.debug(f'importing ... {applications}')
             pkgname = os.path.splitext(applications)[0]
             if os.path.isdir(app_dir + applications):
                 continue
@@ -136,7 +137,12 @@ def sub_task(taskstr: str):
 
             for n, f in inspect.getmembers(module): # 判断这是个可以加进QQ消息调用表的函数
                 if not inspect.isbuiltin(f):
-                    argsinfo = inspect.getfullargspec(f)
+                    try:
+                        argsinfo = inspect.getfullargspec(f)
+                        logger.info(f'\t imported {n}')
+                    except TypeError:
+                        logger.debug(f'\t ignoring{n}')
+                        continue
                     if argsinfo.args == ['chain', 'meta']:
                         header, f.__doc__ = f.__doc__.split('\n', 1)
                         fname, ato = header.split(' ', 1)
@@ -235,29 +241,35 @@ async def run():
             ses = QUICWorkerSession(*(await C.create_stream()))
             await ses.send(f'W {cfg.quic_key}')
             # G = 
-            with concurrent.futures.ProcessPoolExecutor(cfg.max_worker) as pool:
-                async def clear_pool(delay: float):
-                    await asyncio.sleep(delay)
-                    for k, v in pool._processes.items():
-                        v.kill()
-                        v.join()
+            pool = concurrent.futures.ProcessPoolExecutor(cfg.max_worker)
 
-                async def assign_task_loop():
-                    while 1:
-                        rawtask = await ses.recv_task()
-                        asyncio.ensure_future(clear_pool(30))
-                        result = await loop.run_in_executor(
-                            pool, functools.partial(
-                                sub_task, rawtask.decode('utf-8')
-                            )
-                        )
-                asyncio.ensure_future(assign_task_loop())
+            # with concurrent.futures.ProcessPoolExecutor(cfg.max_worker) as pool:
+            async def clear_pool(delay: float):
+                nonlocal pool
+                await asyncio.sleep(delay)
+                for k, v in pool._processes.items():
+                    v.kill()
+                    v.join()
+                pool.shutdown()
+                pool = concurrent.futures.ProcessPoolExecutor(cfg.max_worker)
+
+            async def assign_task_loop():
                 while 1:
-                    cmd = await ses.recv_control()
-                    if cmd == b'kill':
-                        await clear_pool(0)
-                        # pool.shutdown(True)
-                        
+                    rawtask = await ses.recv_task()
+                    asyncio.ensure_future(clear_pool(30))
+                    result = await loop.run_in_executor(
+                        pool, functools.partial(
+                            sub_task, rawtask.decode('utf-8')
+                        )
+                    )
+                    logger.critical(result)
+            asyncio.ensure_future(assign_task_loop())
+            while 1:
+                cmd = await ses.recv_control()
+                if cmd == b'kill':
+                    await clear_pool(0)
+                    # pool.shutdown(True)
+                    
 
 
 if __name__ == "__main__":

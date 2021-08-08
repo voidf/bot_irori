@@ -57,9 +57,6 @@ revTag = chr(8238)
 pingCtr = 0
 sudo_su = {}
 
-AVGHost = ''
-OJHost = ''
-
 
 AtCoderHeaders = {
 	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
@@ -912,26 +909,4 @@ chat_log = {}
 credit_cmds = {}
 credit_operators = ('+', '-', '*', '//', '**', '<<', '>>', '&', '|', '^', '%')
 credit_operators_weight = (0.7, 0.08, 0.07, 0.03, 0.02, 0.02, 0.02, 0.02, 0.017, 0.01, 0.003)
-operator_charset = '+-*/<>&|^%()=~'
-binocular_operators = {
-	'+':50,
-	'-':50,
-	'*':70,
-	'/':70,
-	'=':3,
-	'==':3,
-	'**':90,
-	'<<':30,
-	'<':3,
-	'>>':30,
-	'>':3,
-	'&':25,
-	'&&':3,
-	'|':20,
-	'||':3,
-	'^':22,
-	'%':70,
-	'//':70,
-	'(':1,
-	')':100
-}
+

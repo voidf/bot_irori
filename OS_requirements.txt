@@ -1,11 +1,27 @@
-# backend
+# quic depends
 aioquic
 mongoengine
 aioconsole
+
+# worker
 pillow
+pydantic
+requests[socks]
+bs4
+numpy
+qrcode
+selenium
+json5
+mido
+pexpect
+devtools
+xlrd==1.2.0
 
 # debug
 loguru
 
 # Math
 numpy
+colorclass
+terminaltables
+

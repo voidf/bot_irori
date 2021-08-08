@@ -14,8 +14,9 @@ import http.client
 import statistics
 import time
 import datetime
-from Utils import *
-from Sniffer import *
+# from Utils import *
+# from Sniffer import *
+from basicutils.Algorithm import *
 from basicutils.socketutils import *
 
 '''
@@ -194,7 +195,6 @@ def CalC(chain: MessageChain, meta: dict = {}):
     elif len(attrs)==1:
         b=int(attrs[0])
         return [Plain(text=str(math.factorial(b)))]
-from socketutils import MessageChain
 
 def CalA(chain: MessageChain, meta: dict = {}):
     """#排列数 [#A]
