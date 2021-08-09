@@ -94,8 +94,8 @@ async def run():
                     cmdlist = (await aioconsole.ainput('terminal@irori:/#')).split()
                     if not cmdlist:
                         continue
-                    
                     cmd, *ato = cmdlist
+                    logger.debug(ato)
                     
                     if cmd == 'send':
                         # player, message = cmdlist
@@ -113,6 +113,7 @@ async def run():
                 except KeyboardInterrupt:
                     break
                 except:
+                    logger.debug(traceback.format_exc())
                     app.print_help()
                     # print("send")
 

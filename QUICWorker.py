@@ -139,11 +139,11 @@ def sub_task(taskstr: str):
                 if not inspect.isbuiltin(f):
                     try:
                         argsinfo = inspect.getfullargspec(f)
-                        logger.info(f'\t imported {n}')
                     except TypeError:
-                        logger.debug(f'\t ignoring{n}')
+                        logger.debug(f'\t ignoring {n}')
                         continue
                     if argsinfo.args == ['chain', 'meta']:
+                        logger.info(f'\t imported {n}')
                         header, f.__doc__ = f.__doc__.split('\n', 1)
                         fname, ato = header.split(' ', 1)
                         funcs.update({fname: f})
@@ -155,6 +155,8 @@ def sub_task(taskstr: str):
                             if ss not in alias and ss not in funcs:
                                 alias.update({ss: fname})
                         helps[fname] = f.__doc__
+                    else:
+                        logger.debug(f'\t ignoring {n}')
             app_fun[pkgname] = funcs
             app_doc[pkgname] = module.__doc__
             tot_funcs.update(funcs)
@@ -162,8 +164,15 @@ def sub_task(taskstr: str):
 
         tot_funcs['#h'] = printHelp
 
+        logger.debug(tot_funcs)
+        logger.debug(tot_alias)
+
+        logger.debug(task)
+
         cmd = task.chain.pop_first_cmd()
         cmd = tot_alias.get(cmd, cmd)
+
+        logger.debug(f'command: {cmd}')
         if cmd in tot_funcs:
             try:
                 reply = tot_funcs[cmd](task.chain, task.meta)

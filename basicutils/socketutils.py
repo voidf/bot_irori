@@ -36,7 +36,7 @@ from io import BytesIO
 # t.file.content_type     # 'image/png'
 # t.file.filename         # 'test123.png'
 # content = t.file.read()
-
+from graia.application.message
 from pydantic import BaseModel # 为了用json
 from pydantic import Field
 from typing import *
@@ -44,6 +44,7 @@ import datetime
 import logging
 
 # 抄graia的
+
 class Element(BaseModel):
     type: str
     meta: Optional[dict] = None
@@ -85,7 +86,7 @@ class MessageChain(BaseModel):
     @classmethod
     def auto_make(cls, obj: Any) -> "MessageChain":
         if isinstance(obj, str):
-            if obj:
+            if not obj:
                 return cls(__root__=[])
             return cls(__root__=[Plain(obj)])
         if isinstance(obj, Element):
