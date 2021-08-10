@@ -7,6 +7,9 @@ from typing import NoReturn
 from basicutils.taskutils import ArgumentParser
 from loguru import logger
 
+import rlcompleter
+import readline
+
 logging.basicConfig(
 	level=logging.DEBUG,  
 	format='%(asctime)s<%(filename)s:%(lineno)d>[%(levelname)s]%(message)s',
@@ -83,7 +86,10 @@ async def run():
             async def pulling_loop():
                 while 1:
                     msg = await ses.recv()
-                    logger.info('消息：{}', msg.decode('utf-8'))
+                    smsg = msg.decode('utf-8')
+                    logger.debug('消息：{}', smsg)
+                    ent: CoreEntity = CoreEntity.handle_json(smsg)
+                    logger.info('文本内容：{}', ent.chain.onlyplain())
             asyncio.ensure_future(pulling_loop())
             app = ArgumentParser('command')
             app.add_argument('cmd', choices=[

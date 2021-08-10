@@ -151,8 +151,8 @@ async def handle_inbound(
             # traceback.print_exc()
             logger.warning(traceback.format_exc())
         finally:
-            logger.warning('回收 {} => ', worker_pool.pop(new_name, '不在worker表中'))
-            logger.warning('回收 {} => ', busy_pool.pop(new_name, '不在busy表中'))
+            logger.warning('回收 {}的会话: {}', new_name, worker_pool.pop(new_name, '不在worker表中'))
+            logger.warning('回收 {}的busy: {}', new_name, busy_pool.pop(new_name, '不在busy表中'))
             name_pool.add(new_name)
             
     async def adapter():
