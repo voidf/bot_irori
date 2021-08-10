@@ -34,6 +34,8 @@ class QUICWorkerSession:
                 self._writer.write(b'd')
             else:
                 header, ato = res.split(b' ', 1) # task, control二选一
+                logger.critical(header)
+                logger.info(ato)
                 if header == b'task':
                     self._Qtask.put_nowait(ato)
                 elif header == b'control':
@@ -53,7 +55,7 @@ def sub_task(taskstr: str):
     import inspect
     import re
     try:
-
+        logger.debug(taskstr)
         task: CoreEntity = CoreEntity.parse_raw(taskstr)
 
         app_dir = 'basicutils/applications/'

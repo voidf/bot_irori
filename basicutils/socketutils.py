@@ -36,7 +36,6 @@ from io import BytesIO
 # t.file.content_type     # 'image/png'
 # t.file.filename         # 'test123.png'
 # content = t.file.read()
-from graia.application.message
 from pydantic import BaseModel # 为了用json
 from pydantic import Field
 from typing import *
@@ -46,7 +45,7 @@ import logging
 # 抄graia的
 
 class Element(BaseModel):
-    type: str
+    type: str = None
     meta: Optional[dict] = None
     def json(self):
         return super().json(exclude_none=True)
@@ -119,12 +118,11 @@ class MessageChain(BaseModel):
                 return cmd
         return ''
 
-
 class Plain(Element):
     type: str = "Plain"
     text: str
-    def __init__(self, text: str):
-        self.text = text
+    def __init__(self, text: str, *_, **__):
+        super().__init__(text=text)
     def tostr(self) -> str:
         return self.text
 

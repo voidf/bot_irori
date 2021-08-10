@@ -206,11 +206,14 @@ async def handle_inbound(
         try:
             while 1:
                 data = (await ses.recv()).decode('utf-8')
-                logger.debug("Adapter received: %s", data)
+                logger.debug("Adapter received: {}", data)
                 if len(data) == 0:
                     at_dead()
                     break
                 ent: CoreEntity = CoreEntity.parse_raw(data)
+
+                logger.debug(ent)
+                logger.debug(ent.json())
                 player_adapter[ent.player] = syncid # 反向学习
 
                 data = ent.chain.onlyplain()
