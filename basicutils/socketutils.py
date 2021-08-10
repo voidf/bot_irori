@@ -41,6 +41,7 @@ from pydantic import Field
 from typing import *
 import datetime
 import logging
+import json
 
 # 抄graia的
 
@@ -112,9 +113,10 @@ class MessageChain(BaseModel):
     def pop_first_cmd(self) -> str:
         for p, i in enumerate(self.__root__):
             if i.type == 'Plain':
-                cmd, i.text = i.text.split(' ', 1)
-                if not i.text:
+                cmd, *ato = i.text.split(' ', 1)
+                if not ato:
                     self.__root__.pop(p)
+                i.text = ' '.join(ato)
                 return cmd
         return ''
 
@@ -265,6 +267,12 @@ class CoreEntity(BaseModel):
     source: str # 发送来源syncid
     meta: dict  # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
     mode: str #发往的方向 A: Adapter; W: Worker
+    @classmethod
+    def handle_json(cls, j):
+        d = json.loads(j)
+        d['chain'] = MessageChain.auto_make(d['chain'])
+        return cls(**d)
+
 
 # Core用鉴权对象
 from mongoengine import *

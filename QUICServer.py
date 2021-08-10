@@ -143,7 +143,7 @@ async def handle_inbound(
                 msg = (await ses.recv()).decode('utf-8')
                 # print(msg)
                 logger.info('Received: {}', msg)
-                ent: CoreEntity = CoreEntity.parse_raw(msg)
+                ent: CoreEntity = CoreEntity.handle_json(msg)
                 sendto: QUICServerSession = adapters[player_adapter[ent.player]]
                 await sendto.send(msg)
 
@@ -156,8 +156,8 @@ async def handle_inbound(
             name_pool.add(new_name)
             
     async def adapter():
-        logger.info(f"new adapter standby ... ")
         syncid = random.randint(0, (1<<31) - 1)
+        logger.info(f"new adapter standby ... {syncid}")
         while syncid in adapters:
             syncid = random.randint(0, (1<<31) - 1)
         adapters[syncid] = ses
@@ -210,7 +210,7 @@ async def handle_inbound(
                 if len(data) == 0:
                     at_dead()
                     break
-                ent: CoreEntity = CoreEntity.parse_raw(data)
+                ent: CoreEntity = CoreEntity.handle_json(data)
 
                 logger.debug(ent)
                 logger.debug(ent.json())

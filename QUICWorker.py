@@ -56,7 +56,7 @@ def sub_task(taskstr: str):
     import re
     try:
         logger.debug(taskstr)
-        task: CoreEntity = CoreEntity.parse_raw(taskstr)
+        task: CoreEntity = CoreEntity.handle_json(taskstr)
 
         app_dir = 'basicutils/applications/'
         app_doc = {}
@@ -142,7 +142,7 @@ def sub_task(taskstr: str):
                     try:
                         argsinfo = inspect.getfullargspec(f)
                     except TypeError:
-                        logger.debug(f'\t ignoring {n}')
+                        # logger.debug(f'\t ignoring {n}')
                         continue
                     if argsinfo.args == ['chain', 'meta']:
                         logger.info(f'\t imported {n}')
@@ -157,8 +157,8 @@ def sub_task(taskstr: str):
                             if ss not in alias and ss not in funcs:
                                 alias.update({ss: fname})
                         helps[fname] = f.__doc__
-                    else:
-                        logger.debug(f'\t ignoring {n}')
+                    # else:
+                        # logger.debug(f'\t ignoring {n}')
             app_fun[pkgname] = funcs
             app_doc[pkgname] = module.__doc__
             tot_funcs.update(funcs)
@@ -181,7 +181,7 @@ def sub_task(taskstr: str):
             except:
                 reply = MessageChain.auto_make(traceback.format_exc())
             if not reply:
-                return
+                return MessageChain.get_empty()
             if not isinstance(reply, MessageChain):
                 reply = MessageChain.auto_make(reply)
             # elif isinstance(reply, Plain):
@@ -191,8 +191,10 @@ def sub_task(taskstr: str):
             # else:
                 # reply = MessageChain(__root__=[str(reply)])
             return reply
+        return MessageChain.get_empty()
     except:
         logger.error(traceback.format_exc())
+        return MessageChain.auto_make(traceback.format_exc())
 
 
     
@@ -274,6 +276,12 @@ async def run():
                         )
                     )
                     logger.critical(result)
+                    ent: CoreEntity = CoreEntity.parse_raw(rawtask)
+                    ent.chain = result
+                    await ses.send(ent.json())
+                    
+                    # jsontask = json.loads(rawtask)
+
             asyncio.ensure_future(assign_task_loop())
             while 1:
                 cmd = await ses.recv_control()
