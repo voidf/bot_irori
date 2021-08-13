@@ -1,141 +1,81 @@
-import aioquic
-
-import json
-import logging
-import asyncio
-from typing import NoReturn
-
-logging.basicConfig(
-	level=logging.DEBUG,  
-	format='%(asctime)s<%(filename)s:%(lineno)d>[%(levelname)s]%(message)s',
-	datefmt='%H:%M:%S'
+import cmd2
+from cmd2 import (
+    bg,
+    fg,
+    style,
 )
+class Cmd2EventBased(cmd2.Cmd):
+    """Basic example of how to run cmd2 without it controlling the main loop."""
 
-import cfg
+    def __init__(self):
+        super().__init__()
 
-sport = cfg.socket_port
-hostname = cfg.socket_host
+    # ... your class code here ...
 
-class Session:
-    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        self._reader = reader
-        self._writer = writer
-        self._Qcontrol = asyncio.Queue()
-        self._Qtask = asyncio.Queue()
-        asyncio.ensure_future(self.keep_connect())
-    async def keep_connect(self):
+class BasicApp(cmd2.Cmd):
+    CUSTOM_CATEGORY = 'My Custom Commands'
+
+    def __init__(self):
+        super().__init__(
+            multiline_commands=['echo'],
+            persistent_history_file='cmd2_history.dat',
+            startup_script='scripts/startup.txt',
+            include_ipy=True,
+        )
+
+        self.intro = style('Welcome to PyOhio 2019 and cmd2!', fg=fg.red, bg=bg.white, bold=True) + ' 😀'
+
+        # Allow access to your application in py and ipy via self
+        self.self_in_py = True
+
+        # Set the default category name
+        self.default_category = 'cmd2 Built-in Commands'
+
+    @cmd2.with_category(CUSTOM_CATEGORY)
+    def do_intro(self, _):
+        """Display the intro banner"""
+        self.poutput(self.intro)
+
+    @cmd2.with_category(CUSTOM_CATEGORY)
+    def do_echo(self, arg):
+        """Example of a multiline command"""
+        self.poutput(arg)
+import collections
+
+import aioconsole
+import asyncio
+from loguru import logger
+import IPython
+import sys
+# logger.add(sys.stdout, format='>>')
+# pyreadline3.
+import readline
+if __name__ == '__main__':
+    app = BasicApp()
+    # app.cmdloop()
+    app.preloop()
+    # app.postloop()
+
+    async def printinfo():
         while 1:
-            res = await self._reader.read(cfg.buffer)
-            if not res:
-                raise ConnectionResetError("连接已断开")
-            if res == b'D': # 心跳包字串
-                self._writer.write(b'd')
-            else:
-                header, ato = res.split(b' ', 1) # task, control二选一
-                if header == b'task':
-                    self._Qtask.put_nowait(ato)
-                elif header == b'control':
-                    self._Qcontrol.put_nowait(ato)
-                else:
-                    raise NotImplementedError('无法处理此协议头：未实现')
-
-    async def recv_control(self) -> bytes: return self._Qcontrol.get()
-    async def recv_task(self) -> bytes: return self._Qtask.get()
-    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
-
-
-
-def sub_task(taskstr: str):
-    import os
-    import importlib
-    import inspect
-    import re
-    # writer.write("233")
-    # asyncio.run(writer.write("233"))
-    su = 0
-    for i in range(int(taskstr)):
-        su+=i
-        su%=int(1e9)+7
-    return str(su)
-
-    
-
-import concurrent.futures
-import datetime
-import traceback
-from socketutils import *
-# from multiprocessing.dummy import Pool as Pool2
-# def task_monitor(taskstr: str, writer: asyncio.StreamWriter):
-#     task: TaskMessage = TaskMessage.parse_raw(taskstr)
-#     rawstr = task.chain.onlyplain()
-#     cmd, argstr = rawstr.split(' ', 1) 
-    
-#     tle = task.meta.get('tle', 30)
-#     task.meta['writer'] = writer
-
-#     p = Pool2(1)
-
-    
-
-
-#     res = p.apply_async(func, args=args)
-#     try:
-#         out = res.get(tle)
-#         return out
-#     except:
-#         traceback.print_exc()
-#         msg = '执行超时'
-import ssl
-from aioquic.quic.configuration import QuicConfiguration
-from aioquic.h3.connection import H3_ALPN
-from aioquic.asyncio.client import connect
-import functools
-async def run():
-    conf = QuicConfiguration(
-        alpn_protocols=H3_ALPN,
-        is_client=True,
-        max_datagram_frame_size=65536,
-        idle_timeout=70,
-        verify_mode=ssl.CERT_NONE
-        # quic_logger=logging.Logger,
-        # secrets_log_file=secrets_log_file,
-    )
-    loop = asyncio.get_running_loop()
-    print(hostname, sport)
-    while 1:
-        async with connect(
-            '4kr.top',
-            8228,
-            configuration=conf
-        ) as C:
-            # reader:asyncio.StreamReader
-            # writer:asyncio.StreamWriter
-            ses = Session(*(await C.create_stream()))
-            await ses.send('worker 114514')
-            # G = 
-            async def L1(upp):
-                with concurrent.futures.ProcessPoolExecutor(1) as pool:
-                    result = await loop.run_in_executor(
-                        pool, functools.partial(
-                            sub_task, upp
-                        )
-                    )
-                    print(result)
-                    await ses.send(result)
-                    return result
-            
-            l = await asyncio.gather(*(
-                L1(100000000) for i in range(16)
-            ))
-            
-            print(l)
-            # await asyncio.sleep(3)
-            # print('done')
-            break
-
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
-    
+            await asyncio.sleep(3)
+            logger.info('233')
+            readline.redisplay()
+            # print(readline.get())
+            # app.async_update_prompt('>')
+            # app.precmd()
+    async def readloop():
+        try:
+            asyncio.ensure_future(printinfo())
+            # app.
+            # app.cmdloop()
+            while 1:
+                
+                res = await aioconsole.ainput('>')
+                print(app.onecmd_plus_hooks(res))
+        except KeyboardInterrupt:
+            return
+    app.postloop()
+    asyncio.run(readloop())
+    # app.precmd
+    # app.onecmd_plus_hooks('help')
