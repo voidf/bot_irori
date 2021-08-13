@@ -19,6 +19,13 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import PromptSession
 
 from loguru import logger
+
+logger.add(lambda msg: print())
+
+
+import logging
+import sys
+# logger.add(sys.stdout)
 async def print_counter():
     """
     Coroutine that prints counters.
@@ -26,8 +33,11 @@ async def print_counter():
     try:
         i = 0
         while True:
-            print("Counter: %i" % i)
-            logger.info(i)
+            # print("Counter: %i" % i)
+            logger.info(f'i\n')
+            # logging.info(i*i)
+            # print()
+            # print()
             i += 1
             await asyncio.sleep(3)
     except asyncio.CancelledError:
@@ -51,8 +61,8 @@ async def interactive_shell():
 
 
 async def main():
-    with patch_stdout():
-        background_task = asyncio.create_task(print_counter())
+    with patch_stdout(True):
+        background_task = asyncio.ensure_future(print_counter())
         try:
             await interactive_shell()
         finally:

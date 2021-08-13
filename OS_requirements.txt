@@ -1,7 +1,9 @@
 # quic depends
 aioquic
 mongoengine
-aioconsole
+
+# adapters
+prompt_toolkit
 
 # worker
 pillow

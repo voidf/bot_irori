@@ -6,9 +6,13 @@ import asyncio
 from typing import NoReturn
 from basicutils.taskutils import ArgumentParser
 from loguru import logger
+import sys
 
-import rlcompleter
-import readline
+logger.add(lambda msg: print())
+
+# logger.add(sys.stdout, format='>')
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import PromptSession
 
 logging.basicConfig(
 	level=logging.DEBUG,  
@@ -46,7 +50,6 @@ import concurrent.futures
 import datetime
 import traceback
 from basicutils.socketutils import *
-import aioconsole
 
 import ssl
 from aioquic.quic.configuration import QuicConfiguration
@@ -58,18 +61,19 @@ syncid: str
 playerid: str
 
 async def run():
-    conf = QuicConfiguration(
-        alpn_protocols=H3_ALPN,
-        is_client=True,
-        max_datagram_frame_size=cfg.buffer,
-        idle_timeout=cfg.idle_tle,
-        verify_mode=ssl.CERT_NONE
-        # quic_logger=logger.Logger,
-        # secrets_log_file=secrets_log_file,
-    )
-    loop = asyncio.get_running_loop()
-    print(hostname, sport)
-    while 1:
+    with patch_stdout():
+        conf = QuicConfiguration(
+            alpn_protocols=H3_ALPN,
+            is_client=True,
+            max_datagram_frame_size=cfg.buffer,
+            idle_timeout=cfg.idle_tle,
+            verify_mode=ssl.CERT_NONE
+            # quic_logger=logger.Logger,
+            # secrets_log_file=secrets_log_file,
+        )
+        loop = asyncio.get_running_loop()
+        print(hostname, sport)
+        # while 1:
         async with connect(
             cfg.quic_host,
             cfg.quic_port,
@@ -89,15 +93,16 @@ async def run():
                     smsg = msg.decode('utf-8')
                     logger.debug('消息：{}', smsg)
                     ent: CoreEntity = CoreEntity.handle_json(smsg)
-                    logger.info('文本内容：{}', ent.chain.onlyplain())
+                    logger.info('文本内容：\n{}', ent.chain.onlyplain())
             asyncio.ensure_future(pulling_loop())
             app = ArgumentParser('command')
             app.add_argument('cmd', choices=[
                 'send', 'raw', 'hex', 'eval'
             ])
+            session = PromptSession('terminal@irori:/#')
             while 1:
                 try:
-                    cmdlist = (await aioconsole.ainput('terminal@irori:/#')).split()
+                    cmdlist = (await session.prompt_async()).split()
                     if not cmdlist:
                         continue
                     cmd, *ato = cmdlist
