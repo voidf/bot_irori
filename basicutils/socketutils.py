@@ -272,7 +272,74 @@ class CoreEntity(BaseModel):
         d = json.loads(j)
         d['chain'] = MessageChain.auto_make(d['chain'])
         return cls(**d)
+    @classmethod
+    def wrap_rawstring(cls, msg: str):
+        mt = {'msg': msg}
+        return cls(
+            chain=MessageChain.get_empty(),
+            player='',
+            source='',
+            meta=mt,
+            mode=''
+        )
+    @classmethod
+    def wrap_dict(cls, d: dict):
+        return cls(
+            chain=MessageChain.get_empty(),
+            player='',
+            source='',
+            meta=d,
+            mode=''
+        )
 
+from abc import ABC, abstractmethod
+import asyncio
+import cfg
+from loguru import logger
+class QUICSessionBase(ABC):
+    hbyte = b'D'
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        self._reader = reader
+        self._writer = writer
+        self._ato = -1
+        self._contentbuffer = []
+        self._alive = True
+        self.initialize()
+    
+    @abstractmethod
+    def initialize(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _distro_msg(self, msg: bytes):
+        raise NotImplementedError
+
+    async def keep_connect(self):
+        while 1:
+            res = await self._reader.read(cfg.buffer)
+            if not res:
+                raise ConnectionResetError("连接已断开") # 考虑用callback解决
+            if res == QUICSessionBase.hbyte: # 心跳包字串
+                logger.debug('Heartbeat')
+            else:
+                if self._ato == -1:
+                    ptr = 0
+                    while res[ptr] in range(48, 57+1):
+                        self._ato = self._ato * 10 + res[ptr] - 48
+                        ptr += 1
+                    self._contentbuffer.append(res[ptr:])
+                    self._ato -= len(self._contentbuffer[-1])
+                else:
+                    self._contentbuffer.append(res)
+                    self._ato -= len(self._contentbuffer[-1])
+                if self._ato == 0:
+                    self._ato = -1
+                    self._distro_msg(b''.join(self._contentbuffer))
+
+    async def send(self, data: str) -> NoReturn:
+        payload = data.encode('utf-8')
+        contentlen = bytes(str(len(payload)), 'utf-8')
+        self._writer.write(contentlen + payload)
 
 # Core用鉴权对象
 from mongoengine import *

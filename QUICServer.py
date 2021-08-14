@@ -85,7 +85,7 @@ class QUICServerSession():
         self._Q = asyncio.Queue()
         self._contentbuffer = []
         self._ato = -1
-        asyncio.ensure_future(self.heartbeat())
+        c1 = asyncio.ensure_future(self.heartbeat())
         asyncio.ensure_future(self.keep_connect())
 
 

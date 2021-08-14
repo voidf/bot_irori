@@ -33,7 +33,7 @@ class QUICWorkerSession:
                 raise ConnectionResetError("连接已断开")
             if res == b'D': # 心跳包字串
                 logger.debug('Heartbeat')
-                self._writer.write(b'd')
+                # self._writer.write(b'd')
             else:
                 if self._ato == -1:
                     ptr = 0
@@ -47,7 +47,7 @@ class QUICWorkerSession:
                     self._ato -= len(self._contentbuffer[-1])
                 if self._ato == 0:
                     self._ato = -1
-                    _distro_msg(b''.join(self._contentbuffer))
+                    self._distro_msg(b''.join(self._contentbuffer))
 
     def _distro_msg(self, msg: bytes):
         header, ato = msg.split(b' ', 1) # task, control二选一
@@ -62,7 +62,7 @@ class QUICWorkerSession:
 
     async def recv_control(self) -> bytes: return await self._Qcontrol.get()
     async def recv_task(self) -> bytes: return await self._Qtask.get()
-    async def send(self, data: str) -> NoReturn:
+    async def send(self, data) -> NoReturn:
         payload = data.encode('utf-8')
         contentlen = bytes(str(len(payload)), 'utf-8')
         self._writer.write(contentlen + payload)
