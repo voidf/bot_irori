@@ -149,7 +149,7 @@ async def asobi2048(*attrs, kwargs={}):
                             grids[i][k] = grids[i][j]
                             grids[i][j] = 0
                             f = True
-    elif attrs[0].lower() in GLOBAL.unsubscribes:
+    elif attrs[0] in GLOBAL.unsubscribes:
         removeSniffer(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
