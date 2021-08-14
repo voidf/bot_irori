@@ -25,10 +25,15 @@ import cfg
 sport = cfg.quic_port
 hostname = cfg.quic_host
 
+
+
 class QUICTerminalSession:
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
+        self._contentbuffer = []
+        self._ato = -1
+
         self._Q = asyncio.Queue()
         asyncio.ensure_future(self.keep_connect())
     async def keep_connect(self):
@@ -40,9 +45,24 @@ class QUICTerminalSession:
                 logger.debug('Heartbeat')
                 self._writer.write(b'd')
             else:
-                self._Q.put_nowait(res)
+                if self._ato == -1:
+                    ptr = 0
+                    while res[ptr] in range(48, 57+1):
+                        self._ato = self._ato * 10 + res[ptr] - 48
+                        ptr += 1
+                    self._contentbuffer.append(res[ptr:])
+                    self._ato -= len(self._contentbuffer[-1])
+                else:
+                    self._contentbuffer.append(res)
+                    self._ato -= len(self._contentbuffer[-1])
+                if self._ato == 0:
+                    self._ato = -1
+                    self._Q.put_nowait(b''.join(res))
     async def recv(self) -> bytes: return await self._Q.get()
-    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
+    async def send(self, data: str) -> NoReturn:
+        payload = data.encode('utf-8')
+        contentlen = bytes(str(len(payload)), 'utf-8')
+        self._writer.write(contentlen + payload)
 
 
 
@@ -91,7 +111,7 @@ async def run():
                 while 1:
                     msg = await ses.recv()
                     smsg = msg.decode('utf-8')
-                    logger.debug('消息：{}', smsg)
+                    logger.debug('消息：\n{}', smsg)
                     ent: CoreEntity = CoreEntity.handle_json(smsg)
                     logger.info('文本内容：\n{}', ent.chain.onlyplain())
             asyncio.ensure_future(pulling_loop())
@@ -99,10 +119,11 @@ async def run():
             app.add_argument('cmd', choices=[
                 'send', 'raw', 'hex', 'eval'
             ])
-            session = PromptSession('terminal@irori:/#')
+            session = PromptSession('(irori)>')
             while 1:
                 try:
                     cmdlist = (await session.prompt_async()).split()
+                    session.message = '(irori OwO)>'
                     if not cmdlist:
                         continue
                     cmd, *ato = cmdlist
@@ -125,6 +146,7 @@ async def run():
                     break
                 except:
                     logger.debug(traceback.format_exc())
+                    session.message = '(irori QwQ)>'
                     app.print_help()
                     # print("send")
 

@@ -23,6 +23,8 @@ class QUICWorkerSession:
         self._writer = writer
         self._Qcontrol = asyncio.Queue()
         self._Qtask = asyncio.Queue()
+        self._contentbuffer = []
+        self._ato = -1
         asyncio.ensure_future(self.keep_connect())
     async def keep_connect(self):
         while 1:
@@ -33,20 +35,37 @@ class QUICWorkerSession:
                 logger.debug('Heartbeat')
                 self._writer.write(b'd')
             else:
-                header, ato = res.split(b' ', 1) # task, control二选一
-                logger.critical(header)
-                logger.info(ato)
-                if header == b'task':
-                    self._Qtask.put_nowait(ato)
-                elif header == b'control':
-                    self._Qcontrol.put_nowait(ato)
+                if self._ato == -1:
+                    ptr = 0
+                    while res[ptr] in range(48, 57+1):
+                        self._ato = self._ato * 10 + res[ptr] - 48
+                        ptr += 1
+                    self._contentbuffer.append(res[ptr:])
+                    self._ato -= len(self._contentbuffer[-1])
                 else:
-                    raise NotImplementedError('无法处理此协议头：未实现')
+                    self._contentbuffer.append(res)
+                    self._ato -= len(self._contentbuffer[-1])
+                if self._ato == 0:
+                    self._ato = -1
+                    _distro_msg(b''.join(self._contentbuffer))
+
+    def _distro_msg(self, msg: bytes):
+        header, ato = msg.split(b' ', 1) # task, control二选一
+        logger.critical(header)
+        logger.info(ato)
+        if header == b'task':
+            self._Qtask.put_nowait(ato)
+        elif header == b'control':
+            self._Qcontrol.put_nowait(ato)
+        else:
+            raise NotImplementedError('无法处理此协议头：未实现')
 
     async def recv_control(self) -> bytes: return await self._Qcontrol.get()
     async def recv_task(self) -> bytes: return await self._Qtask.get()
-    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
-
+    async def send(self, data: str) -> NoReturn:
+        payload = data.encode('utf-8')
+        contentlen = bytes(str(len(payload)), 'utf-8')
+        self._writer.write(contentlen + payload)
 
 @logger.catch
 def sub_task(taskstr: str):
@@ -63,16 +82,18 @@ def sub_task(taskstr: str):
         app_fun = {}
         tot_funcs = {}
         tot_alias = {}
-
+        # @logger.catch
         def printHelp(chain: MessageChain, meta: dict = {}):
             """不传参打印命令表，传参则解释命令"""
             kwargs = meta
-            attrs = chain.onlyplain().split(' ')
+            cop = chain.onlyplain()
+            attrs = cop.split(' ')
+            logger.warning(attrs)
             show_limit = int(kwargs.get('-showlim', 20))
             l = []
             img = []
             ext = []
-            if not attrs:
+            if not attrs or not cop:
                 l.append('已导入的模块：')
                 for k, v in app_doc.items():
                     l.append(f'''\t{k} {v}''')

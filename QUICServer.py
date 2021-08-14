@@ -83,6 +83,8 @@ class QUICServerSession():
         self._writer = writer
         self._alive = True
         self._Q = asyncio.Queue()
+        self._contentbuffer = []
+        self._ato = -1
         asyncio.ensure_future(self.heartbeat())
         asyncio.ensure_future(self.keep_connect())
 
@@ -110,9 +112,24 @@ class QUICServerSession():
             if res == b'd': # 心跳包字串
                 continue
             else:
-                self._Q.put_nowait(res)
+                if self._ato == -1:
+                    ptr = 0
+                    while res[ptr] in range(48, 57+1):
+                        self._ato = self._ato * 10 + res[ptr] - 48
+                        ptr += 1
+                    self._contentbuffer.append(res[ptr:])
+                    self._ato -= len(self._contentbuffer[-1])
+                else:
+                    self._contentbuffer.append(res)
+                    self._ato -= len(self._contentbuffer[-1])
+                if self._ato == 0:
+                    self._ato = -1
+                    self._Q.put_nowait(b''.join(res))
 
-    async def send(self, data: str) -> NoReturn: self._writer.write(data.encode('utf-8'))
+    async def send(self, data: str) -> NoReturn:
+        payload = data.encode('utf-8')
+        contentlen = bytes(str(len(payload)), 'utf-8')
+        self._writer.write(contentlen + payload)
     async def recv(self) -> bytes: return await self._Q.get()
 
 @logger.catch
@@ -240,7 +257,8 @@ async def handle_inbound(
                     # writer.write(resp.encode('utf-8'))
                 else:
                     if not worker_pool:
-                        await ses.send('没有可用的worker')
+                        ent.chain = MessageChain.auto_make('没有可用的worker')
+                        await ses.send(ent.json())
                         continue
                     idle = worker_pool.keys() - busy_pool.keys()
                     if idle:

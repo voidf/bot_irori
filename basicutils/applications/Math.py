@@ -200,7 +200,7 @@ def CalA(chain: MessageChain, meta: dict = {}):
     """#排列数 [#A]
 
     """
-    return CalC(MessageChain.auto_merge("A", chain), meta)
+    return CalC(MessageChain.auto_merge("A ", chain), meta)
 
 def CalKatalan(*attrs,kwargs={}):
     try:
