@@ -4,7 +4,7 @@ import traceback
 from Utils import chkcfg
 from typing import *
 from mongoengine import *
-from database_utils import *
+from basicutils.database_utils import *
 import logging
 
 

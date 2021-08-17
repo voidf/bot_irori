@@ -109,7 +109,7 @@ async def JRRPclearRoutiner():
     except:
         traceback.print_exc()
         print('人品清除失败')
-from database_utils import *
+from basicutils.database_utils import *
 from mongoengine import *
 
 class WeatherSubscribe(Document, RefPlayerBase):

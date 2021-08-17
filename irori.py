@@ -2,7 +2,7 @@
 if __name__ == '__main__':
     import GLOBAL
     from bs4 import BeautifulSoup
-    import quine_mccluskey.qmccluskey
+    import basicutils.quine_mccluskey.qmccluskey
     from PIL import ImageFont,ImageDraw
     from PIL import Image as PImage
     from selenium import webdriver
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     from Utils import *
     from Routiner import *
     from Sniffer import *
-    from database_utils import *
+    from basicutils.database_utils import *
     importMirai()
     identifier = uuid.uuid1().hex
 
@@ -74,8 +74,6 @@ if __name__ == '__main__':
     GLOBAL.OJHost = cfg.get('OJHost','')
 
     import Callable
-
-    import database_utils
 
     from GLOBAL import irori
     try:

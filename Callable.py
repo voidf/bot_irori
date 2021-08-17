@@ -1,6 +1,6 @@
 import GLOBAL
 from bs4 import BeautifulSoup
-import quine_mccluskey.qmccluskey
+import basicutils.quine_mccluskey.qmccluskey
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver

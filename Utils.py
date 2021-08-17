@@ -669,7 +669,7 @@ def clearOTFuture(key,G,src):
         traceback.print_exc()
         print(f'{key}中无比赛{G}的提醒日程')
 
-from database_utils import *
+from basicutils.database_utils import *
 
 def CFNoticeManager(j, feat:str, **kwargs):
     try:

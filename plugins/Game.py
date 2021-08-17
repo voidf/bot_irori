@@ -42,7 +42,7 @@ importMirai()
 
 
 from mongoengine import *
-from database_utils import *
+from basicutils.database_utils import *
 
 async def asobi2048(*attrs, kwargs={}):
     player = getPlayer(**kwargs)

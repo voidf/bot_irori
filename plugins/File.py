@@ -36,7 +36,7 @@ import datetime
 import urllib
 import mido
 from Utils import *
-from database_utils import *
+from basicutils.database_utils import *
 
 importMirai()
 
@@ -170,7 +170,6 @@ async def 信用点查询(*attrs, kwargs={}):
     return [Plain('\n'.join(ret))]
 
 from mongoengine import *
-from database_utils import *
 
 
 

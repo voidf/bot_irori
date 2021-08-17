@@ -423,7 +423,7 @@ async def 爬歌(*attrs,kwargs={}):
     return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
 from mongoengine import Document
-from database_utils import *
+from basicutils.database_utils import *
 
 async def 爬天气(*attrs,kwargs={}):
     player = getPlayer(**kwargs)

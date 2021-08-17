@@ -8,7 +8,7 @@ from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import quine_mccluskey.qmccluskey
+import basicutils.quine_mccluskey.qmccluskey
 import re
 import asyncio
 import requests
