@@ -17,7 +17,6 @@ import logging
 
 import asyncio, importlib, traceback
 def importMirai():
-	from graia.application.message.elements.internal import Plain
 	global py_mirai_version
 	global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
 	global MessageChain, Plain, Image, At, Face, Source, Broadcast, Group, Member, Friend, QQFaces, Voice

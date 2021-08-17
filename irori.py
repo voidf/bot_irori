@@ -40,6 +40,7 @@ if __name__ == '__main__':
     from Utils import *
     from Routiner import *
     from Sniffer import *
+    from GLOBAL import *
     from basicutils.database_utils import *
     importMirai()
     identifier = uuid.uuid1().hex
