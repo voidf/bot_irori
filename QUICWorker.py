@@ -17,15 +17,22 @@ import cfg
 sport = cfg.quic_port
 hostname = cfg.quic_host
 
-class QUICWorkerSession:
-    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        self._reader = reader
-        self._writer = writer
-        self._Qcontrol = asyncio.Queue()
-        self._Qtask = asyncio.Queue()
-        self._contentbuffer = []
-        self._ato = -1
-        asyncio.ensure_future(self.keep_connect())
+from collections import defaultdict
+
+class QUICWorkerSession(QUICSessionBase):
+
+    def initialize(self):
+        self._Qchannel = defaultdict(asyncio.Queue)
+        # self._Qcontrol = asyncio.Queue()
+        # self._Qtask = asyncio.Queue()
+    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    #     self._reader = reader
+    #     self._writer = writer
+    #     self._Qcontrol = asyncio.Queue()
+    #     self._Qtask = asyncio.Queue()
+    #     self._contentbuffer = []
+    #     self._ato = -1
+    #     asyncio.ensure_future(self.keep_connect())
     async def keep_connect(self):
         while 1:
             res = await self._reader.read(cfg.buffer)

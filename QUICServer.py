@@ -77,17 +77,33 @@ class SessionTicketStore:
 import datetime
 from basicutils.socketutils import *
 
-class QUICServerSession():
-    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        self._reader = reader
-        self._writer = writer
-        self._alive = True
-        self._Q = asyncio.Queue()
-        self._contentbuffer = []
-        self._ato = -1
-        c1 = asyncio.ensure_future(self.heartbeat())
-        asyncio.ensure_future(self.keep_connect())
 
+class QUICServerSession(QUICSessionBase):
+
+    def on_connection_lost(self, arg):
+        self._alive = False
+        self.connect_future.cancel()
+        self._Q.put_nowait(ConnectionResetError("连接已断开"))
+
+    def initialize(self):
+        self._Q = asyncio.Queue()
+        self.heartbeat_future = asyncio.ensure_future(self.heartbeat())
+        self.connect_future = asyncio.ensure_future(self.keep_connect())
+        self.connect_future.add_done_callback(self.on_connection_lost)
+
+    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    #     self._reader = reader
+    #     self._writer = writer
+    #     self._alive = True
+    #     self._Q = asyncio.Queue()
+    #     self._contentbuffer = []
+    #     self._ato = -1
+    #     c1 = asyncio.ensure_future(self.heartbeat())
+    #     asyncio.ensure_future(self.keep_connect())
+
+    def _distro_msg(self, msg: bytes):
+        logger.debug(msg)
+        self._Q.put_nowait(CoreEntity.handle_json(msg))
 
     async def heartbeat(self):
         try:
@@ -101,36 +117,36 @@ class QUICServerSession():
             traceback.print_exc()
             logger.warning(traceback.format_exc())
     
-    async def keep_connect(self):
-        while 1:
-            res = await self._reader.read(cfg.buffer)
-            logger.info(res)
-            if not res:
-                self._alive = False
-                self._Q.put_nowait(ConnectionResetError("连接已断开"))
-                return
-            if res == b'd': # 心跳包字串
-                continue
-            else:
-                if self._ato == -1:
-                    ptr = 0
-                    while res[ptr] in range(48, 57+1):
-                        self._ato = self._ato * 10 + res[ptr] - 48
-                        ptr += 1
-                    self._contentbuffer.append(res[ptr:])
-                    self._ato -= len(self._contentbuffer[-1])
-                else:
-                    self._contentbuffer.append(res)
-                    self._ato -= len(self._contentbuffer[-1])
-                if self._ato == 0:
-                    self._ato = -1
-                    self._Q.put_nowait(b''.join(res))
+    # async def keep_connect(self):
+    #     while 1:
+    #         res = await self._reader.read(cfg.buffer)
+    #         logger.info(res)
+    #         if not res:
+    #             self._alive = False
+    #             self._Q.put_nowait(ConnectionResetError("连接已断开"))
+    #             return
+    #         if res == b'd': # 心跳包字串
+    #             continue
+    #         else:
+    #             if self._ato == -1:
+    #                 ptr = 0
+    #                 while res[ptr] in range(48, 57+1):
+    #                     self._ato = self._ato * 10 + res[ptr] - 48
+    #                     ptr += 1
+    #                 self._contentbuffer.append(res[ptr:])
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             else:
+    #                 self._contentbuffer.append(res)
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             if self._ato == 0:
+    #                 self._ato = -1
+    #                 self._Q.put_nowait(b''.join(res))
 
-    async def send(self, data: str) -> NoReturn:
-        payload = data.encode('utf-8')
-        contentlen = bytes(str(len(payload)), 'utf-8')
-        self._writer.write(contentlen + payload)
-    async def recv(self) -> bytes: return await self._Q.get()
+    # async def send(self, data: str) -> NoReturn:
+    #     payload = data.encode('utf-8')
+    #     contentlen = bytes(str(len(payload)), 'utf-8')
+    #     self._writer.write(contentlen + payload)
+    async def recv(self) -> CoreEntity: return await self._Q.get()
 
 @logger.catch
 async def handle_inbound(
@@ -157,12 +173,12 @@ async def handle_inbound(
         # asyncio.ensure_future(heartbeat(writer))
         try:
             while 1:
-                msg = (await ses.recv()).decode('utf-8')
+                ent = (await ses.recv())
                 # print(msg)
-                logger.info('Received: {}', msg)
-                ent: CoreEntity = CoreEntity.handle_json(msg)
+                # logger.info('Received: {}', ent)
+                # ent: CoreEntity = CoreEntity.handle_json(msg)
                 sendto: QUICServerSession = adapters[player_adapter[ent.player]]
-                await sendto.send(msg)
+                await sendto.send(ent)
 
         except:
             # traceback.print_exc()
@@ -178,7 +194,7 @@ async def handle_inbound(
         while syncid in adapters:
             syncid = random.randint(0, (1<<31) - 1)
         adapters[syncid] = ses
-        await ses.send(str(syncid))
+        await ses.send(CoreEntity.wrap_rawstring(str(syncid)))
 
         # ap = ArgumentParser()
         # ap.add_argument('cmd', default='help', choices=['exec', 'eval', 'run', 'send'], help="")
@@ -201,7 +217,7 @@ async def handle_inbound(
             else:
                 sendto: QUICServerSession = adapters[player_adapter[ap.target]]
                 ent.chain = MessageChain.auto_make(ap.content)
-                await sendto.send(ent.json()) # 保证送出去的还是CoreEntity
+                await sendto.send(ent) # 保证送出去的还是CoreEntity
                 return '发送成功'
         def at_dead():
             """回收一个adapter连接"""
@@ -222,14 +238,11 @@ async def handle_inbound(
 
         try:
             while 1:
-                data = (await ses.recv()).decode('utf-8')
-                logger.debug("Adapter received: {}", data)
-                if len(data) == 0:
-                    at_dead()
-                    break
-                ent: CoreEntity = CoreEntity.handle_json(data)
+                ent = (await ses.recv())
+                logger.debug("Adapter received: {}", ent)
+                # ent: CoreEntity = CoreEntity.handle_json(data)
 
-                logger.debug(ent)
+                # logger.debug(ent)
                 logger.debug(ent.json())
                 player_adapter[ent.player] = syncid # 反向学习
 
@@ -253,12 +266,12 @@ async def handle_inbound(
                         resp = 'No returns'
                     logger.critical(resp)
                     ent.chain = MessageChain.auto_make(resp)
-                    await ses.send(ent.json())
+                    await ses.send(ent)
                     # writer.write(resp.encode('utf-8'))
                 else:
                     if not worker_pool:
                         ent.chain = MessageChain.auto_make('没有可用的worker')
-                        await ses.send(ent.json())
+                        await ses.send(ent)
                         continue
                     idle = worker_pool.keys() - busy_pool.keys()
                     if idle:
@@ -268,7 +281,8 @@ async def handle_inbound(
                     wses: QUICServerSession = worker_pool[wname]
                     logger.info("worker {} gain work", wname)
                     busy_pool[wname] = ent.meta['ts'] = datetime.datetime.now().timestamp()
-                    await wses.send('task ' + ent.json()) # 往worker里面塞东西需要一个头
+                    ent.meta[QUICSessionBase.META_WORKER_CHANNEL] = QUICSessionBase.CHANNEL_TASK
+                    await wses.send(ent) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:
             at_dead()

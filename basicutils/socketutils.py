@@ -282,6 +282,8 @@ class CoreEntity(BaseModel):
             meta=mt,
             mode=''
         )
+    def unpack_rawstring(self) -> str:
+        return self.meta['msg']
     @classmethod
     def wrap_dict(cls, d: dict):
         return cls(
@@ -298,6 +300,11 @@ import cfg
 from loguru import logger
 class QUICSessionBase(ABC):
     hbyte = b'D'
+    # worker端channel常量
+    META_WORKER_CHANNEL = b'\x20'
+
+    CHANNEL_TASK    = b'\x00'
+    CHANNEL_CONTROL = b'\x01'
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
@@ -312,6 +319,10 @@ class QUICSessionBase(ABC):
 
     @abstractmethod
     def _distro_msg(self, msg: bytes):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def recv(self):
         raise NotImplementedError
 
     async def keep_connect(self):
@@ -336,7 +347,9 @@ class QUICSessionBase(ABC):
                     self._ato = -1
                     self._distro_msg(b''.join(self._contentbuffer))
 
-    async def send(self, data: str) -> NoReturn:
+    async def send(self, ent: CoreEntity) -> NoReturn:
+        """发送CoreEntity对象"""
+        data = ent.json()
         payload = data.encode('utf-8')
         contentlen = bytes(str(len(payload)), 'utf-8')
         self._writer.write(contentlen + payload)
