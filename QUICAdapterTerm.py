@@ -67,7 +67,7 @@ async def run():
         ) as C:
             reader, writer = await C.create_stream()
 
-            writer.write(f'A {cfg.quic_key}'.encode('utf-8'))
+            writer.write(f'A {cfg.quic_admin_key} {playerid}'.encode('utf-8'))
             
             ses = QUICTerminalSession(reader, writer)
             syncid = (await ses.recv()).unpack_rawstring()
@@ -76,10 +76,12 @@ async def run():
             async def pulling_loop():
                 while 1:
                     ent = await ses.recv()
-                    # smsg = msg.decode('utf-8')
-                    # logger.debug('消息：\n{}', ent)
-                    # ent: CoreEntity = CoreEntity.handle_json(smsg)
-                    logger.info('文本内容：\n{}', ent.chain.onlyplain())
+                    plaintext = ent.chain.onlyplain()
+                    if plaintext:
+                        logger.info('文本内容：\n{}', plaintext)
+                    sysinfo = ent.unpack_rawstring()
+                    if sysinfo:
+                        logger.warning('系统消息：\n{}', sysinfo)
             asyncio.ensure_future(pulling_loop())
             app = ArgumentParser('command')
             app.add_argument('cmd', choices=[
@@ -101,8 +103,7 @@ async def run():
                             chain=MessageChain.auto_make(' '.join(ato)),
                             player=playerid,
                             source=syncid,
-                            meta={},
-                            mode='W'
+                            meta={}
                         )
                         # tosend = ent.json()
                         logger.debug('SEND {}', ent.json())

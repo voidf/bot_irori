@@ -100,6 +100,55 @@ class QUICServerSession(QUICSessionBase):
             logger.warning(traceback.format_exc())
     
 
+
+@logger.catch
+def announcement(msg: str):
+    ent = CoreEntity.wrap_rawstring(msg)
+    for k, v in adapters.items():
+        asyncio.ensure_future(v.send(ent))
+
+@logger.catch
+def at_dead(syncid):
+    """回收一个adapter连接"""
+    adapters.pop(syncid)
+    announcement(f"终端节点「{syncid}」已离线")
+    for k, v in tuple(player_adapter.items()):
+        if v == syncid:
+            player_adapter.pop(k)
+    logger.info('Adapter {} disconnected', syncid)
+
+# 管理员函数族
+async def sys_exec(ent: CoreEntity, args: list): return f"""{exec(' '.join(args))}"""
+async def sys_eval(ent: CoreEntity, args: list): return f"""{eval(' '.join(args))}"""
+async def sys_run(ent: CoreEntity, args: list): return f"""{os.popen(' '.join(args)).read()}"""
+async def sys_help(ent: CoreEntity, args: list): return '目前仅支持exec, eval, run, send四个命令'
+async def sys_adapters(ent: CoreEntity, args: list): return f'{player_adapter}'
+async def sys_send(ent: CoreEntity, args: list):
+    # await websocket.send(' '.join(args))
+    ap = ArgumentParser('send')
+    ap.add_argument('target', type=str, help='送往对象player号，若是QQ应该是一个整数')
+    ap.add_argument('content', type=str, help='消息内容')
+    try:
+        pap = ap.parse_args(args)
+    except Exception as e:
+        return '发送失败：' + str(e) + ap.format_help()
+    if pap.target not in player_adapter:
+        return '找不到player对应的adapter'
+    else:
+        sendto: QUICServerSession = adapters[player_adapter[pap.target]]
+        ent.chain = MessageChain.auto_make(pap.content)
+        await sendto.send(ent) # 保证送出去的还是CoreEntity
+        return '发送成功'
+
+
+switcher_t = {
+    'exec': sys_exec,
+    'eval': sys_eval,
+    'run': sys_run,
+    'send': sys_send,
+    'adapters': sys_adapters,
+}
+
 @logger.catch
 async def handle_inbound(
     reader: asyncio.StreamReader, 
@@ -109,85 +158,53 @@ async def handle_inbound(
     message = data.decode()
     logger.info(message)
     role, vkey, *meta = message.split(' ', 2) # TODO: meta的player一次请求还是反向学习
-    if vkey != cfg.quic_key:
-        # writer.close()
+    if vkey not in (cfg.quic_key, cfg.quic_admin_key):
         logger.critical("Detected invalid key {}", vkey)
-        # logger.critical(vkey)
         return
     ses = QUICServerSession(reader, writer)
 
     async def worker():
         new_name = name_pool.pop()
-        # worker_pool[new_name] = (reader, writer)
         worker_pool[new_name] = ses
-        
         logger.info(f"new worker standby ... {new_name}")
-        # asyncio.ensure_future(heartbeat(writer))
+        announcement(f"新的工作节点「{new_name}」已上线")
         try:
             while 1:
                 ent = (await ses.recv())
-                # print(msg)
-                # logger.info('Received: {}', ent)
-                # ent: CoreEntity = CoreEntity.handle_json(msg)
                 sendto: QUICServerSession = adapters[player_adapter[ent.player]]
                 await sendto.send(ent)
-
         except:
-            # traceback.print_exc()
             logger.warning(traceback.format_exc())
         finally:
+            announcement(f"工作节点「{new_name}」已离线")
             logger.warning('回收 {}的会话: {}', new_name, worker_pool.pop(new_name, '不在worker表中'))
             logger.warning('回收 {}的busy: {}', new_name, busy_pool.pop(new_name, '不在busy表中'))
             name_pool.add(new_name)
             
     async def adapter():
         syncid = random.randint(0, (1<<31) - 1)
-        logger.info(f"new adapter standby ... {syncid}")
         while syncid in adapters:
             syncid = random.randint(0, (1<<31) - 1)
+        logger.info(f"new adapter standby ... {syncid}")
+        playerid = ''.join(meta)
+        player_adapter[playerid] = syncid           # 登录昵称
+        announcement(f"「{playerid}」已登录，终端号为：[{syncid}]")
         adapters[syncid] = ses
         await ses.send(CoreEntity.wrap_rawstring(str(syncid)))
-
-        # ap = ArgumentParser()
-        # ap.add_argument('cmd', default='help', choices=['exec', 'eval', 'run', 'send'], help="")
-        async def sys_exec(args: list): return f"""{exec(' '.join(args))}"""
-        async def sys_eval(args: list): return f"""{eval(' '.join(args))}"""
-        async def sys_run(args: list): return f"""{os.popen(' '.join(args)).read()}"""
-        async def sys_help(args: list): return '目前仅支持exec, eval, run, send四个命令'
-        async def sys_adapters(args: list): return f'{adapters_meta}'
-        async def sys_send(args: list):
-            # await websocket.send(' '.join(args))
-            ap = ArgumentParser('send')
-            ap.add_argument('target', type=str, help='送往对象player号，若是QQ应该是一个整数')
-            ap.add_argument('content', type=str, help='消息内容')
-            try:
-                ap.parse_args(args)
-            except Exception as e:
-                return '发送失败：' + str(e) + ap.format_help()
-            if ap.target not in player_adapter:
-                return '找不到player对应的adapter'
-            else:
-                sendto: QUICServerSession = adapters[player_adapter[ap.target]]
-                ent.chain = MessageChain.auto_make(ap.content)
-                await sendto.send(ent) # 保证送出去的还是CoreEntity
-                return '发送成功'
-        def at_dead():
-            """回收一个adapter连接"""
-            adapters.pop(syncid)
-            for k, v in tuple(player_adapter.items()):
-                if v == syncid:
-                    player_adapter.pop(k)
-            logger.info('Adapter {} disconnected', syncid)
-
-        switcher_t = {
-            'exec': sys_exec,
-            'eval': sys_eval,
-            'run': sys_run,
-            'send': sys_send,
-            'adapters': sys_adapters,
-        }
-
-
+        if vkey == cfg.quic_admin_key: # 简单的鉴权
+            async def handle_sudo(ato):
+                if ato:
+                    c, *ato = ato
+                resp: str = await switcher_t.get(c, sys_help)(ent, ato)
+                if not resp:
+                    resp = 'No returns'
+                logger.critical(resp)
+                ent.chain = MessageChain.auto_make(resp)
+                await ses.send(ent)
+        else:
+            async def handle_sudo(ato):
+                ent = CoreEntity.wrap_rawstring('您没有权限执行此调用')
+                await ses.send(ent)
         try:
             while 1:
                 ent = (await ses.recv())
@@ -207,17 +224,8 @@ async def handle_inbound(
                     else: ato.append(i)
 
                 if c == 'sudo': # 系统命令
-                    if ato:
-                        c, *ato = ato
-                    # c, ato = ap.parse_known_args(data.decode('utf-8').split(' '))
-                    resp: str = await switcher_t.get(c, sys_help)(ato)
-                    if not resp:
-                        resp = 'No returns'
-                    logger.critical(resp)
-                    ent.chain = MessageChain.auto_make(resp)
-                    await ses.send(ent)
-                    # writer.write(resp.encode('utf-8'))
-                else:
+                    await handle_sudo(ato)
+                else: # TODO: 分析meta实现adapter间消息传送
                     if not worker_pool:
                         ent.chain = MessageChain.auto_make('没有可用的worker')
                         await ses.send(ent)
@@ -234,7 +242,7 @@ async def handle_inbound(
                     await wses.send(ent) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:
-            at_dead()
+            at_dead(syncid)
             logger.error(traceback.format_exc())
             # raise e
         
@@ -243,9 +251,6 @@ async def handle_inbound(
         'A': adapter
     }
     await switcher[role]()
-    # asyncio.ensure_future(
-    #     switcher[role]()
-    # )
     logger.critical("Session exit!")
 
 @logger.catch
@@ -259,8 +264,8 @@ if __name__ == "__main__":
     conf = QuicConfiguration(
         # alpn_protocols=H3_ALPN,
         is_client=False,
-        # max_datagram_frame_size=cfg.buffer,
-        # idle_timeout=cfg.idle_tle,
+        max_datagram_frame_size=cfg.buffer,
+        idle_timeout=cfg.idle_tle,
         # quic_logger=logger.Logger,
         # secrets_log_file=secrets_log_file,
     )

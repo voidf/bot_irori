@@ -266,7 +266,6 @@ class CoreEntity(BaseModel):
     player: str # 发送来源player号
     source: str # 发送来源syncid
     meta: dict  # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
-    mode: str #发往的方向 A: Adapter; W: Worker
     @classmethod
     def handle_json(cls, j):
         d = json.loads(j)
@@ -279,19 +278,17 @@ class CoreEntity(BaseModel):
             chain=MessageChain.get_empty(),
             player='',
             source='',
-            meta=mt,
-            mode=''
+            meta=mt
         )
     def unpack_rawstring(self) -> str:
-        return self.meta['msg']
+        return self.meta.get('msg', '')
     @classmethod
     def wrap_dict(cls, d: dict):
         return cls(
             chain=MessageChain.get_empty(),
             player='',
             source='',
-            meta=d,
-            mode=''
+            meta=d
         )
 
 from abc import ABC, abstractmethod
@@ -304,8 +301,10 @@ from collections import defaultdict
 class QUICSessionDefs:
     # 心跳包字符
     hbyte = b'D'
+    # meta键
+    META_CHANNEL_NAME   = 'C'
+    META_SENDTO_TARGET  = 'S'
     # channel常量
-    META_CHANNEL_NAME = 'C'
     CHANNEL_COMMON  = 'CMN'
     CHANNEL_TASK    = 'TSK'
     CHANNEL_CONTROL = 'CTL'
@@ -315,11 +314,12 @@ class QUICSessionBase(ABC):
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
-        self._ato = -1
+        self._ato = 0
         self._contentbuffer = []
         self._alive = True
         self._Qchannel = defaultdict(asyncio.Queue)
         self.connect_future = asyncio.ensure_future(self.keep_connect())
+        self._readstate = -1
         self.initialize()
     
     @abstractmethod
@@ -348,34 +348,35 @@ class QUICSessionBase(ABC):
             if res == QUICSessionDefs.hbyte: # 心跳包字串
                 logger.debug('Heartbeat')
             else:
-                # logger.debug("{} {} {}", res,QUICSessionDefs.hbyte, QUICSessionDefs.hbyte!=res)
-                if self._ato == -1:
-                    self._ato = 0
-                    ptr = 0
-                    while res[ptr] in range(48, 57+1):
-                        self._ato = self._ato * 10 + res[ptr] - 48
-                        ptr += 1
-                    self._contentbuffer.append(res[ptr:])
-                    self._ato -= len(self._contentbuffer[-1])
-                else:
-                    self._contentbuffer.append(res)
-                    self._ato -= len(self._contentbuffer[-1])
+                for bts in res:
+
+                    if self._readstate == -1: # 期待数字
+                        if self._ato < 0: 
+                            self._ato = 0
+                        if bts in range(48, 57+1):
+                            self._ato = self._ato * 10 + bts - 48
+                        else:
+                            self._contentbuffer.append(bytes([bts]))
+                            self._ato -= 1
+                            self._readstate = 0 # 期待payload
+                    else:
+                        if self._ato>0:
+                            self._contentbuffer.append(bytes([bts]))
+                            self._ato -= 1
+
+                        if self._ato == 0:
+                            self._readstate = -1
+                            byte_stream = b''.join(self._contentbuffer)
+                            self._contentbuffer = []
+                            logger.debug(byte_stream)
+                            ent = CoreEntity.handle_json(byte_stream)
+                            channel = ent.meta.get(QUICSessionDefs.META_CHANNEL_NAME, QUICSessionDefs.CHANNEL_COMMON)
+
+                            logger.debug('put to {}', channel)
+                            self._Qchannel[channel].put_nowait(ent)
+                # logger.debug("ato: {}, bts: {}", self._ato, bts)
                 logger.debug("ato: {}", self._ato)
-                # logger.debug("buf: {}", self._contentbuffer)
-                if self._ato == 0:
-                    self._ato = -1
-                    byte_stream = b''.join(self._contentbuffer)
-                    self._contentbuffer = []
-                    logger.debug(byte_stream)
-                    ent = CoreEntity.handle_json(byte_stream)
-                    channel = ent.meta.get(QUICSessionDefs.META_CHANNEL_NAME, QUICSessionDefs.CHANNEL_COMMON)
-                    # print(ent.meta)
-                    # print(ent.meta.get(QUICSessionDefs.META_CHANNEL_NAME, QUICSessionDefs.CHANNEL_COMMON))
-                    # print(channel)
-                    logger.debug('put to {}', channel)
-                    self._Qchannel[channel].put_nowait(ent)
-                    # print(self._Qchannel[channel])
-                    # self._distro_msg(b''.join(self._contentbuffer))
+                    # logger.debug("buf: {}", self._contentbuffer)
 
     async def send(self, ent: CoreEntity) -> NoReturn:
         """发送CoreEntity对象"""
