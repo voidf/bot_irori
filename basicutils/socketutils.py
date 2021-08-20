@@ -298,6 +298,7 @@ from abc import ABC, abstractmethod
 import asyncio
 import cfg
 from loguru import logger
+from collections import defaultdict
 class QUICSessionBase(ABC):
     hbyte = b'D'
     # channel常量
@@ -313,26 +314,30 @@ class QUICSessionBase(ABC):
         self._ato = -1
         self._contentbuffer = []
         self._alive = True
+        self._Qchannel = defaultdict(asyncio.Queue)
         self.initialize()
     
     @abstractmethod
     def initialize(self):
         raise NotImplementedError
 
-    @abstractmethod
-    def _distro_msg(self, msg: bytes):
-        raise NotImplementedError
+    # @abstractmethod
+    # def _distro_msg(self, msg: bytes):
+    #     raise NotImplementedError
 
-    @abstractmethod
-    async def recv(self):
-        raise NotImplementedError
+    # @abstractmethod
+    async def recv(self, channel=CHANNEL_COMMON):
+        return await self._Qchannel[channel].get()
+        # raise NotImplementedError
 
     async def keep_connect(self):
         while 1:
             res = await self._reader.read(cfg.buffer)
             if not res:
+                for k, v in self._Qchannel.items():
+                    v.put_nowait(ConnectionResetError('Connection closed'))
                 raise ConnectionResetError("连接已断开") # 考虑用callback解决
-            if res == QUICSessionBase.hbyte: # 心跳包字串
+            if res == hbyte: # 心跳包字串
                 logger.debug('Heartbeat')
             else:
                 if self._ato == -1:
@@ -347,7 +352,11 @@ class QUICSessionBase(ABC):
                     self._ato -= len(self._contentbuffer[-1])
                 if self._ato == 0:
                     self._ato = -1
-                    self._distro_msg(b''.join(self._contentbuffer))
+                    byte_stream = b''.join(self._contentbuffer)
+                    ent = CoreEntity.handle_json(byte_stream)
+                    channel = ent.meta.get(META_CHANNEL_NAME, CHANNEL_COMMON)
+                    self._Qchannel[channel].put_nowait(channel)
+                    # self._distro_msg(b''.join(self._contentbuffer))
 
     async def send(self, ent: CoreEntity) -> NoReturn:
         """发送CoreEntity对象"""

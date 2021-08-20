@@ -83,10 +83,10 @@ class QUICServerSession(QUICSessionBase):
     def on_connection_lost(self, arg):
         self._alive = False
         self.connect_future.cancel()
-        self._Q.put_nowait(ConnectionResetError("连接已断开"))
+        # self._Q.put_nowait(ConnectionResetError("连接已断开"))
 
     def initialize(self):
-        self._Q = asyncio.Queue()
+        # self._Q = asyncio.Queue()
         self.heartbeat_future = asyncio.ensure_future(self.heartbeat())
         self.connect_future = asyncio.ensure_future(self.keep_connect())
         self.connect_future.add_done_callback(self.on_connection_lost)
@@ -101,9 +101,9 @@ class QUICServerSession(QUICSessionBase):
     #     c1 = asyncio.ensure_future(self.heartbeat())
     #     asyncio.ensure_future(self.keep_connect())
 
-    def _distro_msg(self, msg: bytes):
-        logger.debug(msg)
-        self._Q.put_nowait(CoreEntity.handle_json(msg))
+    # def _distro_msg(self, msg: bytes):
+    #     logger.debug(msg)
+    #     self._Q.put_nowait(CoreEntity.handle_json(msg))
 
     async def heartbeat(self):
         try:
@@ -146,7 +146,7 @@ class QUICServerSession(QUICSessionBase):
     #     payload = data.encode('utf-8')
     #     contentlen = bytes(str(len(payload)), 'utf-8')
     #     self._writer.write(contentlen + payload)
-    async def recv(self) -> CoreEntity: return await self._Q.get()
+    # async def recv(self) -> CoreEntity: return await self._Q.get()
 
 @logger.catch
 async def handle_inbound(
@@ -281,7 +281,7 @@ async def handle_inbound(
                     wses: QUICServerSession = worker_pool[wname]
                     logger.info("worker {} gain work", wname)
                     busy_pool[wname] = ent.meta['ts'] = datetime.datetime.now().timestamp()
-                    ent.meta[QUICSessionBase.META_WORKER_CHANNEL] = QUICSessionBase.CHANNEL_TASK
+                    ent.meta[QUICSessionBase.META_CHANNEL_NAME] = QUICSessionBase.CHANNEL_TASK
                     await wses.send(ent) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:

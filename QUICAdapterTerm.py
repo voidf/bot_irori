@@ -25,44 +25,46 @@ import cfg
 sport = cfg.quic_port
 hostname = cfg.quic_host
 
+from basicutils.socketutils import *
 
+class QUICTerminalSession(QUICSessionBase):
+    def initialize(self):
+        pass
+    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    #     self._reader = reader
+    #     self._writer = writer
+    #     self._contentbuffer = []
+    #     self._ato = -1
 
-class QUICTerminalSession:
-    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        self._reader = reader
-        self._writer = writer
-        self._contentbuffer = []
-        self._ato = -1
-
-        self._Q = asyncio.Queue()
-        asyncio.ensure_future(self.keep_connect())
-    async def keep_connect(self):
-        while 1:
-            res = await self._reader.read(cfg.buffer)
-            if not res:
-                raise ConnectionResetError("连接已断开")
-            if res == b'D': # 心跳包字串
-                logger.debug('Heartbeat')
-                self._writer.write(b'd')
-            else:
-                if self._ato == -1:
-                    ptr = 0
-                    while res[ptr] in range(48, 57+1):
-                        self._ato = self._ato * 10 + res[ptr] - 48
-                        ptr += 1
-                    self._contentbuffer.append(res[ptr:])
-                    self._ato -= len(self._contentbuffer[-1])
-                else:
-                    self._contentbuffer.append(res)
-                    self._ato -= len(self._contentbuffer[-1])
-                if self._ato == 0:
-                    self._ato = -1
-                    self._Q.put_nowait(b''.join(res))
-    async def recv(self) -> bytes: return await self._Q.get()
-    async def send(self, data: str) -> NoReturn:
-        payload = data.encode('utf-8')
-        contentlen = bytes(str(len(payload)), 'utf-8')
-        self._writer.write(contentlen + payload)
+    #     self._Q = asyncio.Queue()
+    #     asyncio.ensure_future(self.keep_connect())
+    # async def keep_connect(self):
+    #     while 1:
+    #         res = await self._reader.read(cfg.buffer)
+    #         if not res:
+    #             raise ConnectionResetError("连接已断开")
+    #         if res == b'D': # 心跳包字串
+    #             logger.debug('Heartbeat')
+    #             self._writer.write(b'd')
+    #         else:
+    #             if self._ato == -1:
+    #                 ptr = 0
+    #                 while res[ptr] in range(48, 57+1):
+    #                     self._ato = self._ato * 10 + res[ptr] - 48
+    #                     ptr += 1
+    #                 self._contentbuffer.append(res[ptr:])
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             else:
+    #                 self._contentbuffer.append(res)
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             if self._ato == 0:
+    #                 self._ato = -1
+    #                 self._Q.put_nowait(b''.join(res))
+    # async def recv(self) -> bytes: return await self._Q.get()
+    # async def send(self, data: str) -> NoReturn:
+    #     payload = data.encode('utf-8')
+    #     contentlen = bytes(str(len(payload)), 'utf-8')
+    #     self._writer.write(contentlen + payload)
 
 
 
@@ -109,10 +111,10 @@ async def run():
 
             async def pulling_loop():
                 while 1:
-                    msg = await ses.recv()
-                    smsg = msg.decode('utf-8')
+                    ent = await ses.recv()
+                    # smsg = msg.decode('utf-8')
                     logger.debug('消息：\n{}', smsg)
-                    ent: CoreEntity = CoreEntity.handle_json(smsg)
+                    # ent: CoreEntity = CoreEntity.handle_json(smsg)
                     logger.info('文本内容：\n{}', ent.chain.onlyplain())
             asyncio.ensure_future(pulling_loop())
             app = ArgumentParser('command')

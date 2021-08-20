@@ -21,7 +21,8 @@ from collections import defaultdict
 
 class QUICWorkerSession(QUICSessionBase):
     def initialize(self):
-        self._Qchannel = defaultdict(asyncio.Queue)
+        pass
+        # self._Qchannel = defaultdict(asyncio.Queue)
         
 
         # self._Qcontrol = asyncio.Queue()
@@ -34,46 +35,46 @@ class QUICWorkerSession(QUICSessionBase):
     #     self._contentbuffer = []
     #     self._ato = -1
     #     asyncio.ensure_future(self.keep_connect())
-    async def keep_connect(self):
-        while 1:
-            res = await self._reader.read(cfg.buffer)
-            if not res:
-                raise ConnectionResetError("连接已断开")
-            if res == b'D': # 心跳包字串
-                logger.debug('Heartbeat')
-                # self._writer.write(b'd')
-            else:
-                if self._ato == -1:
-                    ptr = 0
-                    while res[ptr] in range(48, 57+1):
-                        self._ato = self._ato * 10 + res[ptr] - 48
-                        ptr += 1
-                    self._contentbuffer.append(res[ptr:])
-                    self._ato -= len(self._contentbuffer[-1])
-                else:
-                    self._contentbuffer.append(res)
-                    self._ato -= len(self._contentbuffer[-1])
-                if self._ato == 0:
-                    self._ato = -1
-                    self._distro_msg(b''.join(self._contentbuffer))
+    # async def keep_connect(self):
+    #     while 1:
+    #         res = await self._reader.read(cfg.buffer)
+    #         if not res:
+    #             raise ConnectionResetError("连接已断开")
+    #         if res == b'D': # 心跳包字串
+    #             logger.debug('Heartbeat')
+    #             # self._writer.write(b'd')
+    #         else:
+    #             if self._ato == -1:
+    #                 ptr = 0
+    #                 while res[ptr] in range(48, 57+1):
+    #                     self._ato = self._ato * 10 + res[ptr] - 48
+    #                     ptr += 1
+    #                 self._contentbuffer.append(res[ptr:])
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             else:
+    #                 self._contentbuffer.append(res)
+    #                 self._ato -= len(self._contentbuffer[-1])
+    #             if self._ato == 0:
+    #                 self._ato = -1
+    #                 self._distro_msg(b''.join(self._contentbuffer))
 
-    def _distro_msg(self, msg: bytes):
-        header, ato = msg.split(b' ', 1) # task, control二选一
-        logger.critical(header)
-        logger.info(ato)
-        if header == b'task':
-            self._Qtask.put_nowait(ato)
-        elif header == b'control':
-            self._Qcontrol.put_nowait(ato)
-        else:
-            raise NotImplementedError('无法处理此协议头：未实现')
+    # def _distro_msg(self, msg: bytes):
+    #     header, ato = msg.split(b' ', 1) # task, control二选一
+    #     logger.critical(header)
+    #     logger.info(ato)
+    #     if header == b'task':
+    #         self._Qtask.put_nowait(ato)
+    #     elif header == b'control':
+    #         self._Qcontrol.put_nowait(ato)
+    #     else:
+    #         raise NotImplementedError('无法处理此协议头：未实现')
 
-    async def recv_control(self) -> bytes: return await self._Qcontrol.get()
-    async def recv_task(self) -> bytes: return await self._Qtask.get()
-    async def send(self, data) -> NoReturn:
-        payload = data.encode('utf-8')
-        contentlen = bytes(str(len(payload)), 'utf-8')
-        self._writer.write(contentlen + payload)
+    async def recv_control(self) -> bytes: return await self.recv(channel=QUICSessionBase.CHANNEL_CONTROL)
+    async def recv_task(self) -> bytes: return await self.recv(channel=QUICSessionBase.CHANNEL_TASK)
+    # async def send(self, data) -> NoReturn:
+    #     payload = data.encode('utf-8')
+    #     contentlen = bytes(str(len(payload)), 'utf-8')
+    #     self._writer.write(contentlen + payload)
 
 @logger.catch
 def sub_task(taskstr: str):
