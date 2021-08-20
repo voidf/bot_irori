@@ -300,11 +300,13 @@ import cfg
 from loguru import logger
 class QUICSessionBase(ABC):
     hbyte = b'D'
-    # worker端channel常量
-    META_WORKER_CHANNEL = b'\x20'
+    # channel常量
+    META_CHANNEL_NAME = b'\x20'
+    # META_CHANNEL_NAME = b'\x20'
 
-    CHANNEL_TASK    = b'\x00'
-    CHANNEL_CONTROL = b'\x01'
+    CHANNEL_COMMON  = b'\x00'
+    CHANNEL_TASK    = b'\x01'
+    CHANNEL_CONTROL = b'\x02'
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
