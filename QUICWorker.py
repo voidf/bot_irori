@@ -4,7 +4,7 @@ import json
 from loguru import logger
 import asyncio
 from typing import NoReturn
-
+from basicutils.socketutils import *
 import logging
 logging.basicConfig(
 	level=logging.DEBUG,  
@@ -20,72 +20,17 @@ hostname = cfg.quic_host
 from collections import defaultdict
 
 class QUICWorkerSession(QUICSessionBase):
-    def initialize(self):
-        pass
-        # self._Qchannel = defaultdict(asyncio.Queue)
-        
-
-        # self._Qcontrol = asyncio.Queue()
-        # self._Qtask = asyncio.Queue()
-    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-    #     self._reader = reader
-    #     self._writer = writer
-    #     self._Qcontrol = asyncio.Queue()
-    #     self._Qtask = asyncio.Queue()
-    #     self._contentbuffer = []
-    #     self._ato = -1
-    #     asyncio.ensure_future(self.keep_connect())
-    # async def keep_connect(self):
-    #     while 1:
-    #         res = await self._reader.read(cfg.buffer)
-    #         if not res:
-    #             raise ConnectionResetError("连接已断开")
-    #         if res == b'D': # 心跳包字串
-    #             logger.debug('Heartbeat')
-    #             # self._writer.write(b'd')
-    #         else:
-    #             if self._ato == -1:
-    #                 ptr = 0
-    #                 while res[ptr] in range(48, 57+1):
-    #                     self._ato = self._ato * 10 + res[ptr] - 48
-    #                     ptr += 1
-    #                 self._contentbuffer.append(res[ptr:])
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             else:
-    #                 self._contentbuffer.append(res)
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             if self._ato == 0:
-    #                 self._ato = -1
-    #                 self._distro_msg(b''.join(self._contentbuffer))
-
-    # def _distro_msg(self, msg: bytes):
-    #     header, ato = msg.split(b' ', 1) # task, control二选一
-    #     logger.critical(header)
-    #     logger.info(ato)
-    #     if header == b'task':
-    #         self._Qtask.put_nowait(ato)
-    #     elif header == b'control':
-    #         self._Qcontrol.put_nowait(ato)
-    #     else:
-    #         raise NotImplementedError('无法处理此协议头：未实现')
-
-    async def recv_control(self) -> bytes: return await self.recv(channel=QUICSessionBase.CHANNEL_CONTROL)
-    async def recv_task(self) -> bytes: return await self.recv(channel=QUICSessionBase.CHANNEL_TASK)
-    # async def send(self, data) -> NoReturn:
-    #     payload = data.encode('utf-8')
-    #     contentlen = bytes(str(len(payload)), 'utf-8')
-    #     self._writer.write(contentlen + payload)
+    def initialize(self): pass
+    async def recv_control(self) -> CoreEntity: return await self.recv(channel=QUICSessionDefs.CHANNEL_CONTROL)
+    async def recv_task(self) -> CoreEntity: return await self.recv(channel=QUICSessionDefs.CHANNEL_TASK)
 
 @logger.catch
-def sub_task(taskstr: str):
+def sub_task(task: CoreEntity):
     import os
     import importlib
     import inspect
     import re
     try:
-        logger.debug(taskstr)
-        task: CoreEntity = CoreEntity.handle_json(taskstr)
-
         app_dir = 'basicutils/applications/'
         app_doc = {}
         app_fun = {}
@@ -232,28 +177,7 @@ def sub_task(taskstr: str):
 import concurrent.futures
 import datetime
 import traceback
-from basicutils.socketutils import *
-# from multiprocessing.dummy import Pool as Pool2
-# def task_monitor(taskstr: str, writer: asyncio.StreamWriter):
-#     task: TaskMessage = TaskMessage.parse_raw(taskstr)
-#     rawstr = task.chain.onlyplain()
-#     cmd, argstr = rawstr.split(' ', 1) 
-    
-#     tle = task.meta.get('tle', 30)
-#     task.meta['writer'] = writer
 
-#     p = Pool2(1)
-
-    
-
-
-#     res = p.apply_async(func, args=args)
-#     try:
-#         out = res.get(tle)
-#         return out
-#     except:
-#         traceback.print_exc()
-#         msg = '执行超时'
 import ssl
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.h3.connection import H3_ALPN
@@ -281,9 +205,10 @@ async def run():
         ) as C:
             # reader:asyncio.StreamReader
             # writer:asyncio.StreamWriter
-            ses = QUICWorkerSession(*(await C.create_stream()))
-            await ses.send(f'W {cfg.quic_key}')
+            reader, writer = await C.create_stream()
+            writer.write(f'W {cfg.quic_key}'.encode('utf-8'))
             # G = 
+            ses = QUICWorkerSession(reader, writer)
             pool = concurrent.futures.ProcessPoolExecutor(cfg.max_worker)
 
             # with concurrent.futures.ProcessPoolExecutor(cfg.max_worker) as pool:
@@ -298,24 +223,23 @@ async def run():
 
             async def assign_task_loop():
                 while 1:
-                    rawtask = await ses.recv_task()
+                    ent = await ses.recv_task()
                     asyncio.ensure_future(clear_pool(30))
                     result = await loop.run_in_executor(
                         pool, functools.partial(
-                            sub_task, rawtask.decode('utf-8')
+                            sub_task, ent
                         )
                     )
                     logger.critical(result)
-                    ent: CoreEntity = CoreEntity.parse_raw(rawtask)
                     ent.chain = result
-                    await ses.send(ent.json())
-                    
-                    # jsontask = json.loads(rawtask)
+                    ent.meta[QUICSessionDefs.META_CHANNEL_NAME] = QUICSessionDefs.CHANNEL_COMMON
+                    await ses.send(ent)
 
             asyncio.ensure_future(assign_task_loop())
             while 1:
-                cmd = await ses.recv_control()
-                if cmd == b'kill':
+                ent = await ses.recv_control()
+                cmd = ent.unpack_rawstring()
+                if cmd == 'kill':
                     await clear_pool(0)
                     # pool.shutdown(True)
                     

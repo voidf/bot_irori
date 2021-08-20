@@ -299,15 +299,19 @@ import asyncio
 import cfg
 from loguru import logger
 from collections import defaultdict
-class QUICSessionBase(ABC):
+# from enum import Enum
+
+class QUICSessionDefs:
+    # 心跳包字符
     hbyte = b'D'
     # channel常量
-    META_CHANNEL_NAME = b'\x20'
-    # META_CHANNEL_NAME = b'\x20'
+    META_CHANNEL_NAME = 'C'
+    CHANNEL_COMMON  = 'CMN'
+    CHANNEL_TASK    = 'TSK'
+    CHANNEL_CONTROL = 'CTL'
 
-    CHANNEL_COMMON  = b'\x00'
-    CHANNEL_TASK    = b'\x01'
-    CHANNEL_CONTROL = b'\x02'
+
+class QUICSessionBase(ABC):
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         self._reader = reader
         self._writer = writer
@@ -315,6 +319,7 @@ class QUICSessionBase(ABC):
         self._contentbuffer = []
         self._alive = True
         self._Qchannel = defaultdict(asyncio.Queue)
+        self.connect_future = asyncio.ensure_future(self.keep_connect())
         self.initialize()
     
     @abstractmethod
@@ -326,21 +331,26 @@ class QUICSessionBase(ABC):
     #     raise NotImplementedError
 
     # @abstractmethod
-    async def recv(self, channel=CHANNEL_COMMON):
-        return await self._Qchannel[channel].get()
+    async def recv(self, channel=QUICSessionDefs.CHANNEL_COMMON) -> CoreEntity:
+        dt = await self._Qchannel[channel].get()
+        # logger.info(dt)
+        return dt
         # raise NotImplementedError
-
+    @logger.catch
     async def keep_connect(self):
         while 1:
             res = await self._reader.read(cfg.buffer)
+            logger.debug(">>> {}", res)
             if not res:
                 for k, v in self._Qchannel.items():
                     v.put_nowait(ConnectionResetError('Connection closed'))
                 raise ConnectionResetError("连接已断开") # 考虑用callback解决
-            if res == hbyte: # 心跳包字串
+            if res == QUICSessionDefs.hbyte: # 心跳包字串
                 logger.debug('Heartbeat')
             else:
+                # logger.debug("{} {} {}", res,QUICSessionDefs.hbyte, QUICSessionDefs.hbyte!=res)
                 if self._ato == -1:
+                    self._ato = 0
                     ptr = 0
                     while res[ptr] in range(48, 57+1):
                         self._ato = self._ato * 10 + res[ptr] - 48
@@ -350,17 +360,27 @@ class QUICSessionBase(ABC):
                 else:
                     self._contentbuffer.append(res)
                     self._ato -= len(self._contentbuffer[-1])
+                logger.debug("ato: {}", self._ato)
+                # logger.debug("buf: {}", self._contentbuffer)
                 if self._ato == 0:
                     self._ato = -1
                     byte_stream = b''.join(self._contentbuffer)
+                    self._contentbuffer = []
+                    logger.debug(byte_stream)
                     ent = CoreEntity.handle_json(byte_stream)
-                    channel = ent.meta.get(META_CHANNEL_NAME, CHANNEL_COMMON)
-                    self._Qchannel[channel].put_nowait(channel)
+                    channel = ent.meta.get(QUICSessionDefs.META_CHANNEL_NAME, QUICSessionDefs.CHANNEL_COMMON)
+                    # print(ent.meta)
+                    # print(ent.meta.get(QUICSessionDefs.META_CHANNEL_NAME, QUICSessionDefs.CHANNEL_COMMON))
+                    # print(channel)
+                    logger.debug('put to {}', channel)
+                    self._Qchannel[channel].put_nowait(ent)
+                    # print(self._Qchannel[channel])
                     # self._distro_msg(b''.join(self._contentbuffer))
 
     async def send(self, ent: CoreEntity) -> NoReturn:
         """发送CoreEntity对象"""
         data = ent.json()
+        logger.debug("<<< {}", data)
         payload = data.encode('utf-8')
         contentlen = bytes(str(len(payload)), 'utf-8')
         self._writer.write(contentlen + payload)

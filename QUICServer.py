@@ -79,31 +79,13 @@ from basicutils.socketutils import *
 
 
 class QUICServerSession(QUICSessionBase):
-
-    def on_connection_lost(self, arg):
+    def on_connection_lost(self, arg: asyncio.Future):
+        logger.warning('lost with {}', arg)
         self._alive = False
         self.connect_future.cancel()
-        # self._Q.put_nowait(ConnectionResetError("连接已断开"))
-
     def initialize(self):
-        # self._Q = asyncio.Queue()
         self.heartbeat_future = asyncio.ensure_future(self.heartbeat())
-        self.connect_future = asyncio.ensure_future(self.keep_connect())
         self.connect_future.add_done_callback(self.on_connection_lost)
-
-    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-    #     self._reader = reader
-    #     self._writer = writer
-    #     self._alive = True
-    #     self._Q = asyncio.Queue()
-    #     self._contentbuffer = []
-    #     self._ato = -1
-    #     c1 = asyncio.ensure_future(self.heartbeat())
-    #     asyncio.ensure_future(self.keep_connect())
-
-    # def _distro_msg(self, msg: bytes):
-    #     logger.debug(msg)
-    #     self._Q.put_nowait(CoreEntity.handle_json(msg))
 
     async def heartbeat(self):
         try:
@@ -112,41 +94,11 @@ class QUICServerSession(QUICSessionBase):
                     logger.warning('Connection lost')
                     return
                 await asyncio.sleep(cfg.heartbeat_time)
-                self._writer.write(b'D')
+                self._writer.write(QUICSessionDefs.hbyte)
         except:
             traceback.print_exc()
             logger.warning(traceback.format_exc())
     
-    # async def keep_connect(self):
-    #     while 1:
-    #         res = await self._reader.read(cfg.buffer)
-    #         logger.info(res)
-    #         if not res:
-    #             self._alive = False
-    #             self._Q.put_nowait(ConnectionResetError("连接已断开"))
-    #             return
-    #         if res == b'd': # 心跳包字串
-    #             continue
-    #         else:
-    #             if self._ato == -1:
-    #                 ptr = 0
-    #                 while res[ptr] in range(48, 57+1):
-    #                     self._ato = self._ato * 10 + res[ptr] - 48
-    #                     ptr += 1
-    #                 self._contentbuffer.append(res[ptr:])
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             else:
-    #                 self._contentbuffer.append(res)
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             if self._ato == 0:
-    #                 self._ato = -1
-    #                 self._Q.put_nowait(b''.join(res))
-
-    # async def send(self, data: str) -> NoReturn:
-    #     payload = data.encode('utf-8')
-    #     contentlen = bytes(str(len(payload)), 'utf-8')
-    #     self._writer.write(contentlen + payload)
-    # async def recv(self) -> CoreEntity: return await self._Q.get()
 
 @logger.catch
 async def handle_inbound(
@@ -240,9 +192,6 @@ async def handle_inbound(
             while 1:
                 ent = (await ses.recv())
                 logger.debug("Adapter received: {}", ent)
-                # ent: CoreEntity = CoreEntity.handle_json(data)
-
-                # logger.debug(ent)
                 logger.debug(ent.json())
                 player_adapter[ent.player] = syncid # 反向学习
 
@@ -281,7 +230,7 @@ async def handle_inbound(
                     wses: QUICServerSession = worker_pool[wname]
                     logger.info("worker {} gain work", wname)
                     busy_pool[wname] = ent.meta['ts'] = datetime.datetime.now().timestamp()
-                    ent.meta[QUICSessionBase.META_CHANNEL_NAME] = QUICSessionBase.CHANNEL_TASK
+                    ent.meta[QUICSessionDefs.META_CHANNEL_NAME] = QUICSessionDefs.CHANNEL_TASK
                     await wses.send(ent) # 往worker里面塞东西需要一个头
                 # await writer.drain()
         except Exception as e:

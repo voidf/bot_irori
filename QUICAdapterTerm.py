@@ -30,42 +30,6 @@ from basicutils.socketutils import *
 class QUICTerminalSession(QUICSessionBase):
     def initialize(self):
         pass
-    # def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-    #     self._reader = reader
-    #     self._writer = writer
-    #     self._contentbuffer = []
-    #     self._ato = -1
-
-    #     self._Q = asyncio.Queue()
-    #     asyncio.ensure_future(self.keep_connect())
-    # async def keep_connect(self):
-    #     while 1:
-    #         res = await self._reader.read(cfg.buffer)
-    #         if not res:
-    #             raise ConnectionResetError("连接已断开")
-    #         if res == b'D': # 心跳包字串
-    #             logger.debug('Heartbeat')
-    #             self._writer.write(b'd')
-    #         else:
-    #             if self._ato == -1:
-    #                 ptr = 0
-    #                 while res[ptr] in range(48, 57+1):
-    #                     self._ato = self._ato * 10 + res[ptr] - 48
-    #                     ptr += 1
-    #                 self._contentbuffer.append(res[ptr:])
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             else:
-    #                 self._contentbuffer.append(res)
-    #                 self._ato -= len(self._contentbuffer[-1])
-    #             if self._ato == 0:
-    #                 self._ato = -1
-    #                 self._Q.put_nowait(b''.join(res))
-    # async def recv(self) -> bytes: return await self._Q.get()
-    # async def send(self, data: str) -> NoReturn:
-    #     payload = data.encode('utf-8')
-    #     contentlen = bytes(str(len(payload)), 'utf-8')
-    #     self._writer.write(contentlen + payload)
-
 
 
 import concurrent.futures
@@ -101,19 +65,19 @@ async def run():
             cfg.quic_port,
             configuration=conf
         ) as C:
-            # reader:asyncio.StreamReader
-            # writer:asyncio.StreamWriter
-            ses = QUICTerminalSession(*(await C.create_stream()))
-            await ses.send(f'A {cfg.quic_key}')
+            reader, writer = await C.create_stream()
+
+            writer.write(f'A {cfg.quic_key}'.encode('utf-8'))
             
-            syncid = (await ses.recv()).decode('utf-8')
+            ses = QUICTerminalSession(reader, writer)
+            syncid = (await ses.recv()).unpack_rawstring()
             logger.critical("您的终端号：{}", syncid)
 
             async def pulling_loop():
                 while 1:
                     ent = await ses.recv()
                     # smsg = msg.decode('utf-8')
-                    logger.debug('消息：\n{}', smsg)
+                    # logger.debug('消息：\n{}', ent)
                     # ent: CoreEntity = CoreEntity.handle_json(smsg)
                     logger.info('文本内容：\n{}', ent.chain.onlyplain())
             asyncio.ensure_future(pulling_loop())
@@ -140,9 +104,9 @@ async def run():
                             meta={},
                             mode='W'
                         )
-                        tosend = ent.json()
-                        logger.debug('SEND {}', tosend)
-                        await ses.send(tosend)
+                        # tosend = ent.json()
+                        logger.debug('SEND {}', ent.json())
+                        await ses.send(ent)
 
                 except KeyboardInterrupt:
                     break
