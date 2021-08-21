@@ -102,10 +102,17 @@ class QUICServerSession(QUICSessionBase):
 
 
 @logger.catch
-def announcement(msg: str):
-    ent = CoreEntity.wrap_rawstring(msg)
+def announcement(msg: Union[str, CoreEntity], ignored=[]):
+    if isinstance(msg, str):
+        ent = CoreEntity.wrap_rawstring(msg)
+    elif isinstance(msg, CoreEntity):
+        ent = msg
+    else:
+        raise TypeError('广播消息类型错误')
     for k, v in adapters.items():
-        asyncio.ensure_future(v.send(ent))
+        if str(k) not in ignored:
+            # logger.debug('k: {}, ignored: {}', k, ignored)
+            asyncio.ensure_future(v.send(ent))
 
 @logger.catch
 def at_dead(syncid):
@@ -123,6 +130,10 @@ async def sys_eval(ent: CoreEntity, args: list): return f"""{eval(' '.join(args)
 async def sys_run(ent: CoreEntity, args: list): return f"""{os.popen(' '.join(args)).read()}"""
 async def sys_help(ent: CoreEntity, args: list): return '目前仅支持exec, eval, run, send四个命令'
 async def sys_adapters(ent: CoreEntity, args: list): return f'{player_adapter}'
+async def sys_unauthorized(ent: CoreEntity, args: list): return "您没有权限执行此调用"
+async def sys_announcement(ent: CoreEntity, args: list): 
+    announcement(' '.join(args), [ent.source])
+    return '广播成功'
 async def sys_send(ent: CoreEntity, args: list):
     # await websocket.send(' '.join(args))
     ap = ArgumentParser('send')
@@ -141,13 +152,7 @@ async def sys_send(ent: CoreEntity, args: list):
         return '发送成功'
 
 
-switcher_t = {
-    'exec': sys_exec,
-    'eval': sys_eval,
-    'run': sys_run,
-    'send': sys_send,
-    'adapters': sys_adapters,
-}
+
 
 @logger.catch
 async def handle_inbound(
@@ -193,6 +198,14 @@ async def handle_inbound(
         await ses.send(CoreEntity.wrap_rawstring(str(syncid)))
         if vkey == cfg.quic_admin_key: # 简单的鉴权
             async def handle_sudo(ato):
+                switcher_t = {
+                    'exec': sys_exec,
+                    'eval': sys_eval,
+                    'run': sys_run,
+                    'send': sys_send,
+                    'adapters': sys_adapters,
+                    'announce': sys_announcement,
+                }
                 if ato:
                     c, *ato = ato
                 resp: str = await switcher_t.get(c, sys_help)(ent, ato)
@@ -203,7 +216,20 @@ async def handle_inbound(
                 await ses.send(ent)
         else:
             async def handle_sudo(ato):
-                ent = CoreEntity.wrap_rawstring('您没有权限执行此调用')
+                # ent = CoreEntity.wrap_rawstring('您没有权限执行此调用')
+                # await ses.send(ent)
+
+                switcher_t = {
+                    'send': sys_send,
+                    'adapters': sys_adapters,
+                }
+                if ato:
+                    c, *ato = ato
+                resp: str = await switcher_t.get(c, sys_unauthorized)(ent, ato)
+                if not resp:
+                    resp = 'No returns'
+                logger.critical(resp)
+                ent.chain = MessageChain.auto_make(resp)
                 await ses.send(ent)
         try:
             while 1:
