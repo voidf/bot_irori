@@ -27,7 +27,7 @@
         <div id="login">
             <div>
                 <input id="serverIP" type="text" placeholder="服务器IP" value="127.0.0.1" autofocus="autofocus" />
-                <input id="serverPort" type="text" placeholder="服务器端口" value="18081" />
+                <input id="serverPort" type="text" placeholder="服务器端口" value="28080" />
                 <input id="serverPath" type="text" placeholder="路径" value="/" />
                 <input id="btnConnect" type="button" value="连接" onclick="connect()" />
             </div>
@@ -54,7 +54,7 @@
             try {
  
                 socket.onopen = function (msg) {
-                    $("btnConnect").disabled = true;
+                    // $("btnConnect").disabled = true;
                     alert("连接成功！");
                 };
  
@@ -82,7 +82,7 @@
             
 
             //console.log(msg+String.fromCharCode(2,3,3));
-            socket.send(msg+String.fromCharCode(2,3,3));
+            socket.send(msg);
         }
  
         window.onbeforeunload = function () {
@@ -122,3 +122,15 @@
         document.onkeydown=function(event) { if (event.keyCode == 13) { send();} }
     </script>
 </html>
+
+<!-- 
+{            
+"syncId": -1,
+"command": "sendFriendMessage", 
+"subCommand": null,             
+"content": {
+    "target":114514,
+    "messageChain":[{ "type":"Plain", "text":"hello\n" }]
+}                   
+}
+ -->
