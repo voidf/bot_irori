@@ -134,7 +134,7 @@ async def sys_unauthorized(ent: CoreEntity, args: list): return "您没有权限
 async def sys_announcement(ent: CoreEntity, args: list): 
     announcement(' '.join(args), [ent.source])
     return '广播成功'
-async def sys_send(ent: CoreEntity, args: list):
+async def sys_sendp(ent: CoreEntity, args: list):
     # await websocket.send(' '.join(args))
     ap = ArgumentParser('send')
     ap.add_argument('target', type=str, help='送往对象player号，若是QQ应该是一个整数')
@@ -147,6 +147,22 @@ async def sys_send(ent: CoreEntity, args: list):
         return '找不到player对应的adapter'
     else:
         sendto: QUICServerSession = adapters[player_adapter[pap.target]]
+        ent.chain = MessageChain.auto_make(pap.content)
+        await sendto.send(ent) # 保证送出去的还是CoreEntity
+        return '发送成功'
+async def sys_sends(ent: CoreEntity, args: list):
+    # await websocket.send(' '.join(args))
+    ap = ArgumentParser('send')
+    ap.add_argument('target', type=str, help='送往对象终端号(syncid)')
+    ap.add_argument('content', type=str, help='消息内容')
+    try:
+        pap = ap.parse_args(args)
+    except Exception as e:
+        return '发送失败：' + str(e) + ap.format_help()
+    if pap.target not in adapters:
+        return '找不到syncid对应的adapter'
+    else:
+        sendto: QUICServerSession = adapters[pap.target]
         ent.chain = MessageChain.auto_make(pap.content)
         await sendto.send(ent) # 保证送出去的还是CoreEntity
         return '发送成功'
@@ -202,7 +218,8 @@ async def handle_inbound(
                     'exec': sys_exec,
                     'eval': sys_eval,
                     'run': sys_run,
-                    'send': sys_send,
+                    'send': sys_sendp,
+                    'sends': sys_sends,
                     'adapters': sys_adapters,
                     'announce': sys_announcement,
                 }
@@ -220,7 +237,8 @@ async def handle_inbound(
                 # await ses.send(ent)
 
                 switcher_t = {
-                    'send': sys_send,
+                    'send': sys_sendp,
+                    'sends': sys_sends,
                     'adapters': sys_adapters,
                 }
                 if ato:

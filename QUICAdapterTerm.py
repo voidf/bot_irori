@@ -30,6 +30,60 @@ from basicutils.socketutils import *
 class QUICTerminalSession(QUICSessionBase):
     def initialize(self):
         pass
+    async def pulling_loop(self):
+        while 1:
+            ent = await self.recv()
+            plaintext = ent.chain.onlyplain()
+            if plaintext:
+                logger.info('文本内容：\n{}', plaintext)
+            sysinfo = ent.unpack_rawstring()
+            if sysinfo:
+                logger.warning('系统消息：\n{}', sysinfo)
+    async def command_loop(self, syncid: str):
+        self.syncid = syncid
+        asyncio.ensure_future(self.pulling_loop())
+        app = ArgumentParser('command')
+        app.add_argument('cmd', choices=[
+            'send', 'raw', 'hex', 'eval', 'sudo'
+        ])
+        session = PromptSession('(irori - Terminal)>')
+        while 1:
+            try:
+                cmdlist = (await session.prompt_async()).split()
+                session.message = '(irori - Terminal OwO)>'
+                if not cmdlist:
+                    continue
+                cmd, *ato = cmdlist
+                logger.debug(ato)
+                
+                if cmd == 'send':
+                    ent = CoreEntity(
+                        chain=MessageChain.auto_make(' '.join(ato)),
+                        player=playerid,
+                        source=syncid,
+                        meta={}
+                    )
+                    logger.debug('SEND {}', ent.json())
+                    await self.send(ent)
+                elif cmd == 'sudo':
+                    ent = CoreEntity(
+                        chain=MessageChain.auto_make(' '.join(['sudo'] + ato)),
+                        player=playerid,
+                        source=syncid,
+                        meta={}
+                    )
+                    logger.debug('SEND {}', ent.json())
+                    await self.send(ent)
+                # elif cmd == ''
+
+            except KeyboardInterrupt:
+                break
+            except:
+                logger.debug(traceback.format_exc())
+                session.message = '(irori - Terminal QwQ)>'
+                app.print_help()
+                # print("send")
+
 
 
 import concurrent.futures
@@ -72,55 +126,11 @@ async def run():
             ses = QUICTerminalSession(reader, writer)
             syncid = (await ses.recv()).unpack_rawstring()
             logger.critical("您的终端号：{}", syncid)
+            await ses.command_loop(syncid)
 
-            async def pulling_loop():
-                while 1:
-                    ent = await ses.recv()
-                    plaintext = ent.chain.onlyplain()
-                    if plaintext:
-                        logger.info('文本内容：\n{}', plaintext)
-                    sysinfo = ent.unpack_rawstring()
-                    if sysinfo:
-                        logger.warning('系统消息：\n{}', sysinfo)
-            asyncio.ensure_future(pulling_loop())
-            app = ArgumentParser('command')
-            app.add_argument('cmd', choices=[
-                'send', 'raw', 'hex', 'eval'
-            ])
-            session = PromptSession('(irori)>')
-            while 1:
-                try:
-                    cmdlist = (await session.prompt_async()).split()
-                    session.message = '(irori OwO)>'
-                    if not cmdlist:
-                        continue
-                    cmd, *ato = cmdlist
-                    logger.debug(ato)
-                    
-                    if cmd == 'send':
-                        # player, message = cmdlist
-                        ent = CoreEntity(
-                            chain=MessageChain.auto_make(' '.join(ato)),
-                            player=playerid,
-                            source=syncid,
-                            meta={}
-                        )
-                        # tosend = ent.json()
-                        logger.debug('SEND {}', ent.json())
-                        await ses.send(ent)
-
-                except KeyboardInterrupt:
-                    break
-                except:
-                    logger.debug(traceback.format_exc())
-                    session.message = '(irori QwQ)>'
-                    app.print_help()
-                    # print("send")
-
+            
+            
                 
-                        
-
-
 if __name__ == "__main__":
     playerid = 'T' + input('随便取一个playerid？>>>')
     loop = asyncio.get_event_loop()

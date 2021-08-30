@@ -61,18 +61,11 @@ if __name__ == '__main__':
 
 
     from GLOBAL import cfg
-    banGroup = {int(k):v for k,v in cfg.get('banGroup',{}).items()}
-    allowGroup = {int(k):v for k,v in cfg.get('allowGroup',{}).items()}
-    botList = set(cfg.get('botList',[]))
-    GLOBAL.proxy = cfg.get('proxy',{})
-    muteList = set(cfg.get('muteList',[]))
-    masterID = set(cfg.get('masters',[]))
-    GLOBAL.enable_this = set(cfg.get('enables',[0]))
-    GLOBAL.lengthLim = cfg.get('lengthLim',500)
-    GLOBAL.compressFontSize = cfg.get('fontSize',18)
-    GLOBAL.echoMsg = cfg.get('echoMsg',False)
-    GLOBAL.AVGHost = cfg.get('AVGHost','')
-    GLOBAL.OJHost = cfg.get('OJHost','')
+    GLOBAL.proxy = cfg.proxy
+    GLOBAL.enable_this = set(cfg.enables)
+    GLOBAL.lengthLim = cfg.length_limit
+    GLOBAL.compressFontSize = cfg.font_size
+    GLOBAL.echoMsg = cfg.motd
 
     import Callable
 
@@ -95,9 +88,9 @@ if __name__ == '__main__':
         chat.append(message)
 
 
-    for k,v in banGroup.items(): chkcfg(int(k)+2**39).restrict_cmd = set(v)
+    for k,v in cfg.ban_group.items(): chkcfg(int(k)+2**39).restrict_cmd = set(v)
 
-    for k,v in allowGroup.items(): chkcfg(int(k)+2**39).allow_cmd = set(v)
+    for k,v in cfg.allow_group.items(): chkcfg(int(k)+2**39).allow_cmd = set(v)
 
 
     SHELL = {}
@@ -196,7 +189,7 @@ if __name__ == '__main__':
         extDict['pics'] = pic
         if member in tc.super_users:extDict['sudo'] = True
         if s[0] == 'sudo':
-            if member in masterID:
+            if member in cfg.masters:
                 s.pop(0)
                 extDict['sudo'] = True
         if GLOBAL.echoMsg:print(f"""{message}""")
@@ -274,7 +267,7 @@ if __name__ == '__main__':
 
         s = msgprework(message,extDict)
         m = getmem(extDict['mem'])
-        if m not in botList:
+        if m not in cfg.ignore_list:
             await cmdResolver(player, s, message, extDict)
 
     @irori.receiver("FriendMessage")
@@ -290,7 +283,7 @@ if __name__ == '__main__':
 
         s = msgprework(message,extDict)
 
-        if hurenzu.id not in muteList:
+        if hurenzu.id not in cfg.ignore_list:
             await cmdResolver(player, s, message, extDict)
 
     async def hajime(bot):

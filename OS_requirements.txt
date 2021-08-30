@@ -27,3 +27,6 @@ numpy
 colorclass
 terminaltables
 
+# legacy
+graia-application-mirai==0.15.5
+graia-broadcast==0.6.4

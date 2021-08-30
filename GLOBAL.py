@@ -16,6 +16,8 @@ import logging
 # print = logging.debug()
 
 import asyncio, importlib, traceback
+from loguru import logger
+@logger.catch
 def importMirai():
 	global py_mirai_version
 	global Mirai, Session, FriendMessage, GroupMessage, ApplicationLaunched, ApplicationShutdowned
@@ -41,6 +43,7 @@ def importMirai():
 		Friend = getattr(importlib.import_module("graia.application.friend"),"Friend")
 		py_mirai_version = 4
 	except ImportError:
+		traceback.print_exc()
 		Mirai = getattr(importlib.import_module("mirai"),"Mirai")
 		Plain = getattr(importlib.import_module("mirai"),"Plain")
 		MessageChain = getattr(importlib.import_module("mirai"),"MessageChain")
@@ -59,11 +62,15 @@ importMirai()
 
 import json
 
-with open('cfg.json','r',encoding='utf-8') as f:
-	cfg = json.load(f)
-	qq = int(cfg['authdata']['qq'])
-	authKey = cfg['authdata']['token']
-	host = cfg['authdata']['url']
+import cfg
+qq = cfg.authdata['qq']
+authKey = cfg.authdata['token']
+host = cfg.authdata['url']
+# with open('cfg.json','r',encoding='utf-8') as f:
+# 	cfg = json.load(f)
+# 	qq = int(cfg['authdata']['qq'])
+# 	authKey = cfg['authdata']['token']
+# 	host = cfg['authdata']['url']
 	# httpapi所在主机的地址端口,如果 setting.yml 文件里字段 "enableWebsocket" 的值为 "true" 则需要将 "/" 换成 "/ws", 否则将接收不到消息.
 
 if py_mirai_version == 3:
@@ -73,11 +80,12 @@ if py_mirai_version == 3:
 else:
 	loop = asyncio.get_event_loop()
 	irori = Broadcast(loop=loop)
+	
 	qqbot = Mirai(
 		broadcast = irori,
 		connect_info = Session(
 			host = host,
-			authKey = authKey,
+			verifyKey = authKey,
 			account = qq,
 			websocket = False
 		)
