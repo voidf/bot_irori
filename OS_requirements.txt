@@ -1,6 +1,6 @@
 # quic depends
-aioquic
-mongoengine
+# aioquic
+
 
 # adapters
 prompt_toolkit
@@ -38,7 +38,7 @@ graia-broadcast==0.6.4
 # or
 # import os
 # os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
-
+mongoengine
 celery
 fastapi
 flower # celery -A modulo flower

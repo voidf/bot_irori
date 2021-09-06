@@ -172,11 +172,11 @@ def read_matrix_matlab(s):
 def CalC(chain: MessageChain, meta: dict = {}):
     """#组合数 [#C]
     两个参数计算组合数，一个参数计算阶乘
-例:
-    #C 9 7
-    计算组合数C(9,7)
-    #C 20
-    计算阶乘20!
+    例:
+        #C 9 7
+        计算组合数C(9,7)
+        #C 20
+        计算阶乘20!
     """
     attrs = chain.tostr().split(' ')
     if len(attrs)==3:
@@ -198,11 +198,14 @@ def CalC(chain: MessageChain, meta: dict = {}):
 
 def CalA(chain: MessageChain, meta: dict = {}):
     """#排列数 [#A]
-
+    计算排列数，例:#A 3 3
     """
     return CalC(MessageChain.auto_merge("A ", chain), meta)
 
-def CalKatalan(*attrs,kwargs={}):
+def CalKatalan(chain: MessageChain, meta: dict = {}):
+    """#K []
+    计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)"""
+    attrs = chain.tostr().split(' ')
     try:
         if len(attrs):
             a = int(attrs[0])
@@ -212,7 +215,11 @@ def CalKatalan(*attrs,kwargs={}):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(*attrs, kwargs={}):
+def 统计姬from104(chain: MessageChain, meta: dict = {}):
+    """#统计 [#stat]
+    焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10
+    """
+    attrs = chain.tostr().split(' ')
     l=[float(x) for x in attrs]
     s = 0
     for i in l:
@@ -242,7 +249,8 @@ def 统计姬from104(*attrs, kwargs={}):
     return ostr
 
 def QM化简器(*attrs, kwargs={}):
-    """用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
+    """#QM []
+    用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
 用法：
     #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
     #QM <原式的逻辑式表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
@@ -558,10 +566,10 @@ def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0])
     
 functionMap = {
     '#QM':QM化简器,
-    '#C':CalC,
-    '#A':CalA,
-    '#K':CalKatalan,
-    '#统计':统计姬from104,
+    # '#C':CalC,
+    # '#A':CalA,
+    # '#K':CalKatalan,
+    # '#统计':统计姬from104,
     '#inv':逆元,
     '#phi':欧拉函数,
     '#CRT':孙子定理,
@@ -571,26 +579,12 @@ functionMap = {
     '#B': 划分数个数
 }
 
-shortMap = {
-    '#stat':'#统计',
-}
+shortMap = {}
 
 functionDescript = {
-    '#K':'计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)',
-    '#A':'计算排列数，例:#A 3 3',
     '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
-    '#统计':'焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10',
     '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
     '#phi': '算欧拉函数',
-    '#C':
-'''
-两个参数计算组合数，一个参数计算阶乘
-例:
-    #C 9 7
-    计算组合数C(9,7)
-    #C 20
-    计算阶乘20!
-''',
     '#线代':
 """线代工具箱，底层是numpy，能算一些矩阵相关
 用法：
