@@ -30,3 +30,17 @@ terminaltables
 # legacy
 graia-application-mirai==0.15.5
 graia-broadcast==0.6.4
+
+# irori distribution system
+# Server `apt-get install rabbitmq-server`
+# for windows `choco install rabbitmq`
+# using command `celery -A test3_celery -P eventlet`
+# or
+# import os
+# os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
+
+celery
+fastapi
+flower # celery -A modulo flower
+python-jose[cryptography]
+passlib[bcrypt]

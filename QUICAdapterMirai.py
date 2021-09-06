@@ -80,6 +80,7 @@ class QUICMiraiSession(QUICSessionBase):
                     await self.send(ent)
                 elif cmd == 'api':
                     content = ' '.join(ato)
+                    logger.debug('SEND {}', content)
                     await self.ws.send_json(content)
             except KeyboardInterrupt:
                 break
@@ -97,7 +98,7 @@ class QUICMiraiSession(QUICSessionBase):
             if msg.type == aiohttp.WSMsgType.TEXT:
                 logger.critical(msg.data)
                 j = json.loads(msg.data)
-                if 'type' in j['data']:
+                if 'data' in j and 'type' in j['data']:
                     if j['data']['type'] == 'GroupMessage':
                         ent = CoreEntity(
                             player=str(j['data']['sender']['group']['id'] + (1<<39)),

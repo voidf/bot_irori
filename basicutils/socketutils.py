@@ -280,6 +280,14 @@ class CoreEntity(BaseModel):
             source='',
             meta=mt
         )
+    @classmethod
+    def wrap_strchain(cls, msg: str):
+        return cls(
+            chain=MessageChain.auto_make(msg),
+            player='',
+            source='',
+            meta={}
+        )
     def unpack_rawstring(self) -> str:
         return self.meta.get('msg', '')
     @classmethod
