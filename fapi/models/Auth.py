@@ -6,6 +6,6 @@ class Role(Base, Document):
     name = StringField(primary_key=True)
 
 class Adapter(Base, Document):
-    name = StringField(primary_key=True)
+    username = StringField(primary_key=True)
     password = StringField()
     role = ReferenceField(Role)
