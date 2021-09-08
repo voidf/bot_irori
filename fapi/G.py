@@ -1,1 +1,1 @@
-alive_adapters = {}
+adapters = {}
