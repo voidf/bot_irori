@@ -8,8 +8,10 @@ import os
 from typing import Union
 from loguru import logger
 from basicutils.taskutils import ArgumentParser
+from typing import Union
 import asyncio
 import traceback
+
 
 # @logger.catch
 # def announcement(msg: Union[str, CoreEntity], ignored=[]):
@@ -31,9 +33,9 @@ async def sys_run(ent: CoreEntity, args: list): return f"""{os.popen(' '.join(ar
 async def sys_help(ent: CoreEntity, args: list): return '目前仅支持exec, eval, run, send四个命令'
 async def sys_adapters(ent: CoreEntity, args: list): return f'{fapi.G.adapters}'
 async def sys_unauthorized(ent: CoreEntity, args: list): return "您没有权限执行此调用"
-async def sys_announcement(ent: CoreEntity, args: list): 
-    announcement(' '.join(args), [ent.source])
-    return '广播成功'
+# async def sys_announcement(ent: CoreEntity, args: list): 
+    # announcement(' '.join(args), [ent.source])
+    # return '广播成功'
 # async def sys_sendp(ent: CoreEntity, args: list):
 #     # await websocket.send(' '.join(args))
 #     ap = ArgumentParser('send')
@@ -68,12 +70,13 @@ async def sys_announcement(ent: CoreEntity, args: list):
 #         return '发送成功'
 
 def encrypt(s: str) -> str:
-    return hashlib.sha256((s + salt).encode('utf-8')).hexdigest().encode('utf-8')
+    return hashlib.sha256((s + salt).encode('utf-8')).hexdigest()
 
 
-def generate_jwt(adapter: Adapter):
+def generate_jwt(adapter: Union[Adapter, str]):
     token_dict = {
-        'id': str(adapter.pk)
+        'id': str(adapter.pk) if isinstance(adapter, Adapter) else adapter,
+        'ts': str(datetime.datetime.now().timestamp())
     }
     return jwt.encode(
         token_dict,  # payload, 有效载体
@@ -90,3 +93,19 @@ def verify_jwt(token):
     except:
         traceback.print_exc()
         return None, "数据错误"
+
+def trueReturn(data=None, msg="", code=0):
+    return {
+        'data': data,
+        'msg': msg,
+        'status': True
+    }
+
+from fastapi import HTTPException
+
+def falseReturn(code=500, msg="", data=None):
+    raise HTTPException(code, {
+        'data': data,
+        'msg': msg,
+        'status': False
+    })

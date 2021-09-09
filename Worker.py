@@ -14,6 +14,9 @@ app.config_from_object('celeryconfig')
 from basicutils.socketutils import *
 from loguru import logger
 import traceback
+import requests
+from cfg import dist_host, web_port
+
 
 @app.task
 def task(s: str):
@@ -22,7 +25,14 @@ def task(s: str):
     res = sub_task(ent)
     logger.critical(res)
     ent.chain = res
-    return ent.json()
+    if len(ent.chain.__root__):
+        resp = requests.post(
+            f"{dist_host}:{web_port}/worker/submit",
+            data={"ents":ent.json()}
+        )
+        if resp.status_code!=200:
+            logger.critical(resp.text)
+    # return ent.json()
 
 @app.task
 def pull():
