@@ -16,5 +16,6 @@ cfg.bak
 tt.py
 ssl/
 cfg.py
+celeryconfig.py
 
 fapi/webcfg.py
