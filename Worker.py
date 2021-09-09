@@ -28,7 +28,7 @@ def task(s: str):
     if len(ent.chain.__root__):
         resp = requests.post(
             f"{dist_host}:{web_port}/worker/submit",
-            data={"ents":ent.json()}
+            json={"ents":ent.json()}
         )
         if resp.status_code!=200:
             logger.critical(resp.text)
