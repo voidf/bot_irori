@@ -248,43 +248,62 @@ def 统计姬from104(chain: MessageChain, meta: dict = {}):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(*attrs, kwargs={}):
+def QM化简器(chain: MessageChain, meta: dict = {}):
     """#QM []
     用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
-用法：
-    #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
-    #QM <原式的逻辑式表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
-例:
-    #QM 1,4,2,8,5,7 --var=a,b,c,d
-    #QM b'd+a'bc'+a'bcd' --dc=1,2 --var=a,b,c,d"""
-    v = attrs
+    用法：
+        #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
+        #QM <原式的逻辑式表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
+    例:
+        #QM 1,4,2,8,5,7 --var=a,b,c,d
+        #QM b'd+a'bc'+a'bcd' --dc=1,2 --var=a,b,c,d"""
+    v = chain.tostr().split(' ')
     if v[0].count(',') >= 1: # 最小项输入
 
         return [Plain(quine_mccluskey.qmccluskey.maid(
             minterms=v[0].split(','), 
-            argsdont_cares=kwargs.get('-dc', ''),
-            argsvariables=kwargs.get('-var', '')
+            argsdont_cares=meta.get('-dc', ''),
+            argsvariables=meta.get('-var', '')
         ))]
 
     else:
         return [Plain(quine_mccluskey.qmccluskey.maid(
             argssop=v[0], 
-            argsdont_cares=kwargs.get('-dc', ''),
-            argsvariables=kwargs.get('-var', '')
+            argsdont_cares=meta.get('-dc', ''),
+            argsvariables=meta.get('-var', '')
         ))]
 
-def 打印真值表(*attrs, kwargs={}):
-    s = FindTruth(' '.join(attrs))
+def 打印真值表(chain: MessageChain, meta: dict = {}):
+    """#真值表 []
+    用给定的逻辑式生成真值表，注意除了非运算外其他运算同级
+    即从左到右计算，如需要请加括号
+        非 !
+        与 &
+        或 |
+        异或 ^
+        由...可得... >
+        当且仅当.... =
+    例:
+        #真值表 !A|(B^C)
+    """
+    s = FindTruth(chain.tostr())
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(*attrs, kwargs={}): return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
+def 逆元(chain: MessageChain, meta: dict = {}):
+    """#inv []
+    求给定的x在模m意义下的逆元（exgcd\n用法：#inv <x> <m>
+    """
+    attrs = chain.tostr().split(' ')
+    return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 欧拉函数(*attrs, kwargs={}):
-    """求给定值的欧拉函数
+def 欧拉函数(chain: MessageChain, meta: dict = {}):
+    """#phi []
+    求给定值的欧拉函数
     :param x: 待求值x
     :return:
         int: φ(x)
     """
+    attrs = chain.tostr().split(' ')
     x = int(attrs[0])
     res = x
     upp = x**0.5
@@ -299,8 +318,19 @@ def 欧拉函数(*attrs, kwargs={}):
         return [Plain(f'{x}是质数\n{res}')]
     return [Plain(f'{res}')]
 
-def 孙子定理(*attrs, kwargs={}):
-    il = ' '.join(attrs).strip().split()
+def 孙子定理(chain: MessageChain, meta: dict = {}):
+    """#CRT [#crt]
+    用中国剩余定理解剩余方程
+    输入格式：
+        模数1 余数1 模数2 余数2 ...
+    当然如果你愿意可以以回车或者空格-回车交替这样分隔输入
+    又如：
+        模数1 余数1
+        模数2 余数2
+        ...
+    如果有解，返回值是满足所有剩余方程的最小结果
+    """
+    il = chain.tostr().strip().split()
     li = []
     for i in il:
         if i.isdigit():
@@ -323,11 +353,15 @@ def 孙子定理(*attrs, kwargs={}):
             r = ((getinv(M2//G, M1//G) * (C1 - C2) // G) % (M1 // G) * M2 + C2) % f
         return [Plain(str(r))]
 
-def 计算器(*attrs, kwargs={}):
-    """计算中缀表达式
+def 计算器(chain: MessageChain, meta: dict = {}):
+    """#计算器 [#calc]
+    计算中缀表达式
     :param exp: 待求表达式（python风格）exp
     :return:
         Union[int, float, complex]: result"""
+
+    attrs = chain.tostr().split(' ')
+
     player = getPlayer(**kwargs)
     if attrs[0] in GLOBAL.subscribes:
         overwriteSniffer(player, '#计算器', r'^[abcdefABCDEFoxj.0-9\s+-/*&^<>~=|%\(\)]+$')
@@ -338,11 +372,13 @@ def 计算器(*attrs, kwargs={}):
     exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
     return [Plain(f"{exp} = {res}")]
 
-def 逆波兰(*attrs, kwargs={}):
-    """计算逆波兰表达式
+def 逆波兰(chain: MessageChain, meta: dict = {}):
+    """#逆波兰 [#nbl]
+    计算逆波兰表达式
     :param exp: 待求表达式（默认空格分隔）exp
     :return:
         Union[int, float, complex]: result"""
+    attrs = chain.tostr().split(' ')
     player = getPlayer(**kwargs)
     op1 = []
     op2 = []
@@ -377,10 +413,27 @@ def 逆波兰(*attrs, kwargs={}):
     print(op1, op2)
     return [Plain(f'{op1[0]}\n{op2[0]}')]
 
-逆波兰.SHORTS = ['#nbl']
+def 老线代bot了(chain: MessageChain, meta: dict = {}):
+    """#线代 []
+    线代工具箱，底层是numpy，能算一些矩阵相关
+    用法：
+        #线代 <操作命令> <矩阵1> <矩阵2>
+        #线代 <操作命令> <矩阵1>
+        #线代 <操作命令> <向量1> <向量2>
+        #线代 <操作命令> <向量1>
+    二目（需要两个参数）操作命令包括：
+        乘，加，减，解方程，叉乘，点乘
+    单目操作命令包括：
+        求逆，转置，行列式，特征值，秩
+    输入矩阵格式仿照matlab：
+    如1,1,4;5,1,4代表矩阵
+        [1 1 4]
+        [5 1 4]
+    例:
+        #线代 乘 1,1,4;5,1,4;9,3,1 1,9,1;9,1,9;8,1,0
+    """
+    attrs = chain.tostr().split(' ')
 
-def 老线代bot了(*attrs, kwargs={}):
-    print(attrs)
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
         B = read_matrix_matlab(attrs[2])
@@ -429,7 +482,11 @@ def 老线代bot了(*attrs, kwargs={}):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-def 离散闭包用工具(*attrs, kwargs={}):
+def 离散闭包用工具(chain: MessageChain, meta: dict = {}):
+    """#encap []
+    根据所给二元组表分析关系。例子：#encap a,b a,c a,d
+    """
+    attrs = chain.tostr().split(' ')
     m = {} # 数转名
     r = {} # 名转数
     def addval(v):
@@ -512,15 +569,17 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-def 球盒(*attrs, kwargs={}):
-    """求解把n个球放进m个盒子里面有多少种方案的问题。
-必须指定盒子和球以及允不允许为空三个属性。
-用法：
-    #球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
-用例：
-    #球盒 110 20 5
+def 球盒(chain: MessageChain, meta: dict = {}):
+    """#球盒 []
+    求解把n个球放进m个盒子里面有多少种方案的问题。
+    必须指定盒子和球以及允不允许为空三个属性。
+    用法：
+        #球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
+    用例：
+        #球盒 110 20 5
     上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
     # 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
+    attrs = chain.tostr().split(' ')
     if len(attrs)!=3:
         return '不是这么用的！请输入#h #球盒'
     n, m = map(int, attrs[1:3])
@@ -545,12 +604,14 @@ def 球盒(*attrs, kwargs={}):
     else:
         return f"解析不了的属性：{attrs[0]}，我们只吃长度为3的01串喵"
 
-def 十转(*attrs, kwargs={}):
-    """十进制转换为其他进制工具：
-输入格式：
-    #十转 <目标进制> <源十进制数>
-例：
-    #十转 5 261"""
+def 十转(chain: MessageChain, meta: dict = {}):
+    """#十转 []
+    十进制转换为其他进制工具：
+    输入格式：
+        #十转 <目标进制> <源十进制数>
+    例：
+        #十转 5 261"""
+    attrs = chain.tostr().split(' ')
     l = []
     b = int(attrs[0])
     x = int(attrs[1])
@@ -562,71 +623,78 @@ def 十转(*attrs, kwargs={}):
     l.reverse()
     return f"{l}\n{''.join(l)}"
 
-def 划分数个数(*attrs, kwargs={}): return [Plain(A000110_list(int(attrs[0]), kwargs.get('-m', 0)))]
+def 划分数个数(chain: MessageChain, meta: dict = {}):
+    """#B []
+    计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086s
+    """
+    attrs = chain.tostr().split(' ')
+    return [Plain(A000110_list(int(attrs[0]), meta.get('-m', 0)))]
+
+def 素数前缀和(chain: MessageChain, meta: dict = {}):
+    """#min25 []
+    用min_25筛求素数的个数，分布式系统性能测试用
+    用法：
+        #min25 x
+        命令返回小于等于x的所有素数的个数
+    """
+    attrs = chain.tostr().split(' ')
+    tot = 0
+
+    n = int(attrs[0])
+    sqr = int(n**0.5)
+
+    primes, primepref = orafli(sqr+2)
+
+    w = [0] * (sqr + 3) * 2
+    g = [0] * (sqr + 3) * 2
     
+    ind1 = [0] * (sqr + 3)
+    ind2 = [0] * (sqr + 3)
+
+    def valposition(x: int, n: int) -> int:
+        return ind1[x] if x <= sqr else ind2[n//x]
+    def setval(x: int, n: int, tot: int):
+        if x<=sqr:
+            ind1[x] = tot
+        else:
+            ind2[n//x] = tot
+
+    l = 1
+    while l <= n:
+        r = n // (n // l)
+        tot += 1
+        w[tot] = n // l
+
+        setval(n//l, n, tot)
+        g[tot] = n // l - 1
+
+        l = r + 1
+
+    for p, i in enumerate(primes):
+        j = 1
+        while j <= tot and i * i <= w[j]:
+            g[j] -= g[valposition(w[j]//i, n)] - p
+            j += 1
+    return [Plain(text=str(g[1]))]
+
+
 functionMap = {
-    '#QM':QM化简器,
+    # '#QM':QM化简器,
     # '#C':CalC,
     # '#A':CalA,
     # '#K':CalKatalan,
     # '#统计':统计姬from104,
-    '#inv':逆元,
-    '#phi':欧拉函数,
-    '#CRT':孙子定理,
-    '#线代':老线代bot了,
-    '#真值表':打印真值表,
-    '#encap':离散闭包用工具,
-    '#B': 划分数个数
+    # '#inv':逆元,
+    # '#phi':欧拉函数,
+    # '#CRT':孙子定理,
+    # '#线代':老线代bot了,
+    # '#真值表':打印真值表,
+    # '#encap':离散闭包用工具,
+    # '#B': 划分数个数
 }
 
 shortMap = {}
 
 functionDescript = {
-    '#encap':'根据所给二元组表分析关系。例子：#encap a,b a,c a,d',
-    '#B': '计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086',
-    '#phi': '算欧拉函数',
-    '#线代':
-"""线代工具箱，底层是numpy，能算一些矩阵相关
-用法：
-    #线代 <操作命令> <矩阵1> <矩阵2>
-    #线代 <操作命令> <矩阵1>
-    #线代 <操作命令> <向量1> <向量2>
-    #线代 <操作命令> <向量1>
-二目（需要两个参数）操作命令包括：
-    乘，加，减，解方程，叉乘，点乘
-单目操作命令包括：
-    求逆，转置，行列式，特征值，秩
-输入矩阵格式仿照matlab：
-如1,1,4;5,1,4代表矩阵
-    [1 1 4]
-    [5 1 4]
-例:
-    #线代 乘 1,1,4;5,1,4;9,3,1 1,9,1;9,1,9;8,1,0
-""",
-    '#真值表':
-"""
-用给定的逻辑式生成真值表，注意除了非运算外其他运算同级
-即从左到右计算，如需要请加括号
-    非 !
-    与 &
-    或 |
-    异或 ^
-    由...可得... >
-    当且仅当.... =
-例:
-    #真值表 !A|(B^C)
-""",
-    '#inv':'求给定的x在模m意义下的逆元（exgcd\n用法：#inv <x> <m>',
-    '#CRT':
-"""
-用中国剩余定理解剩余方程
-输入格式：
-    模数1 余数1 模数2 余数2 ...
-当然如果你愿意可以以回车或者空格-回车交替这样分隔输入
-又如：
-    模数1 余数1
-    模数2 余数2
-    ...
-如果有解，返回值是满足所有剩余方程的最小结果
-"""
+    # '#B': '',
 }

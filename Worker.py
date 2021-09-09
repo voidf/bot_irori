@@ -64,7 +64,8 @@ def sub_task(task: CoreEntity) -> MessageChain:
             if not attrs or not cop:
                 l.append('已导入的模块：')
                 for k, v in app_doc.items():
-                    l.append(f'''\t{k} {v}''')
+                    l.append(f'''    {k} {v}''')
+                l.append(f'共计{len(tot_funcs)}个命令')
                 l.append('''输入#h <模块名> 以查询模块下命令
         使用#h <命令名> 可以查询详细用法
         使用#h search <关键字> 可以按照关键字查找相关命令
@@ -112,6 +113,8 @@ def sub_task(task: CoreEntity) -> MessageChain:
             return [Plain('\n'.join(l))] + img + ext
 
         for applications in os.listdir(app_dir):
+            if applications[0] == '_':
+                continue
             logger.debug(f'importing ... {applications}')
             pkgname = os.path.splitext(applications)[0]
             if os.path.isdir(app_dir + applications):

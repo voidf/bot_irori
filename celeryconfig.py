@@ -6,3 +6,4 @@ result_expires = 3600
 
 imports = tuple()
 worker_pool_restarts = True
+# cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }'

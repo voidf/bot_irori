@@ -265,7 +265,7 @@ def quickpow(x,p,m = -1):
 def A072233_list(n: int, m: int, mod=0) -> list:
     """n个无差别球塞进m个无差别盒子方案数"""
     mod = int(mod)
-    f = [[0] * (m + 1)] * (n + 1)
+    f = [[0 for j in range(m+1)] for i in range(n+1)]
     f[0][0] = 1
     for i in range(1, n+1):
         for j in range(1, min(i+1, m+1)): # 只是求到m了话没必要打更大的
@@ -276,7 +276,7 @@ def A072233_list(n: int, m: int, mod=0) -> list:
 def A048993_list(n: int, m: int, mod=0) -> list:
     """第二类斯特林数"""
     mod = int(mod)
-    f = [1] + [0] * m
+    f = [1] + [0 for i in range(m)]
     for i in range(1, n+1):
         for j in range(min(m, i), 0, -1):
             f[j] = f[j-1] + f[j] * j
