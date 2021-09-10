@@ -65,7 +65,7 @@ class MiraiSession():
                 elem.text = ' '.join(ato)
 
     async def upload(self, ent: CoreEntity):
-        """将消息链往mirai发送"""
+        """将消息链往mirai发送，实际上只取用了player和chain，后继应该支持meta特殊处理"""
         try:
             pi = int(ent.player)
             payload = {

@@ -40,6 +40,22 @@ class Base():
         if hasattr(self, 'id'):
             d['id'] = str(self.id)
         return d
+    @classmethod
+    def chk(cls, pk):
+        if isinstance(pk, cls):
+            return pk
+        tmp = cls.objects(pk=pk).first()
+        if not tmp:
+            return cls(pk=pk).save()
+        return tmp
+    @classmethod
+    def trychk(cls, pk):
+        if isinstance(pk, cls):
+            return pk
+        tmp = cls.objects(pk=pk).first()
+        if not tmp:
+            return None
+        return tmp
 
 class SaveTimeBase(Base):
     create_time = DateTimeField()
@@ -59,4 +75,31 @@ class SaveTimeBase(Base):
         d['create_time'] = self.create_time.strftime('%Y-%m-%d')
         return d
 
+class Player(Document, Base):
+    pid = StringField(primary_key=True)
+    items = DictField()
+    def __int__(self):
+        return int(self.pid)
+    def __str__(self):
+        return str(self.pid)
+    @classmethod
+    def chk(cls, pk):
+        return super().chk(str(pk))
 
+class RefPlayerBase(Base):
+    _player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
+    @classmethod
+    def chk(cls, pk):
+        if isinstance(pk, Player):
+            return super().chk(pk)
+        else:
+            return super().chk(Player.chk(pk))
+    @classmethod
+    def trychk(cls, pk):
+        if isinstance(pk, Player):
+            return super().trychk(pk)
+        else:
+            return super().trychk(Player.chk(pk))
+    @property
+    def player(self):
+        return Player.chk(self._data['_player'].id)

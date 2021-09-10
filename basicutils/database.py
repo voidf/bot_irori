@@ -108,6 +108,25 @@ class RefPlayerBase(Base):
     def player(self):
         return Player.chk(self._data['_player'].id)
 
+# from abc import ABC, abstractmethod
+# class Routiner(RefPlayerBase, Document):
+#     meta = {'allow_inheritance': True}
+#     adapterid = StringField()
+
+#     @classmethod
+#     async def recover_routiners(cls):
+#         for sc in cls.__subclasses__():
+#             sc.resume()
+
+#     @classmethod
+#     async def resume(cls):
+#         raise NotImplementedError
+
+# class CodeforcesRoutinuer(Routiner):
+#     mode = StringField(default='Y')
+#     @classmethod
+#     def resume(cls):
+
 
 class CFSubscribe(RefPlayerBase, Document):
     mode = StringField(default='Y')

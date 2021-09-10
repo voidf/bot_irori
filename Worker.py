@@ -1,3 +1,4 @@
+"""Worker在windows下或wsl2下会出问题，不能超时kill掉"""
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 from celery import Celery
@@ -40,6 +41,8 @@ def pull():
     return cmdres
 
 def sub_task(task: CoreEntity) -> MessageChain:
+    task.meta['player'] = task.player
+    task.meta['source'] = task.source
     import os
     import importlib
     import inspect
@@ -56,7 +59,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
             kwargs = meta
             cop = chain.onlyplain()
             attrs = cop.split(' ')
-            logger.warning(attrs)
+            # logger.warning(attrs)
             show_limit = int(kwargs.get('-showlim', 20))
             l = []
             img = []
@@ -115,7 +118,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
         for applications in os.listdir(app_dir):
             if applications[0] == '_':
                 continue
-            logger.debug(f'importing ... {applications}')
+            # logger.debug(f'importing ... {applications}')
             pkgname = os.path.splitext(applications)[0]
             if os.path.isdir(app_dir + applications):
                 continue
@@ -155,7 +158,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
                             fname = n
                         funcs.update({fname: f})
                         helps[fname] = f.__doc__
-                        print(funcs)
+                        # print(funcs)
                     # else:
                         # logger.debug(f'\t ignoring {n}')
             app_fun[pkgname] = funcs
@@ -165,10 +168,10 @@ def sub_task(task: CoreEntity) -> MessageChain:
 
         tot_funcs['#h'] = printHelp
 
-        logger.debug(tot_funcs)
-        logger.debug(tot_alias)
+        # logger.debug(tot_funcs)
+        # logger.debug(tot_alias)
 
-        logger.debug(task)
+        # logger.debug(task)
 
         cmd = task.chain.pop_first_cmd()
         cmd = tot_alias.get(cmd, cmd)

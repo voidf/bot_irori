@@ -3,80 +3,68 @@ import os
 if __name__ == '__main__':
     os.chdir('..')
 
-import GLOBAL
+import basicutils.CONST as GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont, ImageDraw
 from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import re
 import asyncio
-import requests
 import json5
 import json
-import numpy
 import random
-import base64
-import qrcode
-import io
-import string
-import math
 import urllib
 import copy
-import ctypes
-import functools
 import traceback
-import http.client
-import statistics
-import csv
-import hashlib
-import zlib
 import time
 import datetime
 import urllib
 import mido
-from Utils import *
-from database_utils import *
+from basicutils.algorithms import *
+from basicutils.network import *
+from basicutils.database import *
+from basicutils.chain import *
 
-importMirai()
+# async def 中药(*attrs, kwargs={}):
+#     """群友贡献的中药笔记整理
+#     按名称查询某个中药信息：
+#     #中药 [药名]
+#     搜索中药信息：
+#     #中药 搜索 [搜索关键字]"""
+#     renderli = [] # int
+#     premsg = ''
+#     def _render():
+#         out = []
+#         ks = GLOBAL.中药title
+#         for i in renderli:
+#             cur = GLOBAL.中药[i].split('^^')
+#             for p, j in enumerate(ks):
+#                 out.append(f"{j}:{cur[p]}")
+#             out.append("\n")
+#         return premsg + '\t'.join(out)
 
-async def 中药(*attrs, kwargs={}):
-    """群友贡献的中药笔记整理
-按名称查询某个中药信息：
-#中药 [药名]
-搜索中药信息：
-#中药 搜索 [搜索关键字]"""
-    renderli = [] # int
-    premsg = ''
-    def _render():
-        out = []
-        ks = GLOBAL.中药title
-        for i in renderli:
-            cur = GLOBAL.中药[i].split('^^')
-            for p, j in enumerate(ks):
-                out.append(f"{j}:{cur[p]}")
-            out.append("\n")
-        return premsg + '\t'.join(out)
+#     def _scan(keyword):
+#         for p, i in enumerate(GLOBAL.中药):
+#             if re.search(keyword, i, re.S):
+#                 renderli.append(p)
 
-    def _scan(keyword):
-        for p, i in enumerate(GLOBAL.中药):
-            if re.search(keyword, i, re.S):
-                renderli.append(p)
-
-    if attrs[0] in ("搜索", "scan", "search"):
-        _scan(attrs[1])
-        premsg = f"检索结果：{len(renderli)}条：\n"
+#     if attrs[0] in ("搜索", "scan", "search"):
+#         _scan(attrs[1])
+#         premsg = f"检索结果：{len(renderli)}条：\n"
         
-    else:
-        if attrs[0] in GLOBAL.中药名索引:
-            renderli.append(GLOBAL.中药名索引[attrs[0]])
-        else:
-            _scan(attrs[0])
-            premsg = "没有这种药，您可能在找：\n"
-    return [Plain(_render())]
+#     else:
+#         if attrs[0] in GLOBAL.中药名索引:
+#             renderli.append(GLOBAL.中药名索引[attrs[0]])
+#         else:
+#             _scan(attrs[0])
+#             premsg = "没有这种药，您可能在找：\n"
+#     return [Plain(_render())]
 
-async def 信用点命令更新订阅姬(*attrs, kwargs={}):
-    player = getPlayer(**kwargs)
+async def 信用点命令更新订阅姬(chain: MessageChain, meta: dict = {}):
+    """#信用点情报 []
+    查看今天用什么命令会对信用点产生影响
+    """
+    player = get_player(meta)
+    attrs = chain.tostr().split(' ')
     if attrs and attrs[0] in GLOBAL.unsubscribes:
         CreditSubscribe.chk(player).delete()
         return [Plain('取消信用点命令更新订阅')]
@@ -179,7 +167,7 @@ async def 投票姬(*attrs, kwargs={}):
     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
     l = list(attrs)
 
-    player = getPlayer(**kwargs)
+    player = get_player(**kwargs)
     
     j = Vote.chk(player)
    
@@ -310,7 +298,7 @@ async def ddl通知姬(*attrs, kwargs={}):
         notice2(kwargs['gp'],kwargs['mb'],kwargs['tit'],kwargs['dtime'])
         return
     else:
-        player = getPlayer(**kwargs)
+        player = get_player(**kwargs)
         ddlQueuer = GLOBAL.ddlQueuerGlobal.setdefault(player,{})
     
     entity = DDLLog.chk(player)
@@ -459,7 +447,7 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
     print(kwargs['mem'])
     print(dir(kwargs['mem']))
     mem = getmem(kwargs['mem'])
-    player = getPlayer(**kwargs)
+    player = get_player(**kwargs)
     entity = DailySignLog.chk(mem)
     from Assets.签到语料 import 宜, 忌, 运势
 
@@ -507,7 +495,7 @@ shortMap = {
 
 functionDescript = {
     '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
-    '#信用点情报':'查看今天用什么命令会对信用点产生影响',
+    '#信用点情报':'',
     '#信用点查询':'查询你的信用点情况',
     '#vote':
 """
