@@ -1,0 +1,1 @@
+uvicorn main:app --host 0.0.0.0 --port 5000 --reload --no-use-colors --ssl-keyfile localhost_key.pem --ssl-certfile localhost_chain.crt

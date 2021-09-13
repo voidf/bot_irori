@@ -173,8 +173,32 @@ class DailySignBackUP(Document):
 class CreditSubscribe(RefPlayerBase, Document):
     pass
 
+import basicutils.CONST
+from basicutils.algorithms import evaluate_expression
 class CreditLog(RefPlayerBase, Document):
     credit = IntField(default=500)
+    @classmethod
+    def get(cls, user: int) -> int:
+        return cls.chk(user).credit
+    @classmethod
+    def upd(cls, user: int, operator: str, val: int) -> bool:
+        """修改用户的信用点
+        参数：
+            [int]user(QQ号)
+            [str]operator(操作符)
+            [int]val(操作数)
+        返回：
+            [bool]是否操作成功
+        用例：
+            CreditLog.upd(114514, '+', 1)
+        """
+        if operator not in basicutils.CONST.credit_operators: return False
+        c = cls.get(user)
+        c, c2 = evaluate_expression(f'{c}{operator}{int(val)}')
+        c2 = c2.strip()
+        cls.chk(user).update(credit=int(c2))
+        return True
+
 
 class Sniffer(Document, RefPlayerBase):
     commands = DictField()

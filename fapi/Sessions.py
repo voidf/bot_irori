@@ -2,7 +2,8 @@ import asyncio
 import aiohttp
 from loguru import logger
 import json
-from basicutils.socketutils import CoreEntity, MessageChain, Plain
+from basicutils.network import *
+from basicutils.chain import *
 from fapi import generate_jwt, verify_jwt
 from Worker import task
 from typing import Union
@@ -32,6 +33,9 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
+                        if j['data']['sender']['group']['id'] != 699731560:
+                            continue
+
                     elif j['data']['type'] == 'FriendMessage':
                         ent = CoreEntity(
                             player=str(j['data']['sender']['id']),
@@ -40,6 +44,7 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
+                        # continue # debug
                     # TODO: 临时消息，系统命令
                     logger.warning(ent)
                     task.delay(ent.json())

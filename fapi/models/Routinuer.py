@@ -1,4 +1,5 @@
 from time import sleep
+from loguru import logger
 
 from mido.messages.messages import Message
 from basicutils import chain
@@ -12,103 +13,194 @@ import math
 import datetime
 from basicutils.network import CoreEntity
 from mongoengine import *
-class Routiner(RefPlayerBase, Document):
+from fapi.models.Auth import *
+
+routiner_namemap = {} # 根据名字查找Routinuer用
+
+class Routiner(Base, Document):
     meta = {'allow_inheritance': True}
-    adapterid = StringField()
-    # cycle = FloatField()
-    # offset = FloatField()
+    adapter = ReferenceField(Adapter)
+    player = ReferenceField(Player)
 
     @classmethod
-    async def recover_routiners(cls, aid: str, ses: aiohttp.ClientSession):
+    async def recover_routiners(cls, aid: str):
         """总恢复入口，不能被重载"""
         for sc in cls.__subclasses__():
-            asyncio.ensure_future(sc.resume(aid, ses))
+            asyncio.ensure_future(sc.resume(aid))
+            routiner_namemap[sc.__name__] = sc
 
     @classmethod
-    async def resume(cls, aid: str, ses: aiohttp.ClientSession):
+    async def resume(cls, aid: str):
         """启动入口，可以放点静态的东西，最好得包括一个future_map"""
         raise NotImplementedError
     
     @classmethod
-    async def cancel(cls, aid: str):
+    async def cancel(cls, aid: str, pid: str):
         """取消订阅接口"""
         raise NotImplementedError
     
+    @classmethod
+    async def add(cls, aid: str, pid: str, meta: dict={}):
+        """添加订阅接口"""
+        raise NotImplementedError
+
     # @classmethod
-    # async def mainloop(cls, aid: str, ses: aiohttp.ClientSession):
+    # async def mainloop(cls, aid: str):
     #     raise NotImplementedError
 
 class CodeforcesRoutinuer(Routiner):
     mode = StringField(default='Y')
 
     @staticmethod
-    async def spider(ses: aiohttp.ClientSession):
-        resp: aiohttp.ClientResponse
-        li = []
-        async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
-            resp.json()
-            j = await resp.json()['result']
-            for i in j:
-                if i['phase'] == 'FINISHED':
-                    break
-                li.append(i)
-                """
-                可用属性：
-                id                  比赛id
-                name                比赛名
-                startTimeSeconds    开始时间戳
-                relativeTimeSeconds 为负数时表示还差多少秒开始
-                durationSeconds     时长
+    async def spider():
+        ses: aiohttp.ClientSession
+        async with aiohttp.ClientSession() as ses:
+            resp: aiohttp.ClientResponse
+            li = []
+            async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
+                resp.json()
+                j = await resp.json()['result']
+                for i in j:
+                    if i['phase'] == 'FINISHED':
+                        break
+                    li.append(i)
+                    """
+                    可用属性：
+                    id                  比赛id
+                    name                比赛名
+                    startTimeSeconds    开始时间戳
+                    relativeTimeSeconds 为负数时表示还差多少秒开始
+                    durationSeconds     时长
 
-                """
-                
+                    """
+                    
         return li
 
-    @staticmethod
-    async def notify(aid: str, player: int, contest: dict):
-        if contest['countdown'] < 3600:
+    @classmethod
+    async def notify(cls, contest: dict):
+        # if isinstance(player, Player):
+        #     player = str(player.pid)
+        if contest['relativeTimeSeconds'] < 3600:
             return
-        await asyncio.sleep(contest['countdown'] - 3600)
-        await fapi.G.adapters[aid].upload(
-            CoreEntity(
-                player=str(player),
-                chain=chain.MessageChain.auto_make(
-                    f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                    f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
-                ),
-                source='',
-                meta={}
-            )
-        )
-
-    @classmethod
-    async def update_futures(cls, aid: str, ses: aiohttp.ClientSession):
-        li = CodeforcesRoutinuer.spider(ses)
-        for subscribers in q:
-            mp = cls.future_map.setdefault(aid, {})
-            for contest in li:
-                if contest['id'] in mp:
-                    mp[contest['id']].cancel()
-                mp[contest['id']] = asyncio.ensure_future(
-                    CodeforcesRoutinuer.notify(aid, subscribers.player, contest)
+        await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
+        q = cls.objects()
+        # if q:
+        for subs in q:
+            if str(subs.adapter) in fapi.G.adapters:
+                await fapi.G.adapters[str(subs.adapter)].upload(
+                    CoreEntity(
+                        player=str(subs.player),
+                        chain=chain.MessageChain.auto_make(
+                            f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                            f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                        ),
+                        source='',
+                        meta={}
+                    )
                 )
-    
+
     @classmethod
-    async def resume(cls, aid: str, ses: aiohttp.ClientSession):
-        cls.future_map = {}
-        q = cls.objects(adapterid=aid)
-        if q:
-            await cls.update_futures(aid, ses)
-        await cls.mainloop(aid, ses)
+    async def update_futures(cls):
+        # q = cls.objects(adapter=Adapter.trychk(aid))
+        # if q:
+        li = CodeforcesRoutinuer.spider()
+            # for subscribers in q:
+                # mp = cls.contest_futures.setdefault(str(aid), {}).setdefault(str(subscribers.player), {})
+        mp =  cls.contest_futures
+        for contest in li:
+            if contest['id'] in mp:
+                mp[contest['id']].cancel()
+            mp[contest['id']] = asyncio.ensure_future(
+                cls.notify(contest)
+            )
+
+    @classmethod
+    async def resume(cls, aid: str):
+        cls.contest_futures = {}
+        await cls.update_futures(aid)
+        await cls.mainloop(aid)
 
 
     @classmethod
-    async def mainloop(cls, aid: str, ses: aiohttp.ClientSession):
+    async def mainloop(cls, aid: str):
         cycle = 86400
         offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
             tosleep = cycle - (datetime.datetime.now() + offset) % cycle
             await asyncio.sleep(tosleep)
-            await cls.update_futures(aid, ses)
+            await cls.update_futures(aid)
 
-        
+    @classmethod
+    async def cancel(cls, aid: str, pid: str):
+        cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
+
+    @classmethod
+    async def add(cls, aid: str, pid: str, meta: dict={}):
+        cls(
+            player=Player.chk(pid),
+            adapter=Adapter.trychk(aid),
+            mode='Y',
+        ).save()
+        # await cls.update_futures(aid)
+
+import random
+import basicutils.CONST as CONST
+from Worker import import_applications
+class CreditInfoRoutinuer(Routiner):
+    @classmethod
+    async def info(cls, meta: dict={}):
+        return ','.join(list(cls.credit_cmds.keys()))
+    @classmethod
+    async def resume(cls, aid: str):
+        # cls.future_map = {}
+        cls.call_map = {
+            'info': cls.info
+        }
+        cls.credit_cmds = {}
+
+        await cls.update_futures(aid)
+        await cls.mainloop(aid)
+
+
+    @classmethod
+    async def mainloop(cls, aid: str):
+        cycle = 86400
+        offset = 3600 * 8 # UTC+8, 24 - 8 = 16
+        while 1:
+            tosleep = cycle - (datetime.datetime.now() + offset) % cycle
+            await asyncio.sleep(tosleep)
+            await cls.update_futures(aid)
+
+    @classmethod
+    async def update_futures(cls):
+        logger.info('重置可用信用点命令...')
+        app_fun, app_doc, tot_funcs, tot_alias = import_applications()
+        ctr = random.randint(3, 9)
+        fs = random.sample(tot_funcs.keys(), k=ctr)
+        op = random.choices(CONST.credit_operators, CONST.credit_operators_weight, k=ctr)
+        vl = random.choices(range(1,5), k=ctr)
+
+        q = cls.objects()
+        # if q:
+        for subs in q:
+            await fapi.G.adapters[str(subs.adapter)].upload(
+                CoreEntity(
+                    player=str(subs.player),
+                    chain=chain.MessageChain.auto_make(
+                        f'今天使用{await cls.info()}这些命令会有惊喜哦（'
+                    ),
+                    source='',
+                    meta={}
+                )
+            )
+
+    @classmethod
+    async def cancel(cls, aid: str, pid: str):
+        cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
+
+    @classmethod
+    async def add(cls, aid: str, pid: str, meta: dict={}):
+        cls(
+            player=Player.chk(pid),
+            adapter=Adapter.trychk(aid)
+        ).save()

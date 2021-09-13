@@ -24,3 +24,7 @@ class ArgumentParser(argparse.ArgumentParser):
             # exc.argument = self._get_action_from_name(exc.argument_name)
             # raise exc
         # super(ArgumentParser, self).error(message)
+
+from cfg import dist_host, web_port
+def server_api(relative_path: str) -> str:
+    return f"{dist_host}:{web_port}{relative_path}"

@@ -1,8 +1,11 @@
 """异步与文件读写类"""
 import os
-if __name__ == '__main__':
-    os.chdir('..')
 
+from aiohttp.client import request
+# if __name__ == '__main__':
+    # os.chdir('..')
+# print(os.listdir('.'))
+# print(__name__)
 import basicutils.CONST as GLOBAL
 from bs4 import BeautifulSoup
 from PIL import ImageFont, ImageDraw
@@ -17,12 +20,22 @@ import copy
 import traceback
 import time
 import datetime
-import urllib
 import mido
 from basicutils.algorithms import *
 from basicutils.network import *
 from basicutils.database import *
 from basicutils.chain import *
+from basicutils.task import *
+# print(MessageChain)
+from loguru import logger
+# import sys
+# print(sys.path)
+# import sys
+# print(sys.path)
+# sys.path.append(os.getcwd())
+from Assets.签到语料 import 宜, 忌, 运势
+import requests
+import copy
 
 # async def 中药(*attrs, kwargs={}):
 #     """群友贡献的中药笔记整理
@@ -59,18 +72,38 @@ from basicutils.chain import *
 #             premsg = "没有这种药，您可能在找：\n"
 #     return [Plain(_render())]
 
-async def 信用点命令更新订阅姬(chain: MessageChain, meta: dict = {}):
+def 信用点命令更新订阅姬(ent: CoreEntity):
     """#信用点情报 []
     查看今天用什么命令会对信用点产生影响
     """
-    player = get_player(meta)
-    attrs = chain.tostr().split(' ')
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
+    # arg = copy.deepcopy(ent)
+    ent.chain = MessageChain.get_empty()
     if attrs and attrs[0] in GLOBAL.unsubscribes:
-        CreditSubscribe.chk(player).delete()
+        # CreditSubscribe.chk(player).delete()
+        resp = requests.delete(
+            server_api('/worker/routiner'),
+            json=ent.json()
+        )
+        if resp.status_code != 200:
+            return traceback.format_exc()
         return [Plain('取消信用点命令更新订阅')]
-    ret = [f'今天使用{",".join(GLOBAL.credit_cmds)}这些命令会有惊喜哦（']
+    ent.meta['call'] = 'info'
+    ent.meta['routiner'] = 'CreditInfoRoutinuer'
+    resp = requests.options(
+        server_api('/worker/routiner'),
+        json=ent.json()
+    ).text
+
+    ret = [f'今天使用{resp}这些命令会有惊喜哦（']
     if attrs and attrs[0] in GLOBAL.subscribes:
-        CreditSubscribe.chk(player)
+        resp = requests.post(
+            server_api('/worker/routiner'),
+            json=ent.json()
+        )
+        if resp.status_code != 200:
+            return traceback.format_exc()
         ret.append('订阅信用点命令更新')
     return [Plain('\n'.join(ret))]
 
@@ -158,7 +191,6 @@ async def 信用点查询(*attrs, kwargs={}):
     return [Plain('\n'.join(ret))]
 
 from mongoengine import *
-from database_utils import *
 
 
 
@@ -237,7 +269,7 @@ async def 投票姬(*attrs, kwargs={}):
             ostr.append(Plain(text=f'''投票成功，条目{selectedItem}当前已有{len(j['items'][selectedItem])}票\n'''))
     j.save()
     return ostr
-from GLOBAL import logging
+
 async def ddl通知姬(*attrs, kwargs={}):
     async def Noticer(g,mb,kotoba,delays):
         print('delay:',delays)
@@ -281,7 +313,7 @@ async def ddl通知姬(*attrs, kwargs={}):
                         )
                     )])
         except:
-            logging.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     def notice2(g,mb,tit,dtime):
         if tit in ddlQueuer:
@@ -373,7 +405,7 @@ async def ddl通知姬(*attrs, kwargs={}):
                 ostr.append(Plain(f'{datetime.datetime.now()}'))
         entity.save()
     except Exception as e:
-        logging.error(traceback.format_exc())
+        logger.error(traceback.format_exc())
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
@@ -442,14 +474,18 @@ async def 在线P歌(*attrs, kwargs={}):
     kwargs['voices-fm'] = 'mid'
     return []
 
-async def 仿洛谷每日签到(*attrs, kwargs={}):
+def 仿洛谷每日签到(chain: MessageChain, meta: dict = {}):
+    """#求签 []
+    用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的
+    """
+    attrs = chain.tostr().split(' ')
     generate_key_count = random.randint(2,5)
-    print(kwargs['mem'])
-    print(dir(kwargs['mem']))
-    mem = getmem(kwargs['mem'])
-    player = get_player(**kwargs)
+    # print(kwargs['mem'])
+    # print(dir(kwargs['mem']))
+    mem = str(meta['mem'])
+    player = get_player(meta)
     entity = DailySignLog.chk(mem)
-    from Assets.签到语料 import 宜, 忌, 运势
+    
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
     # print('A', entity.last_sign.strftime('%Y-%m-%d'))
@@ -469,7 +505,7 @@ async def 仿洛谷每日签到(*attrs, kwargs={}):
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
         cd = random.randint(1,8) * entity['combo']
         ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
-        print(updateCredit(mem, '+', cd))
+        print(CreditLog.upd(mem, '+', cd))
         entity['info'] = ans
         entity['last_sign'] = datetime.datetime.now()
         entity.save()
@@ -483,7 +519,7 @@ functionMap = {
     '#vote':投票姬,
     '#i电':数电笔记,
     '#P歌':在线P歌,
-    '#求签':仿洛谷每日签到,
+    # '#求签':仿洛谷每日签到,
     '#信用点查询': 信用点查询,
     '#信用点情报': 信用点命令更新订阅姬
 }
@@ -494,7 +530,6 @@ shortMap = {
 }
 
 functionDescript = {
-    '#求签':'用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的',
     '#信用点情报':'',
     '#信用点查询':'查询你的信用点情况',
     '#vote':

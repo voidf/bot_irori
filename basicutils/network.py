@@ -12,7 +12,7 @@ from basicutils.chain import *
 class CoreEntity(BaseModel):
     chain: MessageChain
     player: str # 发送来源player号
-    source: str # 发送来源syncid
+    source: str # 发送来源Adapterid或是相关jwt
     meta: dict  # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
     @classmethod
     def handle_json(cls, j):

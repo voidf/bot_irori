@@ -15,9 +15,10 @@ from fapi.models.Auth import *
 from fapi import encrypt, trueReturn, falseReturn
 import time
 
-from basicutils.socketutils import CoreEntity
+from basicutils.network import *
+from basicutils.chain import *
 from fapi.Sessions import MiraiSession
-import asyncio
+from fapi.models.Routinuer import *
 
 worker_route = APIRouter(
     prefix="/worker",
@@ -27,16 +28,56 @@ worker_route = APIRouter(
 
 from fapi import verify_jwt
 from loguru import logger
-
+from typing import Tuple
 class CoreEntityJson(BaseModel):
     ents: str
-@worker_route.post('/submit')
-async def login_auth(f: CoreEntityJson):
+
+async def parse_adapter_jwt(f: CoreEntityJson) -> Tuple[CoreEntity, Adapter]:
     logger.critical(f)
     ent = CoreEntity.handle_json(f.ents)
     src, msg = verify_jwt(ent.source)
     if not src:
-        return falseReturn(400, msg)
+        return falseReturn(401, msg)
+    ent.source = src.pk
+    return ent, src
+
+    
+
+@worker_route.post('/submit')
+async def submit_worker(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)):
+    ent, src = tp
     await fapi.G.adapters[src.pk].upload(ent)
     return trueReturn()
 
+async def resolve_routiner(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)) -> Tuple[CoreEntity, Adapter, str, Routiner]:
+    ent, src = tp
+    return ent, src, str(ent.player), fapi.models.Routinuer.routiner_namemap[ent.meta.get('routiner')]
+
+@worker_route.post('/routine')
+async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
+    """创建日程器"""
+    ent, src, pid, R = tp
+    # pid = str(ent.player)
+    # R = ent.meta.get('routiner')
+    await R.add(src, pid)
+    ent.chain = MessageChain.auto_make(f'【订阅器】{R}创建成功')
+    await fapi.G.adapters[src.pk].upload(ent)
+    return trueReturn()
+
+@worker_route.delete('/routine')
+async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
+    """销毁日程器（取消订阅）"""
+    ent, src, pid, R = tp
+    await fapi.models.Routinuer.routiner_namemap[R].cancel(src, pid)
+    ent.chain = MessageChain.auto_make(f'【订阅器】{R}删除成功')
+    await fapi.G.adapters[src.pk].upload(ent)
+    return trueReturn()
+
+@worker_route.options('/routine')
+async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
+    """调用日程器的内部功能"""
+    ent, src, pid, R = tp
+    F = ent.meta.get('call')
+    if hasattr(R, 'call_map') and F in R.call_map:
+        return {'res': R.call_map[F](ent.meta)}
+    return falseReturn(404, "Not such method")

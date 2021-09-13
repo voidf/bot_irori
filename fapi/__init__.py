@@ -2,12 +2,13 @@ import hashlib
 from fapi.webcfg import salt, jwt_key
 from fapi.models.Auth import *
 from jose import JWTError, jwt
-from basicutils.socketutils import CoreEntity, MessageChain
+from basicutils.chain import *
+from basicutils.network import *
 import fapi.G
 import os
 from typing import Union
 from loguru import logger
-from basicutils.taskutils import ArgumentParser
+from basicutils.task import ArgumentParser
 from typing import Union
 import asyncio
 import traceback

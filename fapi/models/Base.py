@@ -1,4 +1,4 @@
-from mongoengine import DateTimeField
+from mongoengine import *
 from typing import TypeVar, get_type_hints
 import datetime
 
@@ -42,6 +42,7 @@ class Base():
         return d
     @classmethod
     def chk(cls, pk):
+        """确保对象存在，如不存在则创建一个，返回给定主键确定的对象"""
         if isinstance(pk, cls):
             return pk
         tmp = cls.objects(pk=pk).first()
@@ -50,6 +51,7 @@ class Base():
         return tmp
     @classmethod
     def trychk(cls, pk):
+        """若对象存在，返回主键对应的对象，否则返回None"""
         if isinstance(pk, cls):
             return pk
         tmp = cls.objects(pk=pk).first()
