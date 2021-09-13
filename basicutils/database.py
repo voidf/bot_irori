@@ -1,5 +1,5 @@
 from mongoengine import *
-from typing import TypeVar, get_type_hints
+from typing import TypeVar, Union, get_type_hints
 import datetime
 import cfg
 
@@ -128,9 +128,10 @@ class RefPlayerBase(Base):
 #     def resume(cls):
 
 
-class CFSubscribe(RefPlayerBase, Document):
-    mode = StringField(default='Y')
+# class CFSubscribe(RefPlayerBase, Document):
+#     mode = StringField(default='Y')
 
+# TODO: 考虑移入Routiner
 class ATCoderSubscribe(RefPlayerBase, Document):
     pass
 
@@ -140,6 +141,7 @@ class NowCoderSubscribe(RefPlayerBase, Document):
 class SentenceSubscribe(RefPlayerBase, Document):
     pass
 
+# TODO: 考虑移入application
 class WeatherSubscribe(Document, RefPlayerBase):
     city = ListField(StringField())
 
@@ -170,18 +172,18 @@ class DailySignBackUP(Document):
     info = StringField()
     last_sign = DateTimeField()
 
-class CreditSubscribe(RefPlayerBase, Document):
-    pass
+# class CreditSubscribe(RefPlayerBase, Document):
+#     pass
 
 import basicutils.CONST
 from basicutils.algorithms import evaluate_expression
 class CreditLog(RefPlayerBase, Document):
     credit = IntField(default=500)
     @classmethod
-    def get(cls, user: int) -> int:
+    def get(cls, user: Union[int, str]) -> int:
         return cls.chk(user).credit
     @classmethod
-    def upd(cls, user: int, operator: str, val: int) -> bool:
+    def upd(cls, user: Union[int, str], operator: str, val: int) -> bool:
         """修改用户的信用点
         参数：
             [int]user(QQ号)
@@ -202,3 +204,25 @@ class CreditLog(RefPlayerBase, Document):
 
 class Sniffer(Document, RefPlayerBase):
     commands = DictField()
+    @classmethod
+    def overwrite(cls, player, event, pattern, *attrs):
+        eventObj = {event: {'sniff': [pattern], 'attrs': attrs}}
+        sni = cls.chk(player)
+        sni.commands.update(eventObj)
+        sni.save()
+
+    @classmethod
+    def append(cls, player, event, pattern):
+        sni = cls.chk(player)
+        sni.commands[event]['sniff'].append(pattern)
+        sni.save()
+
+    @classmethod
+    def clear(cls, player):
+        cls.objects(pk=Player.chk(player)).delete()
+    
+    @classmethod
+    def remove(cls, player, event):
+        sni = cls.chk(player)
+        sni.commands.pop(event, "未找到对应sniffer")
+        sni.save()

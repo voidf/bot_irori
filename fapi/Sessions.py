@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 import aiohttp
 from loguru import logger
 import json
@@ -21,9 +22,9 @@ class MiraiSession():
         self.ws = await self._ases.ws_connect(wsurl)
         async for msg in self.ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
-                logger.critical(msg.data)
+                logger.debug(msg.data)
                 j = json.loads(msg.data)
-                logger.warning(j)
+                # logger.warning(j)
                 if 'data' in j and 'type' in j['data']:
                     if j['data']['type'] == 'GroupMessage':
                         ent = CoreEntity(
@@ -46,12 +47,20 @@ class MiraiSession():
                         await self.preprocess(ent)
                         # continue # debug
                     # TODO: 临时消息，系统命令
-                    logger.warning(ent)
-                    task.delay(ent.json())
-                    
 
+                    # logger.warning(ent)
+                    try:
+                        task.delay(ent.json())
+                    except UnboundLocalError as e:
+                        logger.debug('非可处理消息事件:{}', str(e))
+                        pass
+                    except:
+                        logger.critical(traceback.format_exc())
 
-            elif msg.type == aiohttp.WSMsgType.ERROR:
+            else:
+                logger.critical(msg.type)
+                logger.critical(f'connection closed {wsurl}')
+            # elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
     
     async def preprocess(self, ent: CoreEntity):
@@ -69,27 +78,40 @@ class MiraiSession():
                     else: ato.append(i)
                 elem.text = ' '.join(ato)
 
+    async def auto_deliver(self, ent: CoreEntity):
+        pi = int(ent.player)
+        payload = {
+            "syncId": -1,
+            "content": {
+                "messageChain": ent.chain.dict()["__root__"]
+            },
+        }
+        if pi > (1<<32):
+            pi -= 1<<39
+            payload['command'] = "sendGroupMessage"
+            payload['content']['target'] = pi
+            logger.warning(json.dumps(payload))
+            await self.ws.send_json(payload)
+        else:
+            payload['command'] = "sendFriendMessage"
+            payload['content']['target'] = pi
+            logger.warning(json.dumps(payload))
+            await self.ws.send_json(payload)
+
+
     async def upload(self, ent: CoreEntity):
         """将消息链往mirai发送，实际上只取用了player和chain，后继应该支持meta特殊处理"""
         try:
-            pi = int(ent.player)
-            payload = {
-                "syncId": -1,
-                "content": {
-                    "messageChain": ent.chain.dict()["__root__"]
-                },
-            }
-            if pi > (1<<32):
-                pi -= 1<<39
-                payload['command'] = "sendGroupMessage"
-                payload['content']['target'] = pi
-                logger.warning(json.dumps(payload))
-                await self.ws.send_json(payload)
-            else:
-                payload['command'] = "sendFriendMessage"
-                payload['content']['target'] = pi
-                logger.warning(json.dumps(payload))
-                await self.ws.send_json(payload)
-
+            chain = ent.chain
+            ent.chain = MessageChain.get_empty()
+            for i in chain:
+                if 'delay' in i.meta:
+                    if ent.chain.__root__:
+                        await self.auto_deliver(ent)
+                    await asyncio.sleep(float(i.meta['delay']))
+                    ent.chain = MessageChain.get_empty()
+                ent.chain.__root__.append(i)
+            if ent.chain.__root__:
+                await self.auto_deliver(ent)
         except ValueError:
             return "not mirai"

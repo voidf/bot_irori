@@ -81,20 +81,20 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
         A = op.pop()
         B = op.pop()
         op.append(binocular_calculate_map[f](B,A))
-        print("bino calculated:", op[-1])
+        # print("bino calculated:", op[-1])
     def unary_calculate(f: str, op):
         A = op.pop()
         op.append(unary_calculate_map[f](A))
-        print("unary calculated:", op[-1])
+        # print("unary calculated:", op[-1])
     def binocular_concate(f: str, op):
         A = op.pop()
         B = op.pop()
         op.append(f"({B}{f}{A})")
-        print("bino concated:", op[-1])
+        # print("bino concated:", op[-1])
     def unary_concate(f: str, op):
         A = op.pop()
         op.append(f"({f}{A})")
-        print("unary concated:", op[-1])
+        # print("unary concated:", op[-1])
 
     def handle_operand():
         nonlocal x, xx, suffix_exp, float_token, complex_token, last_mono, decimal_token, xpower
@@ -107,7 +107,7 @@ def evaluate_expression(exp: str) -> Tuple[str, str]:
         if complex_token:
             handled += 'j'
         if handled:
-            print(f'Handled operand:{handled}')
+            # print(f'Handled operand:{handled}')
             if hex_token:
                 t = int(handled, 16)
             elif octal_token:

@@ -1,14 +1,16 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
+from basicutils.database import Sniffer
 from basicutils.task import server_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 from celery import Celery
 import sys
-sys.path.append(os.getcwd())
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
 print(sys.path)
 
 app = Celery(
-    'test3_celery', 
+    'Worker', 
     # broker='pyamqp://guest@localhost//', 
     # backend="mongodb://127.0.0.1:27017/irori_taskqueue",
 
@@ -31,15 +33,33 @@ def task(s: str):
     """热更新测试通过"""
     ent = CoreEntity.handle_json(s)
     res = sub_task(ent)
+    # TODO: 压为图片，分段上传，延时上传(x)
+    # TODO: 在服务端Adapter实现
     logger.critical(res)
     ent.chain = res
-    if len(ent.chain.__root__):
+    # ent.chain = MessageChain.get_empty()
+    # for i in res:
+    #     if 'gap' in i.meta:
+    #         if ent.chain.__root__:
+    #             resp = requests.post(
+    #                 server_api("/worker/submit"),
+    #                 json={"ents": ent.json()}
+    #             )
+    #             if resp.status_code!=200:
+    #                 logger.critical(resp.text)
+    #             ent.chain = MessageChain.get_empty()
+    #     ent.chain.__root__.append(i)
+    if ent.chain.__root__:
         resp = requests.post(
             server_api("/worker/submit"),
-            json={"ents":ent.json()}
+            json={"ents": ent.json()}
         )
         if resp.status_code!=200:
             logger.critical(resp.text)
+        # ent.chain = MessageChain.get_empty()
+
+    # ent.chain = res
+    # if len(ent.chain.__root__):
     # return ent.json()
 
 @app.task
@@ -54,10 +74,10 @@ def import_applications():
     tot_funcs = {}
     tot_alias = {}
     # @logger.catch
-    def printHelp(chain: MessageChain, meta: dict = {}):
+    def printHelp(ent: CoreEntity):
         """不传参打印命令表，传参则解释命令"""
-        kwargs = meta
-        cop = chain.onlyplain()
+        kwargs = ent.meta
+        cop = ent.chain.onlyplain()
         attrs = cop.split(' ')
         # logger.warning(attrs)
         show_limit = int(kwargs.get('-showlim', 20))
@@ -170,8 +190,8 @@ def import_applications():
     return app_fun, app_doc, tot_funcs, tot_alias
 
 def sub_task(task: CoreEntity) -> MessageChain:
-    task.meta['player'] = task.player
-    task.meta['source'] = task.source
+    # task.meta['player'] = task.player
+    # task.meta['source'] = task.source
     
     try:
         app_fun, app_doc, tot_funcs, tot_alias = import_applications()
@@ -180,17 +200,21 @@ def sub_task(task: CoreEntity) -> MessageChain:
         # logger.debug(tot_alias)
 
         # logger.debug(task)
+        rawtext = task.chain.tostr()
+        entbak = task.copy(deep=True)
+        # logger.warning(entbak.chain.tostr())
 
         cmd = task.chain.pop_first_cmd()
         cmd = tot_alias.get(cmd, cmd)
+        # logger.warning(entbak.chain.tostr())
 
         logger.debug(f'command: {cmd}')
         if cmd in tot_funcs:
-            try:
+            # try:
                 # reply = tot_funcs[cmd](task.chain, task.meta)
-                reply = tot_funcs[cmd](task)
-            except:
-                reply = MessageChain.auto_make(traceback.format_exc())
+            reply = tot_funcs[cmd](task)
+            # except:
+                # reply = MessageChain.auto_make(traceback.format_exc())
             if not reply:
                 return MessageChain.get_empty()
             if not isinstance(reply, MessageChain):
@@ -202,6 +226,30 @@ def sub_task(task: CoreEntity) -> MessageChain:
             # else:
                 # reply = MessageChain(__root__=[str(reply)])
             return reply
+        else:
+            S: Sniffer = Sniffer.chk(task.player)
+            q = task.copy(deep=True)
+            q.meta['sniffer_invoke'] = True
+            replies = []
+            for cmd, content in S.commands.items():
+                for regexp in content['sniff']:
+                    if re.search(regexp, rawtext, re.S):
+                        if content['attrs']:
+                            q.chain = MessageChain.auto_merge(
+                                ' '.join(content['attrs']) + ' ',
+                                entbak.chain
+                            )
+                        else:
+                            q.chain = entbak.chain
+                        # q.
+                        logger.debug(q.chain.tostr())
+                        # logger.debug(entbak.chain.tostr())
+                        reply = tot_funcs[cmd](q)
+                        replies.append(reply)
+                        break
+
+            return MessageChain.auto_merge(replies, attach_kwargs={'delay': 0}) # 分割发送消息参数
+
         return MessageChain.get_empty()
     except:
         logger.error(traceback.format_exc())

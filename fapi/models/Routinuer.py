@@ -26,7 +26,8 @@ class Routiner(Base, Document):
     async def recover_routiners(cls, aid: str):
         """总恢复入口，不能被重载"""
         for sc in cls.__subclasses__():
-            asyncio.ensure_future(sc.resume(aid))
+            logger.info(f'{sc} is initializing...')
+            await sc.resume(aid)
             routiner_namemap[sc.__name__] = sc
 
     @classmethod
@@ -58,8 +59,7 @@ class CodeforcesRoutinuer(Routiner):
             resp: aiohttp.ClientResponse
             li = []
             async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
-                resp.json()
-                j = await resp.json()['result']
+                j = (await resp.json())['result']
                 for i in j:
                     if i['phase'] == 'FINISHED':
                         break
@@ -103,7 +103,7 @@ class CodeforcesRoutinuer(Routiner):
     async def update_futures(cls):
         # q = cls.objects(adapter=Adapter.trychk(aid))
         # if q:
-        li = CodeforcesRoutinuer.spider()
+        li = await CodeforcesRoutinuer.spider()
             # for subscribers in q:
                 # mp = cls.contest_futures.setdefault(str(aid), {}).setdefault(str(subscribers.player), {})
         mp =  cls.contest_futures
@@ -116,19 +116,20 @@ class CodeforcesRoutinuer(Routiner):
 
     @classmethod
     async def resume(cls, aid: str):
-        cls.contest_futures = {}
-        await cls.update_futures(aid)
-        await cls.mainloop(aid)
+        if not fapi.G.initialized:
+            cls.contest_futures = {}
+            await cls.update_futures()
+            asyncio.ensure_future(cls.mainloop())
 
 
     @classmethod
-    async def mainloop(cls, aid: str):
+    async def mainloop(cls):
         cycle = 86400
         offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
-            tosleep = cycle - (datetime.datetime.now() + offset) % cycle
+            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
             await asyncio.sleep(tosleep)
-            await cls.update_futures(aid)
+            await cls.update_futures()
 
     @classmethod
     async def cancel(cls, aid: str, pid: str):
@@ -152,34 +153,40 @@ class CreditInfoRoutinuer(Routiner):
         return ','.join(list(cls.credit_cmds.keys()))
     @classmethod
     async def resume(cls, aid: str):
+        logger.debug(f'{cls} resume called')
         # cls.future_map = {}
-        cls.call_map = {
-            'info': cls.info
-        }
-        cls.credit_cmds = {}
+        if not fapi.G.initialized:
+            cls.call_map = {
+                'info': cls.info
+            }
+            cls.credit_cmds = {}
+            # print(cls)
+            # print(cls.call_map)
 
-        await cls.update_futures(aid)
-        await cls.mainloop(aid)
+            await cls.update_futures()
+            asyncio.ensure_future(cls.mainloop())
+            logger.info(f'{cls} initialized')
 
 
     @classmethod
-    async def mainloop(cls, aid: str):
+    async def mainloop(cls):
         cycle = 86400
         offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
-            tosleep = cycle - (datetime.datetime.now() + offset) % cycle
+            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
             await asyncio.sleep(tosleep)
-            await cls.update_futures(aid)
+            await cls.update_futures()
 
     @classmethod
     async def update_futures(cls):
         logger.info('重置可用信用点命令...')
         app_fun, app_doc, tot_funcs, tot_alias = import_applications()
-        ctr = random.randint(3, 9)
+        tot = len(tot_funcs)
+        ctr = random.randint(min(3, tot), min(9, tot))
         fs = random.sample(tot_funcs.keys(), k=ctr)
         op = random.choices(CONST.credit_operators, CONST.credit_operators_weight, k=ctr)
         vl = random.choices(range(1,5), k=ctr)
-
+        cls.credit_cmds = {k:v for k, *v in zip(fs, op, vl)}
         q = cls.objects()
         # if q:
         for subs in q:

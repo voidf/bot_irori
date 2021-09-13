@@ -53,7 +53,7 @@ async def resolve_routiner(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapte
     ent, src = tp
     return ent, src, str(ent.player), fapi.models.Routinuer.routiner_namemap[ent.meta.get('routiner')]
 
-@worker_route.post('/routine')
+@worker_route.post('/routiner')
 async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """创建日程器"""
     ent, src, pid, R = tp
@@ -64,7 +64,7 @@ async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
     await fapi.G.adapters[src.pk].upload(ent)
     return trueReturn()
 
-@worker_route.delete('/routine')
+@worker_route.delete('/routiner')
 async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """销毁日程器（取消订阅）"""
     ent, src, pid, R = tp
@@ -73,11 +73,16 @@ async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
     await fapi.G.adapters[src.pk].upload(ent)
     return trueReturn()
 
-@worker_route.options('/routine')
+@worker_route.options('/routiner')
 async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """调用日程器的内部功能"""
     ent, src, pid, R = tp
     F = ent.meta.get('call')
+    logger.info(F)
+    logger.info(R)
+    logger.info(R.call_map)
     if hasattr(R, 'call_map') and F in R.call_map:
-        return {'res': R.call_map[F](ent.meta)}
+        res = await R.call_map[F](ent.meta)
+        logger.debug(f'return: {res}')
+        return {'res': res}
     return falseReturn(404, "Not such method")

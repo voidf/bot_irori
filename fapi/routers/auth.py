@@ -16,13 +16,13 @@ import time
 
 from fapi.Sessions import MiraiSession
 import asyncio
-
+import fapi.G
 auth_route = APIRouter(
     prefix="/auth",
     tags=["auth"],
 )
 
-
+from fapi.models.Routinuer import *
 
 class login_form(BaseModel):
     username: str
@@ -35,6 +35,13 @@ async def login_auth(f: login_form):
     a = Adapter.objects(username=f.username).first()
     if not a:
         return falseReturn(401, '用户名不存在')
+
+    await Routiner.recover_routiners(a)
+
+    if not fapi.G.initialized:
+        fapi.G.initialized = True
+        # 一次启动上下文
+
     if not encrypt(f.password) == a.password:
         return falseReturn(401, '用户名或密码错误')
     ml = MiraiSession(f.username)

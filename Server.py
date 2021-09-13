@@ -4,6 +4,7 @@ from cfg import db, web_host, web_port
 from fapi.models.Auth import *
 from fapi import encrypt
 # import fapi.G
+import os, sys
 def create_fastapi() -> FastAPI:
     from mongoengine import connect
     app = FastAPI(version="2.0.0", title="Irori distributed system")
@@ -11,6 +12,9 @@ def create_fastapi() -> FastAPI:
     # fapi.G.first_time = True
     # from fapi.models.Routinuer import Routiner
     # Routiner
+    if os.getcwd() not in sys.path:
+        sys.path.append(os.getcwd())
+    print(sys.path)
 
 
     from fapi.routers import master_router

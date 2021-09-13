@@ -1,3 +1,4 @@
+from loguru import logger
 from pydantic import BaseModel # 为了用json
 from pydantic import Field
 from typing import *
@@ -24,12 +25,17 @@ class MessageChain(BaseModel):
     def parse_obj(cls, obj: List[Element]) -> "MessageChain":
         handled_elements = []
         for i in obj:
+            logger.warning(i)
             if isinstance(i, Element):
                 tobeappend = i
             elif isinstance(i, dict) and "type" in i:
                 for ii in Element.__subclasses__():
                     if ii.__name__ == i["type"]:
                         tobeappend = ii.parse_obj(i)
+                        break
+            elif isinstance(i, (tuple, list)):
+                newchain = cls.parse_obj(i)
+                
             if tobeappend.type == "Plain":
                 if not tobeappend.text:
                     continue
@@ -42,14 +48,18 @@ class MessageChain(BaseModel):
     def get_empty(cls) -> "MessageChain":
         return MessageChain(__root__=[])
     @classmethod
-    def auto_merge(cls, *iterables: Iterable) -> "MessageChain":
+    def auto_merge(cls, *iterables: Iterable, attach_kwargs: dict={}) -> "MessageChain":
         li = []
         for i in iterables:
             chain = MessageChain.auto_make(i)
-            li.extend(chain.__root__)
+            if chain.__root__:
+                chain.__root__[0].meta.update(attach_kwargs)
+                li.extend(chain.__root__)
         return MessageChain.auto_make(li)
     @classmethod
-    def auto_make(cls, obj: Any) -> "MessageChain":
+    def auto_make(cls, obj: Union[str, Element, list, tuple, "MessageChain"]) -> "MessageChain":
+        logger.warning(obj)
+        logger.warning(type(obj))
         if isinstance(obj, str):
             if not obj:
                 return cls(__root__=[])

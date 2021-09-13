@@ -1,4 +1,5 @@
 """数学类"""
+from basicutils.database import *
 import os
 # if __name__ == '__main__':
     # os.chdir('..')
@@ -170,7 +171,7 @@ def read_matrix_matlab(s):
                 li[i][j] = float(li[i][j])
     return numpy.matrix(li)
 
-def CalC(chain: MessageChain, meta: dict = {}):
+def CalC(ent: CoreEntity):
     """#组合数 [#C]
     两个参数计算组合数，一个参数计算阶乘
     例:
@@ -179,7 +180,7 @@ def CalC(chain: MessageChain, meta: dict = {}):
         #C 20
         计算阶乘20!
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     if len(attrs)==3:
         a,b=(int(i) for i in attrs[1:3])
         if a<b:
@@ -197,16 +198,17 @@ def CalC(chain: MessageChain, meta: dict = {}):
         b=int(attrs[0])
         return [Plain(text=str(math.factorial(b)))]
 
-def CalA(chain: MessageChain, meta: dict = {}):
+def CalA(ent: CoreEntity):
     """#排列数 [#A]
     计算排列数，例:#A 3 3
     """
-    return CalC(MessageChain.auto_merge("A ", chain), meta)
+    ent.chain = MessageChain.auto_merge("A ", ent.chain)
+    return CalC(ent)
 
-def CalKatalan(chain: MessageChain, meta: dict = {}):
+def CalKatalan(ent: CoreEntity):
     """#K []
     计算Katalan数，例:#K 4,公式：C(2n,n)-C(2n,n-1)"""
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     try:
         if len(attrs):
             a = int(attrs[0])
@@ -216,11 +218,11 @@ def CalKatalan(chain: MessageChain, meta: dict = {}):
     except Exception as e:
         return [Plain(str(e))]
 
-def 统计姬from104(chain: MessageChain, meta: dict = {}):
+def 统计姬from104(ent: CoreEntity):
     """#统计 [#stat]
     焊接自104空间的统计代码，接受空格分隔的浮点参数，返回样本中位数，平均数，方差等信息，例:#统计 11.4 51.4 19.19 8.10
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     l=[float(x) for x in attrs]
     s = 0
     for i in l:
@@ -249,7 +251,7 @@ def 统计姬from104(chain: MessageChain, meta: dict = {}):
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
 
-def QM化简器(chain: MessageChain, meta: dict = {}):
+def QM化简器(ent: CoreEntity):
     """#QM []
     用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
     用法：
@@ -258,7 +260,7 @@ def QM化简器(chain: MessageChain, meta: dict = {}):
     例:
         #QM 1,4,2,8,5,7 --var=a,b,c,d
         #QM b'd+a'bc'+a'bcd' --dc=1,2 --var=a,b,c,d"""
-    v = chain.tostr().split(' ')
+    v = ent.chain.tostr().split(' ')
     if v[0].count(',') >= 1: # 最小项输入
 
         return [Plain(quine_mccluskey.qmccluskey.maid(
@@ -274,7 +276,7 @@ def QM化简器(chain: MessageChain, meta: dict = {}):
             argsvariables=meta.get('-var', '')
         ))]
 
-def 打印真值表(chain: MessageChain, meta: dict = {}):
+def 打印真值表(ent: CoreEntity):
     """#真值表 []
     用给定的逻辑式生成真值表，注意除了非运算外其他运算同级
     即从左到右计算，如需要请加括号
@@ -287,24 +289,24 @@ def 打印真值表(chain: MessageChain, meta: dict = {}):
     例:
         #真值表 !A|(B^C)
     """
-    s = FindTruth(chain.tostr())
+    s = FindTruth(ent.chain.tostr())
     return [Plain('\n'.join(s.outPut))]
 
-def 逆元(chain: MessageChain, meta: dict = {}):
+def 逆元(ent: CoreEntity):
     """#inv []
     求给定的x在模m意义下的逆元（exgcd\n用法：#inv <x> <m>
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     return [Plain(str(getinv(int(attrs[0]),int(attrs[1]))))]
 
-def 欧拉函数(chain: MessageChain, meta: dict = {}):
+def 欧拉函数(ent: CoreEntity):
     """#phi []
     求给定值的欧拉函数
     :param x: 待求值x
     :return:
         int: φ(x)
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     x = int(attrs[0])
     res = x
     upp = x**0.5
@@ -319,7 +321,7 @@ def 欧拉函数(chain: MessageChain, meta: dict = {}):
         return [Plain(f'{x}是质数\n{res}')]
     return [Plain(f'{res}')]
 
-def 孙子定理(chain: MessageChain, meta: dict = {}):
+def 孙子定理(ent: CoreEntity):
     """#CRT [#crt]
     用中国剩余定理解剩余方程
     输入格式：
@@ -331,7 +333,7 @@ def 孙子定理(chain: MessageChain, meta: dict = {}):
         ...
     如果有解，返回值是满足所有剩余方程的最小结果
     """
-    il = chain.tostr().strip().split()
+    il = ent.chain.tostr().strip().split()
     li = []
     for i in il:
         if i.isdigit():
@@ -354,33 +356,32 @@ def 孙子定理(chain: MessageChain, meta: dict = {}):
             r = ((getinv(M2//G, M1//G) * (C1 - C2) // G) % (M1 // G) * M2 + C2) % f
         return [Plain(str(r))]
 
-def 计算器(chain: MessageChain, meta: dict = {}):
+def 计算器(ent: CoreEntity):
     """#计算器 [#calc]
     计算中缀表达式
     :param exp: 待求表达式（python风格）exp
     :return:
         Union[int, float, complex]: result"""
 
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
 
-    player = getPlayer(**kwargs)
+    player = ent.player
     if attrs[0] in GLOBAL.subscribes:
-        overwriteSniffer(player, '#计算器', r'^[abcdefABCDEFoxj.0-9\s+-/*&^<>~=|%\(\)]+$')
+        Sniffer.overwrite(player, '#计算器', r'^[abcdefABCDEFoxj.0-9\s+-/*&^<>~=|%\(\)]+$')
         return [Plain('遇到可运算表达式直接输出结果')]
     elif attrs[0] in GLOBAL.unsubscribes:
-        removeSniffer(player, '#计算器')
+        Sniffer.remove(player, '#计算器')
         return [Plain('禁用快速计算')]
     exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
     return [Plain(f"{exp} = {res}")]
 
-def 逆波兰(chain: MessageChain, meta: dict = {}):
+def 逆波兰(ent: CoreEntity):
     """#逆波兰 [#nbl]
     计算逆波兰表达式
     :param exp: 待求表达式（默认空格分隔）exp
     :return:
         Union[int, float, complex]: result"""
-    attrs = chain.tostr().split(' ')
-    player = getPlayer(**kwargs)
+    attrs = ent.chain.tostr().split(' ')
     op1 = []
     op2 = []
     for i in attrs:
@@ -414,7 +415,7 @@ def 逆波兰(chain: MessageChain, meta: dict = {}):
     print(op1, op2)
     return [Plain(f'{op1[0]}\n{op2[0]}')]
 
-def 老线代bot了(chain: MessageChain, meta: dict = {}):
+def 老线代bot了(ent: CoreEntity):
     """#线代 []
     线代工具箱，底层是numpy，能算一些矩阵相关
     用法：
@@ -433,7 +434,7 @@ def 老线代bot了(chain: MessageChain, meta: dict = {}):
     例:
         #线代 乘 1,1,4;5,1,4;9,3,1 1,9,1;9,1,9;8,1,0
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
 
     if attrs[0] in ('乘','*','mul'):
         A = read_matrix_matlab(attrs[1])
@@ -483,11 +484,11 @@ def 老线代bot了(chain: MessageChain, meta: dict = {}):
     else:
         return [Plain('没有命中的决策树，看看#h #线代？')]
 
-def 离散闭包用工具(chain: MessageChain, meta: dict = {}):
+def 离散闭包用工具(ent: CoreEntity):
     """#encap []
     根据所给二元组表分析关系。例子：#encap a,b a,c a,d
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     m = {} # 数转名
     r = {} # 名转数
     def addval(v):
@@ -570,7 +571,7 @@ t(R)即传递闭包：
 """
     return [Plain(renderer)]
 
-def 球盒(chain: MessageChain, meta: dict = {}):
+def 球盒(ent: CoreEntity):
     """#球盒 []
     求解把n个球放进m个盒子里面有多少种方案的问题。
     必须指定盒子和球以及允不允许为空三个属性。
@@ -580,7 +581,7 @@ def 球盒(chain: MessageChain, meta: dict = {}):
         #球盒 110 20 5
     上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
     # 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     if len(attrs)!=3:
         return '不是这么用的！请输入#h #球盒'
     n, m = map(int, attrs[1:3])
@@ -605,14 +606,14 @@ def 球盒(chain: MessageChain, meta: dict = {}):
     else:
         return f"解析不了的属性：{attrs[0]}，我们只吃长度为3的01串喵"
 
-def 十转(chain: MessageChain, meta: dict = {}):
+def 十转(ent: CoreEntity):
     """#十转 []
     十进制转换为其他进制工具：
     输入格式：
         #十转 <目标进制> <源十进制数>
     例：
         #十转 5 261"""
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     l = []
     b = int(attrs[0])
     x = int(attrs[1])
@@ -624,21 +625,21 @@ def 十转(chain: MessageChain, meta: dict = {}):
     l.reverse()
     return f"{l}\n{''.join(l)}"
 
-def 划分数个数(chain: MessageChain, meta: dict = {}):
+def 划分数个数(ent: CoreEntity):
     """#B []
     计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086s
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     return [Plain(A000110_list(int(attrs[0]), meta.get('-m', 0)))]
 
-def 素数前缀和(chain: MessageChain, meta: dict = {}):
+def 素数前缀和(ent: CoreEntity):
     """#min25 []
     用min_25筛求素数的个数，分布式系统性能测试用
     用法：
         #min25 x
         命令返回小于等于x的所有素数的个数
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     tot = 0
 
     n = int(attrs[0])

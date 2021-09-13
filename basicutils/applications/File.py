@@ -30,8 +30,13 @@ from basicutils.task import *
 from loguru import logger
 # import sys
 # print(sys.path)
-# import sys
+
+import sys
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
 # print(sys.path)
+# print(os.getcwd())
+
 # sys.path.append(os.getcwd())
 from Assets.签到语料 import 宜, 忌, 运势
 import requests
@@ -84,7 +89,7 @@ def 信用点命令更新订阅姬(ent: CoreEntity):
         # CreditSubscribe.chk(player).delete()
         resp = requests.delete(
             server_api('/worker/routiner'),
-            json=ent.json()
+            json={"ents": ent.json()}
         )
         if resp.status_code != 200:
             return traceback.format_exc()
@@ -93,14 +98,14 @@ def 信用点命令更新订阅姬(ent: CoreEntity):
     ent.meta['routiner'] = 'CreditInfoRoutinuer'
     resp = requests.options(
         server_api('/worker/routiner'),
-        json=ent.json()
-    ).text
+        json={"ents": ent.json()}
+    ).json()
 
-    ret = [f'今天使用{resp}这些命令会有惊喜哦（']
+    ret = [f'今天使用{resp["res"]}这些命令会有惊喜哦（']
     if attrs and attrs[0] in GLOBAL.subscribes:
         resp = requests.post(
             server_api('/worker/routiner'),
-            json=ent.json()
+            json={"ents": ent.json()}
         )
         if resp.status_code != 200:
             return traceback.format_exc()
@@ -172,13 +177,15 @@ def 评价(crd):
         mid = (l + r + 1) >> 1
     return crdmap[l][1]
 
-async def 成分查询(*attrs, kwargs={}):
-    """对群友的成分感到怀疑了？
+def 成分查询(ent: CoreEntity):
+    """#成分查询 []
+    对群友的成分感到怀疑了？
     :param user: 群友的qq号
     :return:     群友的信用点和头衔
     """
+    attrs = ent.chain.tostr().split(' ')
     user = attrs[0]
-    crd = getCredit(getmem(user))
+    crd = CreditLog.get(user)
     ret = [f'用户{user}现在拥有信用点{crd}点，评价：']
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
