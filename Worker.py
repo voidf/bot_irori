@@ -1,5 +1,4 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
-from basicutils.database import Sniffer
 from basicutils.task import server_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
@@ -22,7 +21,7 @@ from basicutils.chain import *
 from loguru import logger
 import traceback
 import requests
-from cfg import dist_host, web_port
+# from cfg import dist_host, web_port
 import os
 import importlib
 import inspect
@@ -31,6 +30,7 @@ import re
 @app.task
 def task(s: str):
     """热更新测试通过"""
+    
     ent = CoreEntity.handle_json(s)
     res = sub_task(ent)
     # TODO: 压为图片，分段上传，延时上传(x)
@@ -190,6 +190,9 @@ def import_applications():
     return app_fun, app_doc, tot_funcs, tot_alias
 
 def sub_task(task: CoreEntity) -> MessageChain:
+    from basicutils.database import Sniffer 
+    # 应该对每个fork进程开一个pymongo实例，否则容易产生死锁
+    # https://pymongo.readthedocs.io/en/stable/faq.html#is-pymongo-fork-safe
     # task.meta['player'] = task.player
     # task.meta['source'] = task.source
     
@@ -250,7 +253,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
 
             return MessageChain.auto_merge(replies, attach_kwargs={'delay': 0}) # 分割发送消息参数
 
-        return MessageChain.get_empty()
+        # return MessageChain.get_empty()
     except:
         logger.error(traceback.format_exc())
         return MessageChain.auto_make(traceback.format_exc())

@@ -34,8 +34,8 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
-                        if j['data']['sender']['group']['id'] != 699731560:
-                            continue
+                        # if j['data']['sender']['group']['id'] != 699731560:
+                            # continue
 
                     elif j['data']['type'] == 'FriendMessage':
                         ent = CoreEntity(
@@ -105,7 +105,7 @@ class MiraiSession():
             chain = ent.chain
             ent.chain = MessageChain.get_empty()
             for i in chain:
-                if 'delay' in i.meta:
+                if i.meta and 'delay' in i.meta:
                     if ent.chain.__root__:
                         await self.auto_deliver(ent)
                     await asyncio.sleep(float(i.meta['delay']))

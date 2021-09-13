@@ -679,24 +679,3 @@ def 素数前缀和(ent: CoreEntity):
             j += 1
     return [Plain(text=str(g[1]))]
 
-
-functionMap = {
-    # '#QM':QM化简器,
-    # '#C':CalC,
-    # '#A':CalA,
-    # '#K':CalKatalan,
-    # '#统计':统计姬from104,
-    # '#inv':逆元,
-    # '#phi':欧拉函数,
-    # '#CRT':孙子定理,
-    # '#线代':老线代bot了,
-    # '#真值表':打印真值表,
-    # '#encap':离散闭包用工具,
-    # '#B': 划分数个数
-}
-
-shortMap = {}
-
-functionDescript = {
-    # '#B': '',
-}

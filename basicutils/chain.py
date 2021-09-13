@@ -13,7 +13,7 @@ def get_player(meta: dict) -> int:
 
 class Element(BaseModel):
     type: str = None
-    meta: Optional[dict] = None
+    meta: Optional[dict] = {}
     def json(self):
         return super().json(exclude_none=True)
     def tostr(self) -> str:
@@ -25,7 +25,7 @@ class MessageChain(BaseModel):
     def parse_obj(cls, obj: List[Element]) -> "MessageChain":
         handled_elements = []
         for i in obj:
-            logger.warning(i)
+            # logger.warning(i)
             if isinstance(i, Element):
                 tobeappend = i
             elif isinstance(i, dict) and "type" in i:
@@ -35,6 +35,12 @@ class MessageChain(BaseModel):
                         break
             elif isinstance(i, (tuple, list)):
                 newchain = cls.parse_obj(i)
+                for j in newchain:
+                    if handled_elements and handled_elements[-1].type == 'Plain' and j.type == 'Plain':
+                        handled_elements[-1].text += j.text
+                    else:
+                        handled_elements.append(j)
+                continue
                 
             if tobeappend.type == "Plain":
                 if not tobeappend.text:
@@ -58,8 +64,8 @@ class MessageChain(BaseModel):
         return MessageChain.auto_make(li)
     @classmethod
     def auto_make(cls, obj: Union[str, Element, list, tuple, "MessageChain"]) -> "MessageChain":
-        logger.warning(obj)
-        logger.warning(type(obj))
+        # logger.warning(obj)
+        # logger.warning(type(obj))
         if isinstance(obj, str):
             if not obj:
                 return cls(__root__=[])

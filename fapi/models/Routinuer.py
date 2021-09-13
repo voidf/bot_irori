@@ -211,3 +211,5 @@ class CreditInfoRoutinuer(Routiner):
             player=Player.chk(pid),
             adapter=Adapter.trychk(aid)
         ).save()
+
+# class DDLNoticeRoutiner(Routiner):

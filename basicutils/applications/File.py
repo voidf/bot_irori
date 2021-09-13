@@ -1,24 +1,15 @@
 """异步与文件读写类"""
 import os
 
-from aiohttp.client import request
 # if __name__ == '__main__':
     # os.chdir('..')
 # print(os.listdir('.'))
 # print(__name__)
 import basicutils.CONST as GLOBAL
-from bs4 import BeautifulSoup
-from PIL import ImageFont, ImageDraw
-from PIL import Image as PImage
-import re
 import asyncio
-import json5
-import json
 import random
-import urllib
 import copy
 import traceback
-import time
 import datetime
 import mido
 from basicutils.algorithms import *
@@ -190,92 +181,93 @@ def 成分查询(ent: CoreEntity):
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
 
-async def 信用点查询(*attrs, kwargs={}):
-    user = getmem(kwargs['mem'])
-    crd = getCredit(getmem(user))
+def 信用点查询(ent: CoreEntity):
+    """#信用点查询 []
+    查询你的信用点情况
+    """
+    user = ent.meta['mem']
+    crd = CreditLog.get(user)
     ret = [f'您现在拥有信用点{crd}点，评价：']
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
 
 from mongoengine import *
 
+# async def 投票姬(*attrs, kwargs={}):
+#     mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
+#     gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
+#     l = list(attrs)
 
-
-async def 投票姬(*attrs, kwargs={}):
-    mem = str(getattr(kwargs['mem'],'id',kwargs['mem']))
-    gp = str(getattr(kwargs['mem'],'id',kwargs['mem']))
-    l = list(attrs)
-
-    player = get_player(**kwargs)
+#     player = get_player(**kwargs)
     
-    j = Vote.chk(player)
+#     j = Vote.chk(player)
    
-    ostr = []
-    if len(l) == 1:
-        if l[0] == 'chk':
-            for k,v in j.items.items():
-                ostr.append(Plain(text=f'{k}:\t{len(v)}票\n'))
-            return ostr
-        elif l[0] == 'my':
-            ostr.append(Plain(text='宁投给了：'))
-            for i in j.memberChoices.get(mem,[]):
-                ostr.append(Plain(text=f'{i} '))
-            return ostr
+#     ostr = []
+#     if len(l) == 1:
+#         if l[0] == 'chk':
+#             for k,v in j.items.items():
+#                 ostr.append(Plain(text=f'{k}:\t{len(v)}票\n'))
+#             return ostr
+#         elif l[0] == 'my':
+#             ostr.append(Plain(text='宁投给了：'))
+#             for i in j.memberChoices.get(mem,[]):
+#                 ostr.append(Plain(text=f'{i} '))
+#             return ostr
             
-    if l[0] == 'new':
-        newItem = ' '.join(l[1:])
-        if newItem in j.items:
-            return [Plain(text='创建失败：已存在此条目')]
-        else:
-            j.items[newItem] = []
-            ostr.append(Plain(text=f'''添加成功,现有条目数:{len(j.items)}\n'''))
-    elif l[0] in ('limit','lim'):
-        j.limit = int(l[1])
-        if j.limit < 1:
-            raise NameError('只能设置限票数为正整数')
-        ostr.append(Plain(text=f'''现在每人可以投{j.limit}票'''))
+#     if l[0] == 'new':
+#         newItem = ' '.join(l[1:])
+#         if newItem in j.items:
+#             return [Plain(text='创建失败：已存在此条目')]
+#         else:
+#             j.items[newItem] = []
+#             ostr.append(Plain(text=f'''添加成功,现有条目数:{len(j.items)}\n'''))
+#     elif l[0] in ('limit','lim'):
+#         j.limit = int(l[1])
+#         if j.limit < 1:
+#             raise NameError('只能设置限票数为正整数')
+#         ostr.append(Plain(text=f'''现在每人可以投{j.limit}票'''))
 
-    elif l[0] in ('del','rm'):
-        sel = ' '.join(l[1:])
-        if sel not in j.items:
-            return [Plain(text='删除失败：不存在此条目')]
-        else:
-            del j.items[sel]
-            for i in j.memberChoices:
-                try:
-                    j['memberChoices'][i].remove(sel)
-                    print('有选择的用户:',i)
-                except:
-                    pass
-            ostr.append(Plain(text='''删除成功'''))
-    elif l[0] == '-*/clear/*-':
-        j.delete()
-        ostr.append(Plain(text='''清空成功'''))
-    else:
-        selectedItem = ' '.join(l)
-        if selectedItem not in j['items']:
-            return [Plain(text='投票失败：不存在此条目')]
-        if selectedItem in j['memberChoices'].get(mem,[]):
-            return [Plain(text='投票失败：您已投过此条目')]
-        else:
-            try:
-                if mem not in j['memberChoices']:
-                    j['memberChoices'][mem] = [selectedItem]
-                    j['items'][selectedItem].append(mem)
-                elif len(j['memberChoices'][mem]) < j['limit']:
-                    j['memberChoices'][mem].append(selectedItem)
-                    j['items'][selectedItem].append(mem)
-                else:
-                    j['memberChoices'][mem].append(selectedItem)
-                    j['items'][selectedItem].append(mem)
-                    while len(j['memberChoices'][mem]) > j['limit']:
-                        j['items'][j['memberChoices'][mem][0]].remove(mem)
-                        del j['memberChoices'][mem][0]
-            except Exception as e:
-                return [Plain(text=str(e))]
-            ostr.append(Plain(text=f'''投票成功，条目{selectedItem}当前已有{len(j['items'][selectedItem])}票\n'''))
-    j.save()
-    return ostr
+#     elif l[0] in ('del','rm'):
+#         sel = ' '.join(l[1:])
+#         if sel not in j.items:
+#             return [Plain(text='删除失败：不存在此条目')]
+#         else:
+#             del j.items[sel]
+#             for i in j.memberChoices:
+#                 try:
+#                     j['memberChoices'][i].remove(sel)
+#                     print('有选择的用户:',i)
+#                 except:
+#                     pass
+#             ostr.append(Plain(text='''删除成功'''))
+#     elif l[0] == '-*/clear/*-':
+#         j.delete()
+#         ostr.append(Plain(text='''清空成功'''))
+#     else:
+#         selectedItem = ' '.join(l)
+#         if selectedItem not in j['items']:
+#             return [Plain(text='投票失败：不存在此条目')]
+#         if selectedItem in j['memberChoices'].get(mem,[]):
+#             return [Plain(text='投票失败：您已投过此条目')]
+#         else:
+#             try:
+#                 if mem not in j['memberChoices']:
+#                     j['memberChoices'][mem] = [selectedItem]
+#                     j['items'][selectedItem].append(mem)
+#                 elif len(j['memberChoices'][mem]) < j['limit']:
+#                     j['memberChoices'][mem].append(selectedItem)
+#                     j['items'][selectedItem].append(mem)
+#                 else:
+#                     j['memberChoices'][mem].append(selectedItem)
+#                     j['items'][selectedItem].append(mem)
+#                     while len(j['memberChoices'][mem]) > j['limit']:
+#                         j['items'][j['memberChoices'][mem][0]].remove(mem)
+#                         del j['memberChoices'][mem][0]
+#             except Exception as e:
+#                 return [Plain(text=str(e))]
+#             ostr.append(Plain(text=f'''投票成功，条目{selectedItem}当前已有{len(j['items'][selectedItem])}票\n'''))
+#     j.save()
+#     return ostr
 
 async def ddl通知姬(*attrs, kwargs={}):
     async def Noticer(g,mb,kotoba,delays):
@@ -416,29 +408,29 @@ async def ddl通知姬(*attrs, kwargs={}):
         ostr.append(Plain('\n【出错】'+str(e)))
     return ostr
     
-async def 数电笔记(*attrs, kwargs={}):
-    ins = ' '.join(attrs)
-    if ins == 'ls':
-        return [Plain('\n'.join(GLOBAL.DEKnowledge.keys()))]
-    elif ins == 'reload':
-        ret_msg = [Plain('知识库已更新,现有词条：\n')]
-        for i in os.listdir('DigitalElectronicsTech'):
-            if i[-6:]=='.json5':
-                with open('DigitalElectronicsTech/'+i,'r') as f: 
-                    j = json5.load(f)
-                for k,v in j.items():
-                    ret_msg.append(Plain('\t- '+k+'\n'))
-                    GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
-                    if 'img' in v:
-                        for vi in v['img']:
-                            GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
-                    for an in v['AN']:
-                        GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
-        return ret_msg
-    elif ins in GLOBAL.DEKnowledge:
-        return GLOBAL.DEKnowledge[ins]
-    else:
-        return [Plain('不存在此条目')]
+# async def 数电笔记(*attrs, kwargs={}):
+#     ins = ' '.join(attrs)
+#     if ins == 'ls':
+#         return [Plain('\n'.join(GLOBAL.DEKnowledge.keys()))]
+#     elif ins == 'reload':
+#         ret_msg = [Plain('知识库已更新,现有词条：\n')]
+#         for i in os.listdir('DigitalElectronicsTech'):
+#             if i[-6:]=='.json5':
+#                 with open('DigitalElectronicsTech/'+i,'r') as f: 
+#                     j = json5.load(f)
+#                 for k,v in j.items():
+#                     ret_msg.append(Plain('\t- '+k+'\n'))
+#                     GLOBAL.DEKnowledge[k] = [Plain(f'''{k}\n别名:{v['AN']}\n{v['desc']}''')]
+#                     if 'img' in v:
+#                         for vi in v['img']:
+#                             GLOBAL.DEKnowledge[k].append(generateImageFromFile('DigitalElectronicsTech/img/'+vi))
+#                     for an in v['AN']:
+#                         GLOBAL.DEKnowledge[an] = GLOBAL.DEKnowledge[k]
+#         return ret_msg
+#     elif ins in GLOBAL.DEKnowledge:
+#         return GLOBAL.DEKnowledge[ins]
+#     else:
+#         return [Plain('不存在此条目')]
 
 async def 在线P歌(*attrs, kwargs={}):
     m = mido.MidiFile()
@@ -481,16 +473,16 @@ async def 在线P歌(*attrs, kwargs={}):
     kwargs['voices-fm'] = 'mid'
     return []
 
-def 仿洛谷每日签到(chain: MessageChain, meta: dict = {}):
+def 仿洛谷每日签到(ent: CoreEntity):
     """#求签 []
     用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的
     """
-    attrs = chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(' ')
     generate_key_count = random.randint(2,5)
     # print(kwargs['mem'])
     # print(dir(kwargs['mem']))
-    mem = str(meta['mem'])
-    player = get_player(meta)
+    mem = str(ent.meta['mem'])
+    player = ent.player
     entity = DailySignLog.chk(mem)
     
 
@@ -523,22 +515,22 @@ def 仿洛谷每日签到(chain: MessageChain, meta: dict = {}):
 
 functionMap = {
     '#ddl':ddl通知姬,
-    '#vote':投票姬,
-    '#i电':数电笔记,
+    # '#vote':投票姬,
+    # '#i电':数电笔记,
     '#P歌':在线P歌,
     # '#求签':仿洛谷每日签到,
-    '#信用点查询': 信用点查询,
-    '#信用点情报': 信用点命令更新订阅姬
+    # '#信用点查询': 信用点查询,
+    # '#信用点情报': 信用点命令更新订阅姬
 }
 
 shortMap = {
-    '#iee':'#i电',
+    # '#iee':'#i电',
     '#P':'#P歌'
 }
 
 functionDescript = {
-    '#信用点情报':'',
-    '#信用点查询':'查询你的信用点情况',
+    # '#信用点情报':'',
+    # '#信用点查询':'',
     '#vote':
 """
 因为群投票限制15个选项所以整了这个计票姬

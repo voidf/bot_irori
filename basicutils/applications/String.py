@@ -1,43 +1,27 @@
 """字符串处理类"""
 import os
+import sys
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
+
+import basicutils.CONST as GLOBAL
 if __name__ == '__main__':
     os.chdir('..')
-import GLOBAL
-from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
-from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import re
 import asyncio
 import requests
-import json5
 import json
-import numpy
 import random
 import os
 import base64
 import qrcode
-import io
-import string
-import math
-import urllib
-import copy
-import ctypes
-import functools
-import traceback
-import http.client
-import statistics
-import csv
 import hashlib
 import zlib
-import time
-import datetime
 from urllib.parse import quote
-import mido
-from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
-from Utils import *
-importMirai()
+from basicutils.database import *
+from basicutils.chain import *
+from basicutils.network import *
+# from Utils import *
 
 async def BVCoder(*attrs,kwargs={}):
     def dec(x):
@@ -254,6 +238,8 @@ async def 译中文电码(*attrs,kwargs={}):
 book_of_answers = [
     '鬼知道','我不知道','希腊奶','?你再问一遍我没听清楚','百度啊','咕狗啊','bing啊',
 
+    '你寄吧谁啊?',
+
     '优质解答：我不知道',
 
     '你可长点心吧',
@@ -336,110 +322,113 @@ book_of_answers = [
     "这不可能失败",
     "这可能是特别的",
     "这是肯定的",
-    "这不是重要的",
-    "这是非常重要",
-    "这是你不会忘记的",
+    "这不重要",
+    "这非常重要",
+    "搞清楚主要矛盾和次要矛盾",
     "这肯定会让事情变得有趣",
-    "这是不确定的",
-    "是值得的麻烦",
-    "这可能已经是木已成舟",
-    "这可能很难，但你会发现它的价值",
-    "这个似乎放心",
-    "这将影响别人看你",
-    "这将是一种享受",
+    "这我不确定",
+    "挺麻烦，但可做",
+    "木已成舟，你爬吧",
+    "难，但是值得搞",
+    "放心啦",
+    "这将影响别人怎么看你",
+    "这是一种享受",
     "这会带来好运",
-    "这将会创造一个扰乱",
-    "这仍然是不可预测的",
-    "它会支持你的",
-    "这将更好地专注于自己的工作",
-    "这是不明智的",
+    "这大概会烦死你",
+    "这挺不靠谱的",
+    "有人会支持你的",
+    "这对你专心干活有帮助",
+    "救命啊，你是猪吗？",
+    "快跑啊",
     "它会让你付出代价",
-    "这是一个不错的时间安排",
+    "这是一个不错的安排",
     "会很棒的",
-    "这是不值得的斗争",
-    "是你走的时候",
+    "这不值得奋斗",
+    "这你都不会？",
     "保持开放的心态",
     "不要让别人知道",
     "笑一下",
-    "离开旧的解决方案",
+    "别用旧的方案搞新问题",
     "过去的事就让它过去吧",
-    "仔细聆听；那么你就会知道",
+    "听听别人怎么整吧",
     "为什么不列出原因",
     "也许",
-    "不幸的是极有可能的",
-    "继续前行",
+    "很不幸地告诉宁，这是极有可能的",
+    "冲！",
     "从来没有",
     "没有",
     "不管是什么",
-    "如果你不孤单",
-    "现在你可以",
+    "如果有人跟你一起",
+    "现在你做得到",
     "只做一次",
     "其他人将取决于你的选择",
     "注重细节",
-    "也许，当你老了",
+    "不要在意那些细节（",
+    "可能要等到你老去",
     "为突发事件做好准备",
-    "按下关闭",
+    "小心猝死",
+    "右上角关闭谢谢",
     "须以较宽松的步伐",
-    "有时候选择太多，就代表着无从选择！",
+    "我觉得你用用random比较好",
     "重新考虑你的方法",
-    "相关的问题可能的浮出水面",
+    "相关的问题可能会越来越多",
     "保持灵活",
-    "删除你自己的障碍物",
-    "重新确定优先次序什么是重要的",
-    "尊重规则",
+    "克服你自己的障碍",
+    "重新确定什么比较重要",
+    "请遵守规则",
     "保存你的精力",
+    "你省省吧",
     "寻找更多的选择",
-    "设定优先等级是一个必要的过程！",
-    "很快就会解决它",
+    "这重要吗？",
+    "很快就能搞掂",
     "转移你的焦点",
-    "说出来吧",
-    "令人震惊的事件可能发生的",
+    "讲啊",
+    "震惊！",
     "冒险一试",
-    "负责",
-    "花更多的时间来决定",
-    "告诉别人它对你意味着什么",
-    "那将是浪费钱",
-    "那是脱离你的控制",
+    "试试就逝世",
+    "你得负责",
+    "多花点时间想想罢",
+    "浪费钱",
+    "可能不会像你想的那么顺利",
     "答案就在你的后院",
-    "答案可能会在另一种语言",
-    "最好的解决办法可能不是明显的",
-    "机会不会很快再来",
+    "答案就在你的后庭",
+    "答案可能不是用中文能描述的",
+    "最好的解决办法不大明显",
+    "机会不可能再来",
     "情况将很快发生改变",
     "结果会是好的",
     "情况不明",
-    "与另一种情况有潜在的联系",
     "有充分的理由保持乐观",
     "没有保证",
     "会有障碍要克服",
-    "这是一个很好的时机，来制定新计划",
-    "为了确保能作出最佳决策，需要保持冷静",
+    "考虑用别的方法吧",
+    "冷静。",
     "相信自己的直觉",
-    "相信你的原始思想",
-    "尝试一种更不太可能的解决方案",
-    "不宜在这个时候",
+    "坚持你的初心",
+    "尝试一种更离谱的解决方案",
+    "离大谱",
+    "别在这个时候",
     "毫无疑问",
-    "无论如何你可以提升",
     "运用你的想象力",
     "等一等",
     "等待一个更好的机会",
     "看看会发生什么",
     "注意你的节奏",
-    "不管你做什么，结果将持久",
+    "不管你做什么结果都一样",
     "可以",
-    "是的，但不要强迫",
-    "你一定有支持",
-    "你太近的看了",
-    "你可能觉得自己无法妥协",
-    "你真的不在乎",
-    "你知道现在比以前更好",
-    "你可能会反对",
-    "你可能会放弃其他的东西",
+    "是的，但不要死缠烂打",
+    "一定有人支持你",
+    "你再问就不灵了",
+    "你不觉得问我是在浪费时间吗？",
+    "反正不管我怎么说你都不在乎",
+    "你知道我说啥都不会改变你的情况",
+    "你会反对",
+    "你可能会得放弃其他的东西",
     "你必须",
     "你现在必须行动",
-    "你会发现一切你需要知道的",
     "你将需要适应",
     "你不会失望的",
-    "你会很高兴你做了",
+    "之后你会很高兴你做了",
     "你会得到最后的决定",
     "你将不得不妥协",
     "你将不得不补回来",
@@ -447,54 +436,52 @@ book_of_answers = [
     "你需要考虑其他办法",
     "你需要主动出击",
     "你会后悔的",
-    "你的行动将会改善",
 
 
     "找个人给你意见",
     "算了吧",
+    "别了吧",
     "请教你的妈妈",
     "当然咯",
 
     "谁说得准呢，先观望着",
+    "建议你当回等等党",
     "千万别傻",
     "保持你的好奇心，去挖掘真相",
-    "把心揣怀里",
-    "答案在镜子里",
+    "先掂量掂量自己几斤几两",
+    "答案在镜子里，反正不在我这里",
     "不",
     "这事儿不靠谱",
     "天上要掉馅饼了",
     "有好运",
     "要有耐心",
     "你需要知道真相",
-    "还有另一种情况",
+    "分类讨论好吧",
     "观望",
     "别让它影响到你",
     "是",
     "信任",
-    "列个清单",
     "时机不对",
     "照你想的那样去做",
     "量力而行",
     "但行好事，莫问前程",
-    "抛弃首选方案",
+    "贼你妈离谱儿",
     "走容易走的路",
     "最佳方案不一定可行",
     "不会作就不会死",
     "试试卖萌",
+    "喵喵喵？",
     "借助他人的经验",
     "再多考虑",
     "注意细节",
-    "说出来吧",
     "机会稍纵即逝",
-    "制订了一个新计划",
     "GO",
     "谁都不能保证",
     "情况很快就会发生变化",
     "不要陷得太深",
-    "转移你的注意力",
-    "转移你的焦点",
+    "我们换个问题行吗？",
+    "我们换个问题不好吗？",
     "至关重要",
-    "告诉自己什么是最重要的",
     "为什么不",
     "别傻等了",
     "不要忘记",
@@ -503,17 +490,21 @@ book_of_answers = [
     "去解决",
     "寻找更多的选择",
     "上帝为你关一扇门，必定会为你打开一扇窗",
+    "上帝为你关一扇门，必定会为你再关一扇窗",
     "随波逐流未必是好事",
     "问天问大地，不如问自己",
+    "我懂个屁",
+    "你懂个屁",
     "你就是答案",
     "你可能会反对",
+    "我不想回答",
     "去争取机会",
     "改变不了世界，改变自己",
     "主动一点，人生会大不相同",
     "学会妥协",
     "掌握更多信息",
     "相信你最初的想法",
-    "勿忘初心，放得始终",
+    "勿忘初心，方得始终",
     "扫除障碍",
     "把重心放在工作上",
     "把重心放在学习上",
@@ -541,6 +532,53 @@ book_of_answers = [
     "你可能不得不放弃其他东西",
     "不需要",
     "去倾诉",
+    # 组内语料
+    "怎么你群老有人说话一股女厕所味啊",
+    "笑死",
+    "我真的笑死",
+    "他居然还没死",
+    "救命",
+    "差点死掉就是说",
+    "我也想谈恋爱",
+    "草",
+    "一般",
+    "有点爽",
+    "你好，有的",
+    "没见过欸",
+    "破案了",
+    "花钱有点多",
+    "狗都不干",
+    "啥玩意儿",
+    "那没事了",
+    "好有道理",
+    "不错",
+    "谁杏玉来",
+    "这个真的不行",
+    "我真的救大命..",
+    "可能不可以",
+    "至少我不会",
+    "我真的会笑",
+    "还不错",
+    "我去 牛逼",
+    "大无语",
+    "终极无语事件",
+    "好可怕",
+    "快跳车快跳车快跳车",
+    "爆笑了",
+    "笑得想死",
+    "好讨厌",
+    "对啊就是说",
+    "我该回什么",
+    "有没有懂的",
+    "同问",
+    "？",
+    "¿",
+    "不愿再笑",
+    "芜湖",
+    "好惨啊啊啊",
+    "啊什么意思",
+    "=_=||",
+    # 组内语料完
     "告诉别人这对你意味着什么",
     "无论你做何种选择，结果都是对的",
     "保持头脑清醒",
@@ -552,29 +590,26 @@ book_of_answers = [
     "协作",
     "需找更多的选择",
     "负责",
-    "阻止",
+    "快停下啊啊啊啊",
     "你必须现在就行动",
-    "遵守规则",
     "坚持",
     "需要花费点时间",
     "不要迫于压力而改变初衷",
     "显而易见",
-    "不雅忽略身边的人",
+    "别忽略身边的人",
     "抗拒",
     "不值得斗争",
     "玩得开心就好",
+    "你开心就好",
     "毋庸置疑",
     "你也许会失望",
     "去改变",
-    "一个强有力的承诺会换回更好的结果",
     "也许有更好的解决方案",
     "不要害怕",
     "想法太多，选择太少",
-    "是的",
     "一笑而过",
     "取决于你的选择",
     "随TA去",
-    "一年后就不那么重要了",
     "醒醒吧，别做梦了",
     "意义非凡",
     "默数十秒再问我",
@@ -583,15 +618,14 @@ book_of_answers = [
     "对的",
     "为了确保最好的结果，保持冷静",
     "等待",
-    "你必须弥补这个缺点",
     "现在比以往任何时候的情况都要好",
+    "时代变啦",
+    "快醒醒",
     "相信你的直觉",
     "这是一个机会",
     "去问你爸爸",
-    "从来没有",
     "寻找一个指路人",
     "去尝试",
-    "没有",
     "错的",
     "别不自量力",
     "荒谬",
@@ -608,7 +642,6 @@ book_of_answers = [
     "你需要适应",
     "表示怀疑",
     "它会带来好运",
-    "要有耐心",
     "记录下来",
     "不宜在这个时候",
     "决定了就去做",
@@ -616,9 +649,8 @@ book_of_answers = [
     "放弃第一个方案",
     "HOLD不住",
     "谨慎小心",
-    "注意细节",
-    "注意身后",
     "继续前进",
+    "你自己的锅你自己修",
     "情况很快就会发生改变",
     "不要被情绪左右",
     "转移注意力",
@@ -636,10 +668,9 @@ book_of_answers = [
     "删除记忆",
     "能让你快乐的那个决定",
     "你需要考虑其他方面",
-    "相信自己的直觉",
-    "这是一个机会",
     "形势不明",
-    "先让自己休息",
+    "先歇会",
+    "歇逼吧您",
     "重新考虑",
     "不明智",
     "抓住机会",
@@ -650,7 +681,6 @@ book_of_answers = [
     "有意料之外的事会发生，不妨等待",
     "你会失望的",
     "花更多的时间来决定",
-    "你开心就好"
 ]
 
 book_of_answers = list(set(book_of_answers))
@@ -831,42 +861,48 @@ book_of_answers_en = [
 
 book_of_answers_en = list(set(book_of_answers_en))
 
-async def 答案之书(*attrs,kwargs={}):
-    '向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
-    player = getPlayer(**kwargs)
+def 答案之书(ent: CoreEntity):
+    '''#答案之书 [#why, #wsm, #ans]
+    向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？
+    '''
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
     if attrs:
         if attrs[-1] in ('sub','sniff'):
-            overwriteSniffer(player,'#答案之书',r'\?')
-            appendSniffer(player,'#答案之书',r'\？')
-            appendSniffer(player,'#答案之书',r'¿')
-            appendSniffer(player,'#答案之书',r'吗')
-            appendSniffer(player,'#答案之书',r'啥')
-            appendSniffer(player,'#答案之书',r'怎么')
-            appendSniffer(player,'#答案之书',r'如何')
-            appendSniffer(player,'#答案之书',r'为什么')
+            Sniffer.overwrite(player,'#答案之书',r'\?')
+            Sniffer.append(player,'#答案之书',r'\？')
+            Sniffer.append(player,'#答案之书',r'¿')
+            Sniffer.append(player,'#答案之书',r'吗')
+            Sniffer.append(player,'#答案之书',r'啥')
+            Sniffer.append(player,'#答案之书',r'怎么')
+            Sniffer.append(player,'#答案之书',r'如何')
+            Sniffer.append(player,'#答案之书',r'为什么')
             return [Plain('【答案之书】sniff模式')]
         elif attrs[-1] in GLOBAL.unsubscribes:
-            removeSniffer(player,'#答案之书')
+            Sniffer.remove(player,'#答案之书')
             return [Plain('【答案之书】禁用sniffer')]
     dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers+dynamic_answers)
     return [Plain(ans.strip())]
 
-async def 答案之书en(*attrs,kwargs={}):
-    '向答案之书（英文）提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？'
-    player = getPlayer(**kwargs)
+def 答案之书en(ent: CoreEntity):
+    '''#答案之书en [#whye, #wsme, #anse]
+    向答案之书(英文)提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？
+    '''
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
     if attrs:
         if attrs[-1] in ('sub','sniff'):
-            overwriteSniffer(player,'#答案之书en',r'\?')
-            appendSniffer(player,'#答案之书en',r'\？')
-            appendSniffer(player,'#答案之书en',r'¿')
-            appendSniffer(player,'#答案之书en',r'吗')
-            appendSniffer(player,'#答案之书en',r'怎么')
-            appendSniffer(player,'#答案之书en',r'如何')
-            appendSniffer(player,'#答案之书en',r'为什么')
+            Sniffer.overwrite(player,'#答案之书en',r'\?')
+            Sniffer.append(player,'#答案之书en',r'\？')
+            Sniffer.append(player,'#答案之书en',r'¿')
+            Sniffer.append(player,'#答案之书en',r'吗')
+            Sniffer.append(player,'#答案之书en',r'怎么')
+            Sniffer.append(player,'#答案之书en',r'如何')
+            Sniffer.append(player,'#答案之书en',r'为什么')
             return [Plain('【book of answers】sniff mode on')]
         elif attrs[-1] in GLOBAL.unsubscribes:
-            removeSniffer(player,'#答案之书en')
+            Sniffer.remove(player,'#答案之书en')
             return [Plain('【book of answers】sniff mode off')]
     dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers_en+dynamic_answers)
@@ -940,12 +976,12 @@ functionMap = {
 }
 
 shortMap = {
-    '#ans':'#答案之书',
-    '#why':'#答案之书',
-    '#wsm':'#答案之书',
-    '#anse':'#答案之书en',
-    '#whye':'#答案之书en',
-    '#wsme':'#答案之书en'
+    # '#ans':'#答案之书',
+    # '#why':'#答案之书',
+    # '#wsm':'#答案之书',
+    # '#anse':'#答案之书en',
+    # '#whye':'#答案之书en',
+    # '#wsme':'#答案之书en'
 }
 
 functionDescript = {
