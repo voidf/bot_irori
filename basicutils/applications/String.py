@@ -5,8 +5,8 @@ if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
 import basicutils.CONST as GLOBAL
-if __name__ == '__main__':
-    os.chdir('..')
+# if __name__ == '__main__':
+#     os.chdir('..')
 import re
 import asyncio
 import requests

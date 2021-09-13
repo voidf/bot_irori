@@ -1,60 +1,29 @@
 """翻译类"""
 import os
-if __name__ == '__main__':
-    os.chdir('..')
 import sys
-import GLOBAL
-from bs4 import BeautifulSoup
-from PIL import ImageFont, ImageDraw
-from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import re
-import asyncio
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
+import sys
 import requests
-import json5
 import json
-import numpy
 import random
 import os
-import base64
-import qrcode
-import io
-import string
-import math
-import copy
 import ctypes
-import functools
-import traceback
 import http.client
-import statistics
-import csv
 import hashlib
-import zlib
-import time
 import datetime
 import urllib
-import mido
-from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
-from Utils import *
-importMirai()
-from GLOBAL import logging
+from basicutils.chain import *
+from basicutils.database import *
+from basicutils.network import *
+import basicutils.CONST as GLOBAL
 
 sys.dont_write_bytecode = True
 
 res = ''
-try:
-    with open('cfg.json', 'r', encoding='utf-8') as jfr:
-        cfg = json.load(jfr)
-        proxy = cfg.get('proxy', {})
-        appid = cfg.get('appid', '')
-        secretKey = cfg.get('secretKey', '')
 
-except Exception as e:
-    logging.error(traceback.format_exc())
-    proxy = {}
-    appid = ''
-    secretKey = ''
+from cfg import proxy, baidu_appid, baidu_secretKey
+
 
 def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
 
@@ -118,9 +87,9 @@ def BDtranslate(req):
     toLang = req[1]
     salt = random.randint(32768, 65536)
     q = req[2]
-    sign = appid + q + str(salt) + secretKey
+    sign = baidu_appid + q + str(salt) + baidu_secretKey
     sign = hashlib.md5(sign.encode()).hexdigest()
-    myurl = myurl + '?appid=' + appid + '&q=' + urllib.parse.quote(
+    myurl = myurl + '?appid=' + baidu_appid + '&q=' + urllib.parse.quote(
         q) + '&from=' + fromLang + '&to=' + toLang + '&salt=' + str(salt) + '&sign=' + sign
 
     try:
@@ -290,125 +259,142 @@ def googleTrans(req):
                 return result[7][1]
     return result[0][0][0]
 
-async def deepl(*attrs, kwargs={}):
-    """向deepl发送烤肉请求，注意一段时间内请求过多会被ban
-用法：
-    #deepl <源语言> <目标语言> <待翻译文本>
-也可以订阅快速翻译（碰到英文句子即触发）：
-    #deepl --q
-或：
-    #deepl --q=[目标语言*]
-    * 目标语言为以下中的一种，默认为ZH
-    "DE" - German
-    "EN" - English
-    "FR" - French
-    "IT" - Italian
-    "JA" - Japanese
-    "ES" - Spanish
-    "NL" - Dutch
-    "PL" - Polish
-    "PT" - Portuguese (all Portuguese varieties mixed)
-    "RU" - Russian
-    "ZH" - Chinese
-同传模式（每句都触发）：
-    #deepl ="""
-    player = getPlayer(**kwargs)
+def deepl(ent: CoreEntity):
+    """#deepl []
+        向deepl发送烤肉请求，注意一段时间内请求过多会被ban
+    用法：
+        #deepl <源语言> <目标语言> <待翻译文本>
+    也可以订阅快速翻译（碰到英文句子即触发）：
+        #deepl --q
+    或：
+        #deepl --q=[目标语言*]
+        * 目标语言为以下中的一种，默认为ZH
+        "DE" - German
+        "EN" - English
+        "FR" - French
+        "IT" - Italian
+        "JA" - Japanese
+        "ES" - Spanish
+        "NL" - Dutch
+        "PL" - Polish
+        "PT" - Portuguese (all Portuguese varieties mixed)
+        "RU" - Russian
+        "ZH" - Chinese
+    同传模式（每句都触发）：
+        #deepl ="""
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        removeSniffer(player,'#deepl')
+        Sniffer.remove(player,'#deepl')
         return [Plain('我住嘴了')]
-    if '-q' in kwargs or '-quick' in kwargs:
-        tr = kwargs.get('-q', kwargs.get('-quick', 'ZH'))
+    if '-q' in ent.meta or '-quick' in ent.meta:
+        tr = ent.meta.get('-q', ent.meta.get('-quick', 'ZH'))
         if not tr: tr = 'ZH'
         tr = tr.upper()
-        overwriteSniffer(player,'#deepl', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'EN', tr)
+        Sniffer.overwrite(player,'#deepl', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'EN', tr)
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
         if attrs[2] == '=':
-            overwriteSniffer(player,'#deepl','.*',attrs[0], attrs[1])
+            Sniffer.overwrite(player,'#deepl','.*',attrs[0], attrs[1])
             return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=deepl_translate(l1=attrs[0], l2=attrs[1], src=' '.join(attrs[2:])))]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
 
-async def 能不能好好说话(*attrs, kwargs={}):
-    if attrs:
-        return [Plain(hhsh(' '.join(attrs)))]
+def 能不能好好说话(ent: CoreEntity):
+    """#好好说话 [#hhsh]
+    来自fufu的功能，如果有不懂的缩写可以用它查询，例:#好好说话 bksn
+    """
+    r = ent.chain.tostr()
+    if r:
+        return [Plain(hhsh(r))]
     else:
         return [Plain('宁想说什么？')]
 
 
-async def 咕狗翻译(*attrs, kwargs={}):
-    player = getPlayer(**kwargs)
+def 咕狗翻译(ent: CoreEntity):
+    """#gkr []
+    从fufu那里焊接来的咕狗翻译功能
+    格式：
+        #gkr <源语言> <目标语言> <待翻译部分>
+    进入快速翻译模式（每句都处理）:
+        #gkr <源语言> <目标语言> =
+    订阅智能翻译(不带等号指定语言时默认翻成中文)：
+        #gkr --q=[目标语言]
+    或：
+        #gkr --q
+    一般用例：
+        #gkr ja zh-CN やりますね
+    """
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        removeSniffer(player,'#gkr')
+        Sniffer.remove(player,'#gkr')
         return [Plain('我住嘴了')]
-    if '-q' in kwargs or '-quick' in kwargs:
-        tr = kwargs.get('-q', kwargs.get('-quick', 'zh'))
+    if '-q' in ent.meta or '-quick' in ent.meta:
+        tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))
         if not tr: tr = 'zh'
-        overwriteSniffer(player,'#gkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
+        Sniffer.overwrite(player,'#gkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
         if attrs[2] == '=':
-            overwriteSniffer(player,'#gkr','.*',attrs[0], attrs[1])
+            Sniffer.overwrite(player,'#gkr','.*',attrs[0], attrs[1])
             return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
 
 
-async def 百度翻译(*attrs, kwargs={}):
-    player = getPlayer(**kwargs)
+def 百度翻译(ent: CoreEntity):
+    """#bkr [#kr]
+    从fufu那里焊接来的度娘翻译功能
+    格式：
+        #bkr <源语言> <目标语言> <待翻译部分>
+    进入快速翻译模式（每句都处理）:
+        #bkr <源语言> <目标语言> =
+    订阅智能翻译(不带等号指定语言时默认翻成中文)：
+        #bkr --q=[目标语言]
+    或：
+        #bkr --q
+    一般用例：
+        #bkr jp zh 自分で百度しろ
+    """
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        removeSniffer(player,'#bkr')
+        Sniffer.remove(player,'#bkr')
         return [Plain('我住嘴了')]
-    if '-q' in kwargs or '-quick' in kwargs:
-        tr = kwargs.get('-q', kwargs.get('-quick', 'zh'))
+    if '-q' in ent.meta or '-quick' in ent.meta:
+        tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))
         if not tr: tr = 'zh'
-        overwriteSniffer(player,'#bkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
+        Sniffer.overwrite(player,'#bkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
         return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
         if attrs[2] == '=':
-            overwriteSniffer(player,'#bkr','.*',attrs[0], attrs[1])
+            Sniffer.overwrite(player,'#bkr','.*',attrs[0], attrs[1])
             return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（\n')]
 
 
-functionMap = {
-    '#gkr':咕狗翻译,
-    '#bkr':百度翻译,
-    '#好好说话':能不能好好说话,
-}
+# functionMap = {
+#     '#gkr':咕狗翻译,
+#     '#bkr':百度翻译,
+#     '#好好说话':能不能好好说话,
+# }
 
-shortMap = {
-    '#hhsh':'#好好说话','#kr':'#bkr',
-}
+# shortMap = {
+#     '#hhsh':'#好好说话','#kr':'#bkr',
+# }
 
-functionDescript = {
-    '#好好说话':'来自fufu的功能，如果有不懂的缩写可以用它查询，例:#好好说话 bksn',
-    '#gkr':
-"""
-从fufu那里焊接来的咕狗翻译功能
-格式：
-    #gkr <源语言> <目标语言> <待翻译部分>
-进入快速翻译模式（每句都处理）:
-    #gkr <源语言> <目标语言> =
-例：
-    #gkr ja zh-CN やりますね
+# functionDescript = {
 
-""",
-    '#bkr':
-"""
-从fufu那里焊接来的度娘翻译功能
-格式：
-    #bkr <源语言> <目标语言> <待翻译部分>
-进入快速翻译模式（每句都处理）:
-    #bkr <源语言> <目标语言> =
-例：
-    #bkr jp zh 自分で百度しろ
-""",
-}
+#     '#bkr':
+# """
+
+# """,
+# }
 
 
 if __name__ == '__main__':
