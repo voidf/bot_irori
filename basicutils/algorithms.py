@@ -1,5 +1,9 @@
 from typing import Tuple
 import copy
+import random
+import string
+def randstr(l: int) -> str: return ''.join(random.choices(string.ascii_letters+string.digits,k=l))
+
 
 binocular_operators = {
 	'+':50,

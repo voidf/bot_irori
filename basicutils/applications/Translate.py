@@ -378,25 +378,6 @@ def 百度翻译(ent: CoreEntity):
         return [Plain(text='原谅我不知道你在说什么（\n')]
 
 
-# functionMap = {
-#     '#gkr':咕狗翻译,
-#     '#bkr':百度翻译,
-#     '#好好说话':能不能好好说话,
-# }
-
-# shortMap = {
-#     '#hhsh':'#好好说话','#kr':'#bkr',
-# }
-
-# functionDescript = {
-
-#     '#bkr':
-# """
-
-# """,
-# }
-
-
 if __name__ == '__main__':
     req = []
     req.append('en')
