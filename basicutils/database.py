@@ -141,9 +141,10 @@ class NowCoderSubscribe(RefPlayerBase, Document):
 class SentenceSubscribe(RefPlayerBase, Document):
     pass
 
-# TODO: 考虑移入application
 class WeatherSubscribe(Document, RefPlayerBase):
     city = ListField(StringField())
+
+# TODO: 考虑移入application
 
 class SlidingPuzzle(Document, RefPlayerBase):
     bg = ImageField()
@@ -158,19 +159,10 @@ class Vote(Document, RefPlayerBase):
     memberChoices = DictField()
     limit = IntField(default=5)
 
-class DDLLog(RefPlayerBase, Document):
-    content = DictField()
+# class DDLLog(RefPlayerBase, Document):
+#     content = DictField()
 
-class DailySignLog(RefPlayerBase, Document):
-    combo = IntField(default=0)
-    info = StringField()
-    last_sign = DateTimeField()
 
-class DailySignBackUP(Document):
-    player = ReferenceField(Player)
-    combo = IntField(default=0)
-    info = StringField()
-    last_sign = DateTimeField()
 
 # class CreditSubscribe(RefPlayerBase, Document):
 #     pass
