@@ -269,70 +269,23 @@ from mongoengine import *
 #     j.save()
 #     return ostr
 
-async def ddl通知姬(*attrs, kwargs={}):
-    async def Noticer(g,mb,kotoba,delays):
-        print('delay:',delays)
-        if delays<0:
-            return
-        await asyncio.sleep(delays)
+def ddl通知姬(ent: CoreEntity):
+    """#ddl []
+    防侠提醒器，可用参数：
+        new <事件名称> <到期时间[年,][月,][日,][时,][分,]<秒>>（新建事件）
+        del <事件名称>（删除事件）
+        ls（列出事件）
+        now (噢我的上帝看看现在都几点了(公会战)(公会战)(公会战)(公会战)(公会战)(公会战).jpg)
+        使用new时注意需传入时间，格式年,月,日,时,分,秒；秒必填，其余不填则按照现在的时间自动补齐
+    例:
+        #ddl new 打pcr 10,00,00
+        即在今天10点设置提醒
+    """
 
-        if g>=2**39:
-            await msgDistributer(player=g,list=[At(mb),Plain(kotoba)])
-        else:
-            await msgDistributer(player=g,list=[Plain(kotoba)])
-
-    async def wipDDL(g,mb,tit,delays):
-        print('delay:',delays)
-        try:
-            await asyncio.sleep(delays)
-
-            DDLentity = DDLLog.chk(g)
-            del ddlQueuer[tit]
-            del DDLentity.content[tit]
-            DDLentity.save()
-
-            if delays > -10:
-                if g>=2**39:
-                    await msgDistributer(player=g,list=[At(mb),Plain(tit+
-                        ''.join(
-                            random.choices(
-                                ['变臭力，只能扔了（悲', '大限已至，我扔掉了。'],
-                                weights=[0.25, 0.75],k=1
-                            )
-                        )
-                    )])
-
-                else:
-                    await msgDistributer(player=g,list=[Plain(tit+
-                        ''.join(
-                            random.choices(
-                                ['变臭力，只能扔了（悲', '大限已至，我扔掉了。'],
-                                weights=[0.25, 0.75],k=1
-                            )
-                        )
-                    )])
-        except:
-            logger.error(traceback.format_exc())
-
-    def notice2(g,mb,tit,dtime):
-        if tit in ddlQueuer:
-            for i in ddlQueuer[tit]:i.cancel()
-        ddlQueuer[tit] = [
-            asyncio.ensure_future(Noticer(g,mb,f'{tit}还有一天就ddl了！',int(dtime.total_seconds())-86400)),
-            asyncio.ensure_future(Noticer(g,mb,f'{tit}还有一个小时就ddl了！',int(dtime.total_seconds())-3600)),
-            asyncio.ensure_future(Noticer(g,mb,f'{tit}还有10分钟就ddl了！',int(dtime.total_seconds())-600)),
-            asyncio.ensure_future(wipDDL(g,mb,tit,dtime.total_seconds()))
-        ]
-
-    if 'recover' in kwargs:
-        ddlQueuer = GLOBAL.ddlQueuerGlobal.setdefault(kwargs['gp'],{})
-        notice2(kwargs['gp'],kwargs['mb'],kwargs['tit'],kwargs['dtime'])
-        return
-    else:
-        player = get_player(**kwargs)
-        ddlQueuer = GLOBAL.ddlQueuerGlobal.setdefault(player,{})
-    
-    entity = DDLLog.chk(player)
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
+    ent.chain.__root__.clear()
+    ent.meta['routiner'] = 'DDLNoticeRoutiner'
 
 
     ostr = []
@@ -340,9 +293,7 @@ async def ddl通知姬(*attrs, kwargs={}):
         if len(attrs):
             if attrs[0] == 'new':
                 s = attrs[1]
-                if s in entity.content:
-                    return [Plain('日程表里有了相同的东西，考虑换个名？')]
-                
+                # if s in entity.content:
                 cp = datetime.datetime.now()
                 st = ' '.join(attrs[2:])
 
@@ -350,7 +301,7 @@ async def ddl通知姬(*attrs, kwargs={}):
                 if len(ss) == 0:
                     return [Plain('未输入时间')]
                 elif len(ss)>6:
-                    return [Plain('我不会算这种时间格式(张口闭眼状)')]
+                    return [Plain('我不会算这种时间格式(闭眼)')]
                 ss.reverse()
                 while len(ss)<6:
                     if len(ss) == 1:
@@ -367,42 +318,42 @@ async def ddl通知姬(*attrs, kwargs={}):
                 print(ss)
                 t = datetime.datetime(*(int(i) for i in ss))
                 if t>datetime.datetime.now():
-                    dt = t-datetime.datetime.now()
-                    entity.content[s] = [','.join(ss),getattr(kwargs['mem'],'id',kwargs['mem'])]
-                    notice2(player,getattr(kwargs['mem'],'id',kwargs['mem']),s,dt)
+                    ent.meta['ts'] = t.timestamp()
+                    ent.meta['title'] = s
+                    resp = requests.post(
+                        server_api('/worker/routiner'),
+                        json={'ents': ent.json()}
+                    )
+                    if resp.status_code != 200:
+                        return resp.text
+                    elif resp.json()['res'] == False:
+                        return [Plain('日程表里有了相同的东西，考虑换个名？')]
                 else:
                     return [Plain(random.choice(['你的日程真的没问题喵（？','噔 噔 咚！这件事已经过期了']))]
                 ostr.append(Plain(random.choice(['好啦好啦会提醒你了啦','防侠提醒加入成功...TO BE CONTINUE ==>','不是，调个闹钟不比我香吗¿'])))
             elif attrs[0] in ('rm','del'):
                 s = attrs[1]
-                for i in ddlQueuer.setdefault(s,[]):
-                    i.cancel()
-                del ddlQueuer[s]
-                del entity.content[s]
-                ostr.append(Plain(s+'，脱 了 出 来'))
+                resp = requests.delete(
+                    server_api('/worker/routiner'),
+                    json={'ents': ent.json()}
+                )
+                if resp.status_code != 200:
+                    return resp.text
+                elif resp.json()['res'] == False:
+                    return [Plain('没有事先设定过这样的日程哦！')]
+                ostr.append(Plain(s+'被我干♀掉了'))
             elif attrs[0] in ('ls','chk'):
-                ooss = []
-                for k,v in entity.content.items():
-                    ooss.append(k+' => ' +v[0] +' from ' +str(v[1]))
-                if len(ooss):
-                    ostr.append(Plain('\n'.join(ooss)))
-                else:
-                    if random.randint(0,4):
-                        ostr.append(Plain('日程表像我高数卷面一样干净整洁呐'))
-                    else:
-                        ostr.append(Plain('日程表为空'))
-            elif attrs[0] == '-*/clear/*-':
-                for k,v in ddlQueuer.items():
-                    for jj in v:
-                        jj.cancel()
-                ddlQueuer = {}
-                entity.content = {}
-                ostr.append(Plain('已经，没有什么好期待的了'))
-            elif attrs[0] in ('tasks','view'):
-                ostr.append(Plain(f'{ddlQueuer}'))
+                ent.meta['call'] = 'info'
+                # ent.meta
+                resp = requests.options(
+                    server_api('/worker/routiner'),
+                    json={'ents': ent.json()}
+                )
+                if resp.status_code != 200:
+                    return resp.text
+                ostr.append(Plain(text=f'日程表:\n{resp.json()["res"]}'))
             elif attrs[0] in ('t','time','now'):
                 ostr.append(Plain(f'{datetime.datetime.now()}'))
-        entity.save()
     except Exception as e:
         logger.error(traceback.format_exc())
         ostr.append(Plain('\n【出错】'+str(e)))
@@ -543,17 +494,7 @@ functionDescript = {
 例：
     #vote 千与千寻
 """,
-    '#ddl':
-"""
-防侠提醒器，可用参数：
-    new <事件名称> <到期时间[年,][月,][日,][时,][分,]<秒>>（新建事件）
-    del <事件名称>（删除事件）
-    ls（列出事件）
-    使用new时注意需传入时间，格式年,月,日,时,分,秒；秒必填，其余不填则按照现在的时间自动补齐
-例:
-    #ddl new 打pcr 10,00,00
-    即在今天10点设置提醒
-""",
+    
     '#i电':
 """
 查查某些集成电路的手册（自己整理的

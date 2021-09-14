@@ -7,9 +7,6 @@ import logging
 import json
 from io import BytesIO
 
-def get_player(meta: dict) -> int:
-    return int(meta['player'])
-
 
 class Element(BaseModel):
     type: str = None

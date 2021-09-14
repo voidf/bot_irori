@@ -1,7 +1,11 @@
+from asyncio.tasks import ensure_future
+from basicutils.applications.File import ddl通知姬
 from time import sleep
+from typing import Union
 from loguru import logger
 
 from mido.messages.messages import Message
+from mongoengine.fields import DateTimeField, IntField, StringField
 from basicutils import chain
 import fapi.G
 
@@ -36,7 +40,7 @@ class Routiner(Base, Document):
         raise NotImplementedError
     
     @classmethod
-    async def cancel(cls, aid: str, pid: str):
+    async def cancel(cls, aid: str, pid: str, meta: dict={}):
         """取消订阅接口"""
         raise NotImplementedError
     
@@ -132,7 +136,7 @@ class CodeforcesRoutinuer(Routiner):
             await cls.update_futures()
 
     @classmethod
-    async def cancel(cls, aid: str, pid: str):
+    async def cancel(cls, aid: str, pid: str, meta: dict={}):
         cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
 
     @classmethod
@@ -202,7 +206,7 @@ class CreditInfoRoutinuer(Routiner):
             )
 
     @classmethod
-    async def cancel(cls, aid: str, pid: str):
+    async def cancel(cls, aid: str, pid: str, meta: dict={}):
         cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
 
     @classmethod
@@ -212,4 +216,127 @@ class CreditInfoRoutinuer(Routiner):
             adapter=Adapter.trychk(aid)
         ).save()
 
-# class DDLNoticeRoutiner(Routiner):
+
+from basicutils.chain import *
+class DDLNoticeRoutiner(Routiner):
+    ddl = DateTimeField()
+    title = StringField()
+    mem = IntField()
+    @classmethod
+    async def info(cls, meta: dict={}):
+        aid = meta['aid']
+        pid = meta['pid']
+        li = []
+        for subs in cls.objects(adapter=Adapter.chk(aid), player=Player.chk(pid)):
+            li.append(f"{str(subs.ddl)}    {subs.title}")
+        return '\n'.join(li)
+    @classmethod
+    async def resume(cls, aid: str):
+        logger.debug(f'{cls} resume called')
+        cls.call_map = {
+            'info': cls.info
+        }
+        cls.future_map = {}
+        aid = Adapter.trychk(aid)
+        for subs in cls.objects(adapter=aid):
+            await cls.routine(aid, subs)
+        # asyncio.ensure_future(cls.mainloop())
+        logger.info(f'{cls} initialized')
+
+
+    @classmethod
+    async def noticer(cls, aid: Union[Adapter, str], player: Union[Player, str], mem: int, message: str, delay: float):
+        if delay <= 0:
+            return
+        await asyncio.sleep(delay)
+        await fapi.G.adapters[str(aid)].upload(
+            CoreEntity(
+                player=str(player),
+                chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if int(player)!=int(mem) else message),
+                source='',
+                meta={}
+            )
+        )
+    
+    @classmethod
+    async def deleter(cls, obj: "DDLNoticeRoutiner", delay: float):
+        await asyncio.sleep(delay)
+        obj.delete()
+
+    @classmethod
+    async def routine(cls, aid: Union[Adapter, str], subs: "DDLNoticeRoutiner"):
+        ETA = subs.ddl.timestamp() - datetime.datetime.now().timestamp()
+        cls.future_map[
+            (str(aid), str(subs.player), subs.title) # 优化考虑化为前两个键做一个map，title做子map键
+        ] = [
+            asyncio.ensure_future(
+                cls.noticer(
+                    str(aid), 
+                    subs.player, 
+                    subs.mem,
+                    f"{subs.title}还有约1天迎来ddl...",
+                    ETA - 86400
+                )
+            ),
+            asyncio.ensure_future(
+                cls.noticer(
+                    str(aid), 
+                    subs.player, 
+                    subs.mem,
+                    f"{subs.title}将在1h后ddl...",
+                    ETA - 3600
+                )
+            ),
+            asyncio.ensure_future(
+                cls.noticer(
+                    str(aid), 
+                    subs.player, 
+                    subs.mem,
+                    f"10分钟后，{subs.title}即会触碰万劫不复的ddl",
+                    ETA - 600
+                )
+            ),
+            asyncio.ensure_future(
+                cls.noticer(
+                    str(aid), 
+                    subs.player, 
+                    subs.mem,
+                    f"{subs.title}已经终结。",
+                    ETA - 0
+                )
+            )
+        ]
+        asyncio.ensure_future(cls.deleter(subs, ETA))
+            
+
+
+    @classmethod
+    async def cancel(cls, aid: str, pid: str, meta: dict={}):
+        q = cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid))
+        if q:
+            q.delete()
+            for i in cls.future_map[
+                    (str(aid), str(pid), meta['title'])
+                ]:
+                i.cancel()
+            return True
+        else:
+            return False
+
+    @classmethod
+    async def add(cls, aid: str, pid: str, meta: dict={}):
+        if cls.objects(
+            player=Player.chk(pid),
+            adapter=Adapter.trychk(aid),
+            title=meta['title']
+        ):
+            return False
+        subs = cls(
+            player=Player.chk(pid),
+            adapter=Adapter.trychk(aid),
+            ddl=datetime.datetime.fromtimestamp(float(meta['ts'])),
+            title=meta['title'],
+            mem=int(meta['mem'])
+        ).save()
+        await cls.routine(aid, subs)
+        return True

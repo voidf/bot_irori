@@ -37,18 +37,6 @@ def task(s: str):
     # TODO: 在服务端Adapter实现
     logger.critical(res)
     ent.chain = res
-    # ent.chain = MessageChain.get_empty()
-    # for i in res:
-    #     if 'gap' in i.meta:
-    #         if ent.chain.__root__:
-    #             resp = requests.post(
-    #                 server_api("/worker/submit"),
-    #                 json={"ents": ent.json()}
-    #             )
-    #             if resp.status_code!=200:
-    #                 logger.critical(resp.text)
-    #             ent.chain = MessageChain.get_empty()
-    #     ent.chain.__root__.append(i)
     if ent.chain.__root__:
         resp = requests.post(
             server_api("/worker/submit"),
@@ -56,11 +44,6 @@ def task(s: str):
         )
         if resp.status_code!=200:
             logger.critical(resp.text)
-        # ent.chain = MessageChain.get_empty()
-
-    # ent.chain = res
-    # if len(ent.chain.__root__):
-    # return ent.json()
 
 @app.task
 def pull():
