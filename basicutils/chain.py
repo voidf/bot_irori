@@ -38,6 +38,9 @@ class MessageChain(BaseModel):
                     else:
                         handled_elements.append(j)
                 continue
+            elif isinstance(i, str):
+                tobeappend = Plain(text=i)
+
                 
             if tobeappend.type == "Plain":
                 if not tobeappend.text:

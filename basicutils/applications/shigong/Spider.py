@@ -1,88 +1,71 @@
 """爬虫类"""
-from asyncio.tasks import sleep
 import os
+import sys
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
 
-from requests.exceptions import Timeout
 if __name__ == '__main__':
     os.chdir('..')
-import GLOBAL
-from GLOBAL import logging
+import basicutils.CONST as GLOBAL
+
 
 from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
-from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import re
 import asyncio
 import requests
-import json5
 import json
-import numpy
 import random
-import base64
-import qrcode
-import io
-import string
-import math
 import urllib
-import copy
-import ctypes
-import functools
 import traceback
-import http.client
-import statistics
-import csv
 import hashlib
-import zlib
-import time
-import datetime
 import urllib
-import mido
-import GLOBAL
-from Utils import *
-importMirai()
+from basicutils.chain import *
+from basicutils.network import *
+from basicutils.task import *
 
-async def 没救了(*attrs,kwargs={}):
-    r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-    if r.status_code==404:
-        print('没有今天的')
-        r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-    if r.status_code==404:
-        print('没有昨天的')
-        r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=2)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-        print(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv')
-        #print(r.text)
-    if r.status_code!=200:
-        return [Plain('别看了，没救了')]
-    c = csv.reader(io.StringIO(r.text))
-    s = []
-    d = {}
-    for i in c:
-        if i[0]=='FIPS':
-            t=[]
-            #t.append('国家或地区')
-            #t.append('更具体一点')
-            t.append('累计')
-            t.append('死亡')
-            t.append('治愈')
-            t.append('患者')
-            s.append('\t\t\t'.join(t))
-        else:
-            it = d.setdefault(i[3],[0,0,0,0])
-            it[0]+=int(i[-7])
-            it[1]+=int(i[-6])
-            it[2]+=int(i[-5])
-            it[3]+=int(i[-4])
-    for k,v in sorted(d.items(),key=lambda x: x[1][0],reverse=True):
-        #s.append(f'{k}\t{v[0]}\t{v[1]}\t{v[2]}\t{v[3]}')
-        s.append("""{0}:\n{1:{5}<10.10}{2:{5}<10.10}{3:{5}<10.10}{4:{5}<10.10}""".format(k,str(v[0]),str(v[1]),str(v[2]),str(v[3]),chr(8214)))
-        #s.append("""{0:_<30.30}{1:_<37.37}{2:_<10.10}{3:_<10.10}{4:_<10.10}{5:_<10.10}""".format(i[3],i[2],i[-5],i[-4],i[-3],i[-2]))
+# async def 没救了(*attrs,kwargs={}):
+#     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
+#     if r.status_code==404:
+#         print('没有今天的')
+#         r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
+#     if r.status_code==404:
+#         print('没有昨天的')
+#         r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=2)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
+#         print(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv')
+#         #print(r.text)
+#     if r.status_code!=200:
+#         return [Plain('别看了，没救了')]
+#     c = csv.reader(io.StringIO(r.text))
+#     s = []
+#     d = {}
+#     for i in c:
+#         if i[0]=='FIPS':
+#             t=[]
+#             #t.append('国家或地区')
+#             #t.append('更具体一点')
+#             t.append('累计')
+#             t.append('死亡')
+#             t.append('治愈')
+#             t.append('患者')
+#             s.append('\t\t\t'.join(t))
+#         else:
+#             it = d.setdefault(i[3],[0,0,0,0])
+#             it[0]+=int(i[-7])
+#             it[1]+=int(i[-6])
+#             it[2]+=int(i[-5])
+#             it[3]+=int(i[-4])
+#     for k,v in sorted(d.items(),key=lambda x: x[1][0],reverse=True):
+#         #s.append(f'{k}\t{v[0]}\t{v[1]}\t{v[2]}\t{v[3]}')
+#         s.append("""{0}:\n{1:{5}<10.10}{2:{5}<10.10}{3:{5}<10.10}{4:{5}<10.10}""".format(k,str(v[0]),str(v[1]),str(v[2]),str(v[3]),chr(8214)))
+#         #s.append("""{0:_<30.30}{1:_<37.37}{2:_<10.10}{3:_<10.10}{4:_<10.10}{5:_<10.10}""".format(i[3],i[2],i[-5],i[-4],i[-3],i[-2]))
 
-    return [Plain('\n\n'.join(s))]
+#     return [Plain('\n\n'.join(s))]
 
-async def 爬一言(*attrs,kwargs={}):
-    dst = ' '.join(attrs)
+def 爬一言(ent: CoreEntity):
+    """#一言 [#yy]
+    请求一言app，加某些参数会黑化
+    """
+    dst = ent.chain.tostr()
     for _ in ('f','sl','nm','cao','你妈','屌','mmp','傻逼','妈逼','操'):
         if _ in dst.lower():
             tmp = requests.get('https://nmsl.shadiao.app/api.php?level=min&lang=zh_cn')
@@ -92,10 +75,13 @@ async def 爬一言(*attrs,kwargs={}):
     j = json.loads(tmp.text)
     return [Plain(text=j['hitokoto'])]
 
-async def 爬OIWiki(*attrs,kwargs={}):
+from basicutils.algorithms import randstr
+
+def 爬OIWiki(ent: CoreEntity, **kwargs):
+
     lnk = 'https://oi-wiki.org/'
-    if len(attrs):
-        query = ' '.join(attrs)
+    query = ent.chain.tostr()
+    if query:
         plnk = 'https://search.oi-wiki.org:8443/?s=' + query
         j = json.loads(requests.get(plnk).text)
         ostr = [Plain(text='找到了%d个类似的东西\n'%len(j))]
@@ -137,11 +123,11 @@ async def 爬OIWiki(*attrs,kwargs={}):
     url=lnk+suflnk
     print(url)
 
-    save_fn=randstr(GLOBAL.randomStrLength)+"tmpLearn"+str(kwargs['gp'].id)+'.png'
-    ostr += await renderHtml(url,save_fn)
+    # save_fn=randstr(GLOBAL.randomStrLength)+"tmpLearn"+str(kwargs['gp'].id)+'.png'
+    # ostr += await renderHtml(url,save_fn)
     
-    asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
-    ostr.append(generateImageFromFile(save_fn))
+    # asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
+    # ostr.append(generateImageFromFile(save_fn))
     return ostr
 
 async def 爬萌娘(*attrs,kwargs={}):
@@ -168,13 +154,18 @@ async def 爬萌娘(*attrs,kwargs={}):
     asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
     return l+[generateImageFromFile(save_fn)]
 
-async def 爬OEIS(*attrs,kwargs={}):
-    if attrs:
-        for i in attrs[0].split(','):
+def 爬OEIS(ent: CoreEntity):
+    """#oeis []
+    根据给定的逗号隔开的数列在OEIS寻找符合条件的数列，例:#oeis 1,1,4,5,1,4
+    """
+    s = ent.chain.tostr()
+
+    if s:
+        for i in s.split(','):
             if not i.isdigit():
                 return [Plain('输入格式需为半角逗号分隔的整数')]
             else:
-                r = requests.get(f'http://oeis.org/search?fmt=data&q={attrs[0]}')
+                r = requests.get(f'http://oeis.org/search?fmt=data&q={s}')
                 s = BeautifulSoup(r.text,'html.parser')
                 resp = []
                 for i in s('table',attrs={'cellpadding':'0','cellspacing':'0','border':'0','width':'100%'}):
@@ -190,28 +181,43 @@ async def 爬OEIS(*attrs,kwargs={}):
     else:
         return [Plain('输入格式需为半角逗号分隔的整数')]
 
-async def 爬CF(*attrs,kwargs={}):
-    try:
-        gp = kwargs['gp'].id
-    except:
-        gp = kwargs['gp']
-    player = getPlayer(**kwargs)
-    playerobj = Player.chk(player)
-    CFNoticeQueue = GLOBAL.CFNoticeQueueGlobal.setdefault(gp,{})
-            
+def 爬CF(ent: CoreEntity):
+    """#CF []
+    爬取CodeForces将要开始的比赛的时间表
+    可用参数:
+        reset（取消提醒）
+        render（提醒时渲染problems）"""
+    attrs = ent.chain.tostr().split(' ')
+    ent.chain.__root__.clear()
+    ent.meta['routiner'] = 'CodeforcesRoutinuer'
+    li = []
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
-            CFSubscribe.chk(player).delete()
+            resp = requests.delete(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
+            if resp.status_code!=200:
+                return resp.text
             return [Plain('取消本群的CodeForces比赛提醒服务')]
-        elif attrs[0] in ('R','render'):
-            CFSubscribe(player=playerobj, mode='R').save()
-    else:
-        CFSubscribe(pk=playerobj, mode='Y').save()
-    cfobj = CFSubscribe.trychk(playerobj)
+        # elif attrs[0] in ('R','render'):
+            # CFSubscribe(player=playerobj, mode='R').save()
+        elif attrs[0] in GLOBAL.subscribes:
+            resp = requests.delete(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
+            if resp.status_code!=200:
+                return resp.text
+            li.append(Plain('已订阅Codeforces比赛提醒推送'))
+    
+    # else:
+        # CFSubscribe(pk=playerobj, mode='Y').save()
+    # cfobj = CFSubscribe.trychk(playerobj)
+    li.append(Plain(text='{:<10}{:<10}'.format('名称')))
     if cfobj:
         CFdata = fetchCodeForcesContests()
         CFNoticeManager(CFdata, cfobj.mode, **kwargs)
-        li = []
         for k,v in CFdata.items():
             if 'countdown' not in v:
                 li.append(Plain(f'有正在进行的比赛：{v["title"]}\n\n'))
@@ -630,15 +636,13 @@ async def 对(*attrs,kwargs={}):
 
 functionMap = {
     '#LaTeX':爬LaTeX,
-    '#看看病':没救了,
+    # '#看看病':没救了,
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
     '#什么值得听':爬歌,
-    '#oeis':爬OEIS,
     '#CF':爬CF,
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
-    '#肛道理':爬一言,
     '#天气':爬天气,
     '#ip':爬ip,
     '#addr':反爬ip,
@@ -652,7 +656,7 @@ shortMap = {
     '#什么值得d':'#什么值得娘',
     '#什么值得萌':'#什么值得娘',
     '#什么值得医':'#看看病',
-    '#救命':'#看看病',
+    # '#救命':'#看看病',
     '#NC':'#牛客',
     '#yy':'#肛道理',
     '#tex':'#LaTeX',
@@ -664,10 +668,8 @@ shortMap = {
 
 functionDescript = {
     '#LaTeX':'爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看',
-    '#肛道理':'请求一言app，加某些参数会黑化',
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
-    '#oeis':'根据给定的逗号隔开的数列在OEIS寻找符合条件的数列，例:#oeis 1,1,4,5,1,4',
     '#天气':
 """
 传入需要查询的城市拼音
@@ -690,13 +692,6 @@ functionDescript = {
     #每日一句 cancel
 """,
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
-    '#CF':
-"""
-爬取CodeForces将要开始的比赛的时间表
-可用参数:
-    reset（取消提醒）
-    render（提醒时渲染problems）
-""",
     '#AT':
 """
 爬取AtCoder将要开始的比赛的时间表

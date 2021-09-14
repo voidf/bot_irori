@@ -121,11 +121,11 @@ async def 二维码生成器(*attrs,kwargs={}):
     
 # async def 復讀(*attrs,kwargs={}):return [Plain(' '.join(attrs))]
 
-with open('Assets/zh2morse.json','r') as f:
-    z2m = json.load(f)
+# with open('Assets/zh2morse.json','r') as f:
+#     z2m = json.load(f)
 
-with open('Assets/morse2zh.json','r') as f:
-    m2z = json.load(f)
+# with open('Assets/morse2zh.json','r') as f:
+#     m2z = json.load(f)
 
 # k1 = """ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.:,;?='/!-_"()$&@"""
 # k2 = """.- -... -.-. -..
@@ -928,7 +928,7 @@ def KMP(ent: CoreEntity):
         #KMP iiyo,koiyo
         #KMP ababaab,aabbbabababaabababaabababaababb
     """
-    attrs = ent.chain.tostr().split(' ')
+    attrs = ent.chain.tostr().split(',', 1)
     pat, s = attrs[0], attrs[1]
     fail = [-1]
     fval = [-1]

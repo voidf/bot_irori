@@ -54,7 +54,7 @@ class Routiner(Base, Document):
     #     raise NotImplementedError
 
 class CodeforcesRoutinuer(Routiner):
-    mode = StringField(default='Y')
+    # mode = StringField(default='Y')
 
     @staticmethod
     async def spider():
@@ -144,7 +144,7 @@ class CodeforcesRoutinuer(Routiner):
         cls(
             player=Player.chk(ent.source),
             adapter=Adapter.trychk(ent.player),
-            mode='Y',
+            # mode='Y',
         ).save()
         # await cls.update_futures(aid)
 
