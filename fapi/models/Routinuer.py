@@ -40,12 +40,12 @@ class Routiner(Base, Document):
         raise NotImplementedError
     
     @classmethod
-    async def cancel(cls, aid: str, pid: str, meta: dict={}):
+    async def cancel(cls, ent: CoreEntity):
         """取消订阅接口"""
         raise NotImplementedError
     
     @classmethod
-    async def add(cls, aid: str, pid: str, meta: dict={}):
+    async def add(cls, ent: CoreEntity):
         """添加订阅接口"""
         raise NotImplementedError
 
@@ -136,14 +136,14 @@ class CodeforcesRoutinuer(Routiner):
             await cls.update_futures()
 
     @classmethod
-    async def cancel(cls, aid: str, pid: str, meta: dict={}):
-        cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
+    async def cancel(cls, ent: CoreEntity):
+        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
 
     @classmethod
-    async def add(cls, aid: str, pid: str, meta: dict={}):
+    async def add(cls, ent: CoreEntity):
         cls(
-            player=Player.chk(pid),
-            adapter=Adapter.trychk(aid),
+            player=Player.chk(ent.source),
+            adapter=Adapter.trychk(ent.player),
             mode='Y',
         ).save()
         # await cls.update_futures(aid)
@@ -153,7 +153,7 @@ import basicutils.CONST as CONST
 from Worker import import_applications
 class CreditInfoRoutinuer(Routiner):
     @classmethod
-    async def info(cls, meta: dict={}):
+    async def info(cls, ent: CoreEntity):
         return ','.join(list(cls.credit_cmds.keys()))
     @classmethod
     async def resume(cls, aid: str):
@@ -206,14 +206,14 @@ class CreditInfoRoutinuer(Routiner):
             )
 
     @classmethod
-    async def cancel(cls, aid: str, pid: str, meta: dict={}):
-        cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid)).delete()
+    async def cancel(cls, ent: CoreEntity):
+        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
 
     @classmethod
-    async def add(cls, aid: str, pid: str, meta: dict={}):
+    async def add(cls, ent: CoreEntity):
         cls(
-            player=Player.chk(pid),
-            adapter=Adapter.trychk(aid)
+            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player),
         ).save()
 
 
@@ -223,9 +223,9 @@ class DDLNoticeRoutiner(Routiner):
     title = StringField()
     mem = IntField()
     @classmethod
-    async def info(cls, meta: dict={}):
-        aid = meta['aid']
-        pid = meta['pid']
+    async def info(cls, ent: CoreEntity):
+        aid = ent.source
+        pid = ent.player
         li = []
         for subs in cls.objects(adapter=Adapter.chk(aid), player=Player.chk(pid)):
             li.append(f"{str(subs.ddl)}    {subs.title}")
@@ -311,33 +311,34 @@ class DDLNoticeRoutiner(Routiner):
 
 
     @classmethod
-    async def cancel(cls, aid: str, pid: str, meta: dict={}):
-        q = cls.objects(adapter=Adapter.trychk(aid), player=Player.chk(pid))
+    async def cancel(cls, ent: CoreEntity):
+        q = cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player))
         if q:
             q.delete()
             for i in cls.future_map[
-                    (str(aid), str(pid), meta['title'])
+                    (str(ent.source), str(ent.player), ent.meta['title'])
                 ]:
-                i.cancel()
+                logger.warning(i.cancel())
+            logger.warning(cls.future_map)
             return True
         else:
             logger.debug('No such routine')
             return False
 
     @classmethod
-    async def add(cls, aid: str, pid: str, meta: dict={}):
+    async def add(cls, ent: CoreEntity):
         if cls.objects(
-            player=Player.chk(pid),
-            adapter=Adapter.trychk(aid),
-            title=meta['title']
+            player=Player.chk(ent.player),
+            adapter=Adapter.trychk(ent.source),
+            title=ent.meta['title']
         ):
             return False
         subs = cls(
-            player=Player.chk(pid),
-            adapter=Adapter.trychk(aid),
-            ddl=datetime.datetime.fromtimestamp(float(meta['ts'])),
-            title=meta['title'],
-            mem=int(meta['mem'])
+            player=Player.chk(ent.player),
+            adapter=Adapter.trychk(ent.source),
+            ddl=datetime.datetime.fromtimestamp(float(ent.meta['ts'])),
+            title=ent.meta['title'],
+            mem=int(ent.meta['mem'])
         ).save()
-        await cls.routine(aid, subs)
+        await cls.routine(ent.source, subs)
         return True

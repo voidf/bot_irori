@@ -333,6 +333,7 @@ def ddl通知姬(ent: CoreEntity):
                 ostr.append(Plain(random.choice(['好啦好啦会提醒你了啦','防侠提醒加入成功...TO BE CONTINUE ==>','不是，调个闹钟不比我香吗¿'])))
             elif attrs[0] in ('rm','del'):
                 s = attrs[1]
+                ent.meta['title'] = s
                 resp = requests.delete(
                     server_api('/worker/routiner'),
                     json={'ents': ent.json()}

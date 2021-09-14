@@ -59,18 +59,18 @@ async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
     ent, src, pid, R = tp
     # pid = str(ent.player)
     # R = ent.meta.get('routiner')
-    await R.add(src, pid, ent.meta)
+    res = await R.add(ent)
     ent.chain = MessageChain.auto_make(f'【订阅器】{R}创建成功')
-    res = await fapi.G.adapters[src.pk].upload(ent)
+    await fapi.G.adapters[src.pk].upload(ent)
     return {'res': res}
 
 @worker_route.delete('/routiner')
 async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """销毁日程器（取消订阅）"""
     ent, src, pid, R = tp
-    await R.cancel(src, pid, ent.meta)
+    res = await R.cancel(ent)
     ent.chain = MessageChain.auto_make(f'【订阅器】{R}删除成功')
-    res = await fapi.G.adapters[src.pk].upload(ent)
+    await fapi.G.adapters[src.pk].upload(ent)
     return {'res': res}
 
 @worker_route.options('/routiner')
@@ -81,10 +81,10 @@ async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depend
     logger.info(F)
     logger.info(R)
     logger.info(R.call_map)
-    ent.meta['aid'] = str(src)
-    ent.meta['pid'] = str(ent.player)
+    # ent.meta['aid'] = str(src)
+    # ent.meta['pid'] = str(ent.player)
     if hasattr(R, 'call_map') and F in R.call_map:
-        res = await R.call_map[F](ent.meta)
+        res = await R.call_map[F](ent)
         logger.debug(f'return: {res}')
         return {'res': res}
     return falseReturn(404, "Not such method")
