@@ -427,6 +427,17 @@ async def 在线P歌(*attrs, kwargs={}):
     kwargs['voices-fm'] = 'mid'
     return []
 
+class DailySignLog(RefPlayerBase, Document):
+    combo = IntField(default=0)
+    info = StringField()
+    last_sign = DateTimeField()
+
+class DailySignBackUP(Document):
+    player = ReferenceField(Player)
+    combo = IntField(default=0)
+    info = StringField()
+    last_sign = DateTimeField()
+
 def 仿洛谷每日签到(ent: CoreEntity):
     """#求签 []
     用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的
