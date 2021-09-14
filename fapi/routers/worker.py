@@ -68,7 +68,7 @@ async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
 async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """销毁日程器（取消订阅）"""
     ent, src, pid, R = tp
-    await fapi.models.Routinuer.routiner_namemap[R].cancel(src, pid)
+    await R.cancel(src, pid, ent.meta)
     ent.chain = MessageChain.auto_make(f'【订阅器】{R}删除成功')
     res = await fapi.G.adapters[src.pk].upload(ent)
     return {'res': res}

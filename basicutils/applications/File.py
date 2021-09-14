@@ -339,7 +339,8 @@ def ddl通知姬(ent: CoreEntity):
                 )
                 if resp.status_code != 200:
                     return resp.text
-                elif resp.json()['res'] == False:
+                logger.info(resp.json())
+                if resp.json()['res'] == False:
                     return [Plain('没有事先设定过这样的日程哦！')]
                 ostr.append(Plain(s+'被我干♀掉了'))
             elif attrs[0] in ('ls','chk'):
@@ -351,7 +352,8 @@ def ddl通知姬(ent: CoreEntity):
                 )
                 if resp.status_code != 200:
                     return resp.text
-                ostr.append(Plain(text=f'日程表:\n{resp.json()["res"]}'))
+
+                ostr.append(Plain(text=f'日程表:\n{resp.json()["res"] if resp.json()["res"] else "空的！"}'))
             elif attrs[0] in ('t','time','now'):
                 ostr.append(Plain(f'{datetime.datetime.now()}'))
     except Exception as e:

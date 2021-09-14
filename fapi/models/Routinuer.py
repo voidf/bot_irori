@@ -321,6 +321,7 @@ class DDLNoticeRoutiner(Routiner):
                 i.cancel()
             return True
         else:
+            logger.debug('No such routine')
             return False
 
     @classmethod
