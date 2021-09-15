@@ -1,6 +1,7 @@
 """爬虫类"""
 import os
 import sys
+
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
@@ -77,7 +78,7 @@ def 爬一言(ent: CoreEntity):
 
 from basicutils.algorithms import randstr
 
-def 爬OIWiki(ent: CoreEntity, **kwargs):
+def 爬OIWiki(ent: CoreEntity, kwargs):
 
     lnk = 'https://oi-wiki.org/'
     query = ent.chain.tostr()
@@ -185,8 +186,8 @@ def 爬CF(ent: CoreEntity):
     """#CF []
     爬取CodeForces将要开始的比赛的时间表
     可用参数:
-        reset（取消提醒）
-        render（提醒时渲染problems）"""
+        TD  （取消提醒）
+        sub （订阅提醒）"""
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
     ent.meta['routiner'] = 'CodeforcesRoutinuer'
@@ -203,29 +204,32 @@ def 爬CF(ent: CoreEntity):
         # elif attrs[0] in ('R','render'):
             # CFSubscribe(player=playerobj, mode='R').save()
         elif attrs[0] in GLOBAL.subscribes:
-            resp = requests.delete(
+            resp = requests.post(
                 server_api('/worker/routiner'),
                 json={'ents': ent.json()}
             )
             if resp.status_code!=200:
                 return resp.text
-            li.append(Plain('已订阅Codeforces比赛提醒推送'))
+            li.append(Plain('已订阅Codeforces比赛提醒推送\n'))
     
     # else:
         # CFSubscribe(pk=playerobj, mode='Y').save()
     # cfobj = CFSubscribe.trychk(playerobj)
-    li.append(Plain(text='{:<10}{:<10}'.format('名称')))
-    if cfobj:
-        CFdata = fetchCodeForcesContests()
-        CFNoticeManager(CFdata, cfobj.mode, **kwargs)
-        for k,v in CFdata.items():
-            if 'countdown' not in v:
-                li.append(Plain(f'有正在进行的比赛：{v["title"]}\n\n'))
-            else:
-                li.append(Plain(v['title']+'  '))
-                li.append(Plain(v['routine'].strftime('%Y/%b/%d %H:%M')+'  '))
-                li.append(Plain(v['length']+'  '))
-                li.append(Plain(v['countdown']+'\n'))  
+    li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
+    resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
+    for i in resp:
+        if i['phase'] == 'FINISHED':
+            break
+        li.append(
+            Plain(
+                '{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format(
+                    i['name'], 
+                    str(datetime.datetime.fromtimestamp(i['startTimeSeconds'])), 
+                    f"{i['durationSeconds'] / 60}min" , 
+                    str(datetime.timedelta(seconds=-i['relativeTimeSeconds']))
+                )
+            )
+        )
     if not li:
         li = '没有即将开始的比赛'
     return li
@@ -428,37 +432,80 @@ async def 爬歌(*attrs,kwargs={}):
     #     return [Plain('\n'.join(ans))]+voices
     return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
 
-from mongoengine import Document
-from database_utils import *
+from mongoengine import *
 
-async def 爬天气(*attrs,kwargs={}):
-    player = getPlayer(**kwargs)
+def 爬天气(ent: CoreEntity):
+    """#天气 [#weather]
+    传入需要查询的城市拼音或汉字
+    如：
+        #天气 shanghai
+    可以订阅每日的天气推送：
+    用法：
+        #天气 <城市名拼音> sub
+    注意此处订阅是新添加需要推送的城市，而不是覆写
+    如需取消所有推送，请使用：
+        #天气 cancel
+    """
+    def fetchWeather(city: str) -> list:
+        search_lnk = 'http://toy1.weather.com.cn/search?cityname=' + city
+        # logger.warning(search_lnk)
+        j = json.loads(requests.get(search_lnk).text[1:-1])[0]['ref'].split('~')
+        output = [f'{j[2]}的天气数据:']
+        weather_lnk = f'http://www.weather.com.cn/weather/{j[0]}.shtml'
+        b = BeautifulSoup(requests.get(weather_lnk).content, 'html.parser')
+        ctr = 0
+        pos = 10
+        for p, i in enumerate(b('li')):
+            if i.text.find('今天') != -1:
+                ctr += 1
+                if ctr >= 2:
+                    pos = p
+                    break
+        for i in b('li')[pos:pos+7]:
+            t = i('p')
+            output.append(
+                f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
+        return output
+    attrs = ent.chain.tostr().split(' ')
     if not attrs:
-        return [Plain('【错误】没有传入的命令\n' + SpiderDescript['#天气'])]
-
+        return [Plain('你想问哪个城市的天气？\n')]
+    ent.chain.__root__.clear()
+    ent.meta['routiner'] = 'WeatherReportRoutinuer'
     if attrs[0] in GLOBAL.unsubscribes:
-        WeatherSubscribe.objects(pk=Player.chk(player)).delete()
-        return [Plain(f'还我清净，拒绝推送')]
-    
+
+        resp = requests.delete(
+            server_api('/worker/routiner'),
+            json = {'ents': ent.json()}
+        )
+        return [Plain('不看天气预报是吧')]
+    # logger.warning(attrs)
     output = fetchWeather(attrs[0])
 
     try:
         if attrs[1] in GLOBAL.subscribes:
-            player = getPlayer(**kwargs)
-            w = WeatherSubscribe.chk(player)
-            w.city.append(attrs[0])
-            w.save()
-            output.append(f'成功订阅城市{attrs[0]}的天气推送,取消请用cancel')
+            ent.meta['city'] = attrs[0]
+            resp = requests.post(
+                server_api('/worker/routiner'),
+                json = {'ents': ent.json()}
+            )
+            output.append(f'从现在开始每天0点i宝会告诉你{attrs[0]}的天气情况哦！')
     except:
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
-async def 爬每日一句(*attrs,kwargs={}):
+def 爬每日一句(*attrs,kwargs={}):
+    """#每日一句 []
+    爬今天的每日一句
+    也可以订阅：
+    用法：
+        #每日一句 sub
+    如需取消，请使用：
+        #每日一句 cancel"""
     player = getPlayer(**kwargs)
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
             SentenceSubscribe.chk(player).delete()
-            return [Plain(f'别骂了别骂了，不给你推就是了')]
+            return [Plain(f'不学英语是吧')]
     output = {}
     fetchSentences(output)
     print(output)
@@ -575,9 +622,11 @@ async def 爬what_anime(*attrs,kwargs={}):
     else:
         return [Plain('您没发图哥哥！')]
 
-async def 刷CF(*attrs,kwargs={}):
-    """爬取给定用户的做题记录。
+def 刷CF(ent: CoreEntity):
+    """#刷CF []
+    爬取给定用户的做题记录。
     用例：#刷CF bot_yaya"""
+    attrs = ent.chain.tostr().split(' ')
     usr = attrs[0]
     res = requests.get(f'https://codeforces.com/api/user.status?handle={usr}')
 
@@ -611,8 +660,9 @@ async def 刷CF(*attrs,kwargs={}):
     试过{tried_count}题"""
     )]
 
-async def 对(*attrs,kwargs={}):
-    """给出上句对下句"""
+def 对(ent: CoreEntity):
+    """#对 []
+    给出上句对下句"""
     couplet_hds = {
         "Accept":"*/*",
         "Accept-Encoding":"gzip, deflate, br",
@@ -629,7 +679,7 @@ async def 对(*attrs,kwargs={}):
         "Sec-Fetch-Site":"same-site",
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
     }
-    couplet_lnk = f"https://ai-backend.binwang.me/chat/couplet/{''.join(attrs).strip()}"
+    couplet_lnk = f"https://ai-backend.binwang.me/chat/couplet/{ent.chain.tostr().strip()}"
     resp = requests.get(couplet_lnk, headers=couplet_hds).json()['output']
     return [Plain(resp)]
 
@@ -640,10 +690,8 @@ functionMap = {
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
     '#什么值得听':爬歌,
-    '#CF':爬CF,
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
-    '#天气':爬天气,
     '#ip':爬ip,
     '#addr':反爬ip,
     '#每日一句':爬每日一句,
@@ -658,11 +706,9 @@ shortMap = {
     '#什么值得医':'#看看病',
     # '#救命':'#看看病',
     '#NC':'#牛客',
-    '#yy':'#肛道理',
     '#tex':'#LaTeX',
     '#uta':'#什么值得听',
     '#music':'#什么值得听',
-    '#weather':'#天气',
 
 }
 
@@ -670,27 +716,7 @@ functionDescript = {
     '#LaTeX':'爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看',
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
-    '#天气':
-"""
-传入需要查询的城市拼音
-如：
-    #天气 shanghai
-可以订阅每日的天气推送：
-用法：
-    #天气 <城市名拼音> sub
-注意此处订阅是append，即新添加需要推送的城市，而不是覆写
-如需取消所有推送，请使用：
-    #天气 cancel
-""",
-    '#每日一句':
-"""
-爬今天的每日一句
-也可以订阅：
-用法：
-    #每日一句 sub
-如需取消，请使用：
-    #每日一句 cancel
-""",
+
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
     '#AT':
 """

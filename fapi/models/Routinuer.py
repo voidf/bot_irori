@@ -5,7 +5,7 @@ from typing import Union
 from loguru import logger
 
 from mido.messages.messages import Message
-from mongoengine.fields import DateTimeField, IntField, StringField
+from mongoengine.fields import DateTimeField, IntField, ListField, StringField
 from basicutils import chain
 import fapi.G
 
@@ -342,3 +342,114 @@ class DDLNoticeRoutiner(Routiner):
         ).save()
         await cls.routine(ent.source, subs)
         return True
+
+from bs4 import BeautifulSoup
+import traceback
+class WeatherReportRoutinuer(Routiner):
+    city = ListField(StringField())
+    @classmethod
+    async def resume(cls, aid: str):
+        cls.youbi = {
+            1:'月曜日',
+            2:'火曜日',
+            3:'水曜日',
+            4:'木曜日',
+            5:'金曜日',
+            6:'土曜日',
+            7:'日曜日',
+        }
+
+        logger.debug(f'{cls} resume called')
+        # cls.future_map = {}
+        if not fapi.G.initialized:
+            asyncio.ensure_future(cls.mainloop())
+            logger.info(f'{cls} initialized')
+
+
+    @classmethod
+    async def mainloop(cls):
+        cycle = 86400
+        offset = 3600 * 0 # UTC+8, 24 - 8 = 16
+        ses = aiohttp.ClientSession()
+        while 1:
+            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
+            await asyncio.sleep(tosleep)
+            await cls.update_futures(ses)
+
+    @classmethod
+    async def update_futures(cls, ses: aiohttp.ClientSession):
+        q = cls.objects()
+        # if q:s
+        dt = datetime.datetime.now()
+        ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{cls.youbi[dt.isoweekday()]}']
+        try:
+            async with ses.get('https://wannianrili.51240.com/') as resp:
+                bs = BeautifulSoup(await resp.text(), 'html.parser')
+            res = bs('div',attrs={'id':'jie_guo'})
+            ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
+            ans.append(res[0].contents[dt.day]('span',string='节气')[0].nextSibling.string)
+        except:
+            ans.append('我忘了今天农历几号了')
+            print(traceback.format_exc())
+
+        if random.randint(0,3):
+            ans.append(random.choice(['还在盯着屏幕吗？','还不睡？等死吧','别摸了别摸了快点上床吧','白天再说.jpg','邀请你同床竞技']))
+
+        done = set()
+
+        for subs in q:
+            output = list(ans)
+
+            # output = [] if subs.player.pk in done else list(ans)
+            # done.add(subs.player.pk)
+            for city in subs.city:
+                async with ses.get('http://toy1.weather.com.cn/search?cityname=' + city) as resp:
+                    j = json.loads((await resp.text())[1:-1])[0]['ref'].split('~')
+
+
+
+                output.append(f'{j[2]}的天气数据:')
+                async with ses.get(f'http://www.weather.com.cn/weather/{j[0]}.shtml') as resp:
+                    b = BeautifulSoup(await resp.content.read(), 'html.parser')
+                ctr = 0
+                pos = 10
+                for p, i in enumerate(b('li')):
+                    if i.text.find('今天') != -1:
+                        ctr += 1
+                        if ctr >= 2:
+                            pos = p
+                            break
+                for i in b('li')[pos:pos+7]:
+                    t = i('p')
+                output.append(
+                    f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
+            await fapi.G.adapters[str(subs.adapter)].upload(
+                CoreEntity(
+                    player=str(subs.player),
+                    chain=chain.MessageChain.auto_make(
+                        '\n'.join(output)
+                    ),
+                    source='',
+                    meta={}
+                )
+            )
+
+    @classmethod
+    async def cancel(cls, ent: CoreEntity):
+        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+
+    @classmethod
+    async def add(cls, ent: CoreEntity):
+        c = cls.objects(
+            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player)
+        ).first()
+        if not c:
+            c = cls(
+            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player),
+            city=[]
+        )
+        c.city.append(ent.meta['city'])
+        c.save()
+
