@@ -1,43 +1,13 @@
 """测试类（开发用"""
 import os
-if __name__ == '__main__':
-    os.chdir('..')
-import GLOBAL    
-from bs4 import BeautifulSoup
-from PIL import ImageFont,ImageDraw
-from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import re
+import sys
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
+import basicutils.CONST as GLOBAL
 import asyncio
-import requests
-import json5
-import json
-import numpy
-import random
-import base64
-import qrcode
-import io
-import string
-import math
-import urllib
-import copy
-import ctypes
-import functools
-import traceback
-import http.client
-import statistics
-import csv
-import hashlib
-import zlib
-import time
-import datetime
-import urllib
-import mido
-from Sniffer import *
-from Utils import *
+from basicutils.network import *
+from basicutils.chain import *
 
-importMirai()
 
 async def 表情符号查询姬(*attrs,kwargs={}):
     return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
@@ -48,8 +18,6 @@ async def Unicode测试姬(*attrs,kwargs={}):
     s,e = min(s,e),max(s,e)
     w = ' '.join(attrs[2:])
     asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
-
-async def 表情字典测试姬(*attrs,kwargs={}): return [Face(faceId=QQFaces[attrs[0]])]
 
 async def 乒乓球(*attrs,kwargs={}):
     GLOBAL.pingCtr+=1
@@ -72,25 +40,22 @@ async def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlaye
 
 async def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
 
-async def 音乐测试(*attrs, kwargs={}):
-    print('test')
-    print(kwargs)
+def 音乐测试(ent: CoreEntity):
+    """#mu []
+    """
     # loop = asyncio.get_running_loop()
     # voi = loop.run_until_complete(GLOBAL.app.uploadVoice(getFileBytes('Assets/wf.amr')))
     # voi = getFileBytes('Assets/wf.amr')
     # return [voi]
-    kwargs['voices'] = ['Assets/wf.amr']
-    return [Plain('MusicTesting')]
+    return [Voice(url='https://pb.nichi.co/near-heavy-during')]
 
 
 functionMap = {
     '#fuzz':Unicode测试姬,
-    '#EMJ':表情字典测试姬,
     '#ping':乒乓球,
     '#废话':废话生成器,
     '#echo':表情符号查询姬,
     '#lim':重设渲染图片阈值,
-    '#mu':音乐测试,
     r'%clear':清空嗅探器,
     r'%sync':同步嗅探器
 }
@@ -100,7 +65,6 @@ shortMap = {
 }
 
 functionDescript = {
-    '#mu':'',
     '#fuzz':
 """
 【测试用】基本上是用来测试unicode的
@@ -109,7 +73,6 @@ functionDescript = {
 """,
     '#lim':'设置返回的消息长度大于等于多少时,转换为图片发送',
     '#echo':'查询当前字符串的unicode码',
-    '#EMJ':'测试mirai自带表情字典，例:#EMJ kuaikule',
     '#ping':'基本上是用来测试bot有没有在线的。无聊加了个计数应该不会被pwn吧（',
     '#废话':'【测试用】复读某个字符串，一开始是为测量消息最大长度而设计，目前已知私聊字符串最大长度876，群聊32767.用法#废话 <复读字符串> <复读次数>',
     r'%clear':'【嗅探器】清空本群的所有嗅探器',

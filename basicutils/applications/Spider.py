@@ -5,8 +5,6 @@ import sys
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
-if __name__ == '__main__':
-    os.chdir('..')
 import basicutils.CONST as GLOBAL
 
 
@@ -264,14 +262,13 @@ async def 爬AtCoder(*attrs,kwargs={}):
         li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
     return li
 
-async def 爬LaTeX(*attrs,kwargs={}):
-    base = r'\dpi{150} \bg_white \large ' + ' '.join(attrs).replace('+','&plus;')
-    r = requests.get('https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base)))
-    fn = f"tmpLaTeX{randstr(3)}.png"
-    with open(fn,'wb') as f:
-        f.write(r.content)
-    asyncio.ensure_future(rmTmpFile(fn))
-    return [generateImageFromFile(fn)]
+def 爬LaTeX(ent: CoreEntity):
+    """#LaTeX [#tex, #latex]
+    爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看
+    """
+    base = r'\dpi{150} \bg_white \large ' + ent.chain.tostr().replace('+','&plus;')
+    lnk = 'https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base))
+    return Image(url=lnk)
 
 async def 爬牛客(*attrs,kwargs={}):
     try:
@@ -493,7 +490,7 @@ def 爬天气(ent: CoreEntity):
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
-def 爬每日一句(*attrs,kwargs={}):
+def 爬每日一句(ent: CoreEntity):
     """#每日一句 []
     爬今天的每日一句
     也可以订阅：
@@ -501,24 +498,34 @@ def 爬每日一句(*attrs,kwargs={}):
         #每日一句 sub
     如需取消，请使用：
         #每日一句 cancel"""
-    player = getPlayer(**kwargs)
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
+    ent.chain.__root__.clear()
+    ent.meta['routiner'] = 'DailySentenceRoutinuer'
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
-            SentenceSubscribe.chk(player).delete()
+            requests.delete(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
             return [Plain(f'不学英语是吧')]
-    output = {}
-    fetchSentences(output)
+    r = requests.get(
+        f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
+    j = json.loads(r.text)
+    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture'])]
+    # , Voice(url=j['tts'])
+
     print(output)
     try:
         if attrs and attrs[0] in GLOBAL.subscribes:
-            SentenceSubscribe(player=player).save()
-            output.setdefault('plain',[]).append(f'成功订阅每日一句推送,回复td退订')
+            requests.post(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
+            output.append(Plain(f'成功订阅每日一句推送,回复td退订'))
     except:
         print(traceback.format_exc())
-    if 'img' in output:
-        return [generateImageFromFile(output['img'])]+[Plain('\n'.join(output['plain']))]
-    else:
-        return [Plain('\n'.join(output['plain']))]
+    return output
 
 async def 爬ip(*attrs,kwargs={}):
     if not attrs:
@@ -685,7 +692,6 @@ def 对(ent: CoreEntity):
 
 
 functionMap = {
-    '#LaTeX':爬LaTeX,
     # '#看看病':没救了,
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
@@ -706,14 +712,13 @@ shortMap = {
     '#什么值得医':'#看看病',
     # '#救命':'#看看病',
     '#NC':'#牛客',
-    '#tex':'#LaTeX',
     '#uta':'#什么值得听',
     '#music':'#什么值得听',
 
 }
 
 functionDescript = {
-    '#LaTeX':'爬自https://latex.vimsky.com，我不会写LaTeX，炸了说一下我看看',
+    '#LaTeX':'',
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
 

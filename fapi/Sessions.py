@@ -19,7 +19,7 @@ class MiraiSession():
         
     async def enter_loop(self, wsurl: str):
         """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
-        self.ws = await self._ases.ws_connect(wsurl)
+        self.ws = await self._ases.ws_connect(wsurl, headers={})
         async for msg in self.ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 logger.debug(msg.data)

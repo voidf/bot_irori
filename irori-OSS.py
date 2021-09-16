@@ -21,6 +21,9 @@ async def upload_(authkey: str, f: UploadFile = File(...)):
     if authkey != cfg.upload_key:
         return HTTPException(401)
     fs = FileStorage()
+    print(f.filename)
+    print(f.content_type)
+    
     
     fs.content.put(f.file)
     fs.save()

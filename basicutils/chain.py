@@ -158,7 +158,7 @@ class FlashImage(Element):
         return "[闪照]"
 
 class Voice(Element):
-    type: str = "FlashImage"
+    type: str = "Voice"
     voiceId: Optional[str] = None
     url: Optional[str] = None
     base64: Optional[str] = None

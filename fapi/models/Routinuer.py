@@ -53,6 +53,8 @@ class Routiner(Base, Document):
     # async def mainloop(cls, aid: str):
     #     raise NotImplementedError
 
+# (现在的时间戳 + 8*3600) % 86400 才能获得东八区现在是一天的第几秒
+
 class CodeforcesRoutinuer(Routiner):
     # mode = StringField(default='Y')
 
@@ -369,7 +371,7 @@ class WeatherReportRoutinuer(Routiner):
     @classmethod
     async def mainloop(cls):
         cycle = 86400
-        offset = 3600 * 0 # UTC+8, 24 - 8 = 16
+        offset = 3600 * 8 - 5 # 0点过5秒
         ses = aiohttp.ClientSession()
         while 1:
             tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
@@ -453,3 +455,62 @@ class WeatherReportRoutinuer(Routiner):
         c.city.append(ent.meta['city'])
         c.save()
 
+class DailySentenceRoutinuer(Routiner):
+    @classmethod
+    async def resume(cls, aid: str):
+        logger.debug(f'{cls} resume called')
+        # cls.future_map = {}
+        if not fapi.G.initialized:
+            asyncio.ensure_future(cls.mainloop())
+            logger.info(f'{cls} initialized')
+
+    @classmethod
+    async def update_futures(cls, ses: aiohttp.ClientSession):
+        async with ses.get(
+            f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}'
+        ) as resp:
+            j = await resp.json()
+        ent = CoreEntity(
+            player='',
+            chain=MessageChain.auto_make(
+                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture'])]
+            ),
+            # , Voice(url=j['tts'])
+            source='',
+            meta={}
+        )
+        for subs in cls.objects():
+            ent.player=str(subs.player)
+            await fapi.G.adapters[str(subs.adapter)].upload(
+                ent
+            )
+
+
+    @classmethod
+    async def mainloop(cls):
+        cycle = 86400
+        offset = 3600 * 17 # 0点过5秒
+        ses = aiohttp.ClientSession()
+        while 1:
+            tosleep = cycle - (datetime.datetime.now().timestamp() + 8*3600 - offset) % cycle
+            await asyncio.sleep(tosleep)
+            await cls.update_futures(ses)
+
+    
+
+    @classmethod
+    async def cancel(cls, ent: CoreEntity):
+        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+
+    @classmethod
+    async def add(cls, ent: CoreEntity):
+        c = cls.objects(
+            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player)
+        ).first()
+        if not c:
+            c = cls(
+            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player)
+        )
+        c.save()

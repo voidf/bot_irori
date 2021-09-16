@@ -49,6 +49,50 @@ async def submit_worker(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_j
     await fapi.G.adapters[src.pk].upload(ent)
     return trueReturn()
 
+from fapi.models.FileStorage import FileStorage, TempFile
+@worker_route.post('/oss')
+async def upload_oss(f: UploadFile, delays: Optional[int]=-1, tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)):
+    ent, src = tp
+    if delays>=0:
+        fs = TempFile(
+            adapter=src,
+            filename=f.filename,
+            content_type=f.content_type,
+            expires=datetime.datetime.now()+datetime.timedelta(seconds=delays)
+        )
+        asyncio.ensure_future(fs.deleter())
+    else:
+        fs = FileStorage(
+            adapter=src,
+            filename=f.filename,
+            content_type=f.content_type
+        )
+    fs.content.put(f.file)
+    fs.save()
+    return {'url': str(fs.pk)}
+
+@worker_route.get('/oss/{fspk}')
+async def download_oss(fspk: str):
+    fs: FileStorage = FileStorage.trychk(fspk)
+    
+    if not fs:
+        return falseReturn(404, 'No such resource')
+    else:
+        return Response(fs.content.read(), media_type=fs.content_type)
+
+@worker_route.delete('/oss/{fspk}')
+async def delete_oss(fspk: str, tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)):
+    ent, src = tp
+    fs: FileStorage = FileStorage.trychk(fspk)
+    if not fs:
+        return falseReturn(404, 'No such resource')
+    if fs.adapter == src or 'oss_A' in src.role.allow or 'A' in src.role.allow:
+        fs.delete()
+        return trueReturn()
+    else:
+        return falseReturn(403, 'Not permitted')
+    
+
 async def resolve_routiner(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)) -> Tuple[CoreEntity, Adapter, str, Routiner]:
     ent, src = tp
     return ent, src, str(ent.player), fapi.models.Routinuer.routiner_namemap[ent.meta.get('routiner')]
@@ -87,4 +131,5 @@ async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depend
         res = await R.call_map[F](ent)
         logger.debug(f'return: {res}')
         return {'res': res}
-    return falseReturn(404, "Not such method")
+    return falseReturn(404, "No such method")
+
