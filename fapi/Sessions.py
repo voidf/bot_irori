@@ -105,11 +105,15 @@ class MiraiSession():
             chain = ent.chain
             ent.chain = MessageChain.get_empty()
             for i in chain:
-                if i.meta and 'delay' in i.meta:
+                if i.meta and 'delay' in i.meta :
                     if ent.chain.__root__:
                         await self.auto_deliver(ent)
                     await asyncio.sleep(float(i.meta['delay']))
-                    ent.chain = MessageChain.get_empty()
+                    ent.chain.__root__.clear()
+                elif isinstance(i, Voice):
+                    if ent.chain.__root__:
+                        await self.auto_deliver(ent)
+                    ent.chain.__root__.clear()
                 ent.chain.__root__.append(i)
             if ent.chain.__root__:
                 await self.auto_deliver(ent)

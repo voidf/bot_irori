@@ -3,8 +3,10 @@ import hashlib
 import json
 import traceback
 import fapi.G
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, File, UploadFile
+import fastapi
+from fastapi import *
+# from fastapi import File as fapi_File
+from fastapi.responses import *
 from typing import Optional
 from pydantic import BaseModel
 from cfg import *
@@ -22,7 +24,7 @@ from fapi.models.Routinuer import *
 
 worker_route = APIRouter(
     prefix="/worker",
-    tags=["worker"],
+    tags=["worker - 分布式任务执行模块自用，非外部调用接口"],
 )
 
 
@@ -49,29 +51,37 @@ async def submit_worker(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_j
     await fapi.G.adapters[src.pk].upload(ent)
     return trueReturn()
 
+oss_route = APIRouter(
+    prefix="/oss",
+    tags=["oss - 内置对象储存模块"],
+)
+
 from fapi.models.FileStorage import FileStorage, TempFile
-@worker_route.post('/oss')
-async def upload_oss(f: UploadFile, delays: Optional[int]=-1, tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)):
-    ent, src = tp
+
+
+@oss_route.post('')
+async def upload_oss(delays: int = -1, fileobj: UploadFile=fastapi.File(...), ents: str = Form(...)):
+    ent, src = await parse_adapter_jwt(CoreEntityJson(ents=ents))
+    # delays = ent.get('delays', -1)
     if delays>=0:
         fs = TempFile(
             adapter=src,
-            filename=f.filename,
-            content_type=f.content_type,
+            filename=fileobj.filename,
+            content_type=fileobj.content_type,
             expires=datetime.datetime.now()+datetime.timedelta(seconds=delays)
         )
         asyncio.ensure_future(fs.deleter())
     else:
         fs = FileStorage(
             adapter=src,
-            filename=f.filename,
-            content_type=f.content_type
+            filename=fileobj.filename,
+            content_type=fileobj.content_type
         )
-    fs.content.put(f.file)
+    fs.content.put(fileobj.file)
     fs.save()
     return {'url': str(fs.pk)}
 
-@worker_route.get('/oss/{fspk}')
+@oss_route.get('/{fspk}')
 async def download_oss(fspk: str):
     fs: FileStorage = FileStorage.trychk(fspk)
     
@@ -80,7 +90,7 @@ async def download_oss(fspk: str):
     else:
         return Response(fs.content.read(), media_type=fs.content_type)
 
-@worker_route.delete('/oss/{fspk}')
+@oss_route.delete('/{fspk}')
 async def delete_oss(fspk: str, tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)):
     ent, src = tp
     fs: FileStorage = FileStorage.trychk(fspk)
@@ -91,13 +101,19 @@ async def delete_oss(fspk: str, tp: Tuple[CoreEntity, Adapter] = Depends(parse_a
         return trueReturn()
     else:
         return falseReturn(403, 'Not permitted')
-    
+
+worker_route.include_router(oss_route)
+
+routiner_route = APIRouter(
+    prefix="/routiner",
+    tags=["routiner - 内置日程器模块"],
+)
 
 async def resolve_routiner(tp: Tuple[CoreEntity, Adapter] = Depends(parse_adapter_jwt)) -> Tuple[CoreEntity, Adapter, str, Routiner]:
     ent, src = tp
     return ent, src, str(ent.player), fapi.models.Routinuer.routiner_namemap[ent.meta.get('routiner')]
 
-@worker_route.post('/routiner')
+@routiner_route.post('')
 async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """创建日程器"""
     ent, src, pid, R = tp
@@ -108,7 +124,7 @@ async def create_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
     await fapi.G.adapters[src.pk].upload(ent)
     return {'res': res}
 
-@worker_route.delete('/routiner')
+@routiner_route.delete('')
 async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """销毁日程器（取消订阅）"""
     ent, src, pid, R = tp
@@ -117,7 +133,7 @@ async def delete_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends
     await fapi.G.adapters[src.pk].upload(ent)
     return {'res': res}
 
-@worker_route.options('/routiner')
+@routiner_route.options('')
 async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depends(resolve_routiner)):
     """调用日程器的内部功能"""
     ent, src, pid, R = tp
@@ -133,3 +149,4 @@ async def options_routine(tp: Tuple[CoreEntity, Adapter, str, Routiner] = Depend
         return {'res': res}
     return falseReturn(404, "No such method")
 
+worker_route.include_router(routiner_route)

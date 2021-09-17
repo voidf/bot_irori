@@ -1,4 +1,5 @@
 """测试类（开发用"""
+from basicutils.task import server_api
 import os
 import sys
 if os.getcwd() not in sys.path:
@@ -19,7 +20,10 @@ async def Unicode测试姬(*attrs,kwargs={}):
     w = ' '.join(attrs[2:])
     asyncio.ensure_future(fuzzT(kwargs['gp'],s,e,w))
 
-async def 乒乓球(*attrs,kwargs={}):
+def 乒乓球(ent: CoreEntity):
+    """#ping []
+    用来测试bot有没有在线
+    """
     GLOBAL.pingCtr+=1
     if GLOBAL.pingCtr-1==0:
         s = 'pong'
@@ -39,15 +43,20 @@ async def 重设渲染图片阈值(*attrs,kwargs={}):
 async def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
 
 async def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
-
+import requests
 def 音乐测试(ent: CoreEntity):
     """#mu []
+    测试Voice或者转码工不工作
     """
     # loop = asyncio.get_running_loop()
     # voi = loop.run_until_complete(GLOBAL.app.uploadVoice(getFileBytes('Assets/wf.amr')))
     # voi = getFileBytes('Assets/wf.amr')
     # return [voi]
-    return [Voice(url='https://pb.nichi.co/near-heavy-during')]
+    ret = requests.post(
+        server_api('/convert/amr?format=mp3'),
+        data={'lnk': 'https://pb.nichi.co/near-heavy-during'}
+    ).json()['url']
+    return [Voice(url=server_api('/worker/oss/'+ret))]
 
 
 functionMap = {
@@ -73,7 +82,7 @@ functionDescript = {
 """,
     '#lim':'设置返回的消息长度大于等于多少时,转换为图片发送',
     '#echo':'查询当前字符串的unicode码',
-    '#ping':'基本上是用来测试bot有没有在线的。无聊加了个计数应该不会被pwn吧（',
+    '#ping':'',
     '#废话':'【测试用】复读某个字符串，一开始是为测量消息最大长度而设计，目前已知私聊字符串最大长度876，群聊32767.用法#废话 <复读字符串> <复读次数>',
     r'%clear':'【嗅探器】清空本群的所有嗅探器',
     r'%sync':'【嗅探器】从文件同步本群的嗅探器'

@@ -23,7 +23,7 @@ auth_route = APIRouter(
 )
 
 from fapi.models.Routinuer import *
-
+from fapi.models.FileStorage import *
 class login_form(BaseModel):
     username: str
     password: str
@@ -39,6 +39,7 @@ async def login_auth(f: login_form):
     await Routiner.recover_routiners(a)
 
     if not fapi.G.initialized:
+        await TempFile.resume()
         fapi.G.initialized = True
         # 一次启动上下文
 
@@ -53,6 +54,7 @@ class register_form(BaseModel):
     username: str
     password: str
 
+@auth_route.post('/register')
 async def register_auth(f: register_form):
     if Adapter.objects(username=f.username):
         return falseReturn(401, '用户名已被占用')

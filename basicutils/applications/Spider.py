@@ -512,7 +512,7 @@ def 爬每日一句(ent: CoreEntity):
     r = requests.get(
         f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
     j = json.loads(r.text)
-    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture'])]
+    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=j['tts'])]
     # , Voice(url=j['tts'])
 
     print(output)

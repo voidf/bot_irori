@@ -39,6 +39,6 @@ class TempFile(FileStorage):
         )
         self.delete()
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         for i in cls.objects():
             asyncio.ensure_future(i.deleter())

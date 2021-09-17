@@ -423,8 +423,8 @@ class WeatherReportRoutinuer(Routiner):
                             break
                 for i in b('li')[pos:pos+7]:
                     t = i('p')
-                output.append(
-                    f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
+                    output.append(
+                        f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
             await fapi.G.adapters[str(subs.adapter)].upload(
                 CoreEntity(
                     player=str(subs.player),
@@ -473,7 +473,7 @@ class DailySentenceRoutinuer(Routiner):
         ent = CoreEntity(
             player='',
             chain=MessageChain.auto_make(
-                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture'])]
+                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=j['tts'])]
             ),
             # , Voice(url=j['tts'])
             source='',
