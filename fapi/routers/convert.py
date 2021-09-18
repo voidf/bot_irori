@@ -67,7 +67,7 @@ def limitAudioSizeByCut(src) -> str:
     return dst
 
 @convert_route.post('/amr')
-async def convert_to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.File(...), lnk: Optional[str]=Form('')):
+async def convert_to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), lnk: Optional[str]=Form('')):
     """
     format:
         ffmpeg需要根据传入的扩展名确定源格式，一般是三个小写字母
@@ -83,20 +83,30 @@ async def convert_to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = f
                 fi.write(await resp.content.read())
         else:
             fi.write(await f.read())
-    ret = [
-        nolimitAudioSize,
-        limitAudioSizeByBitrate,
-        limitAudioSizeByCut
-    ][mode](fname)
-    with open(ret, 'rb') as fi:
-        t = TempFile(
-            adapter=manager,
-            filename=ret,
-            content_type='audio/AMR',
-            expires=datetime.datetime.now()+datetime.timedelta(seconds=30)
-        )
-        t.content.put(fi)
-        t.save()
-        asyncio.ensure_future(t.deleter())
-    os.remove(fname)
-    return {'url': str(t.pk)}
+    try:
+        ret = [
+            nolimitAudioSize,
+            limitAudioSizeByBitrate,
+            limitAudioSizeByCut
+        ][mode](fname)
+        with open(ret, 'rb') as fi:
+            t = TempFile(
+                adapter=manager,
+                filename=ret,
+                content_type='audio/AMR',
+                expires=datetime.datetime.now()+datetime.timedelta(seconds=30)
+            )
+            t.content.put(fi)
+            t.save()
+            asyncio.ensure_future(t.deleter())
+        os.remove(fname)
+        os.remove(ret)
+        return {'url': str(t.pk)}
+    except:
+        os.remove(fname)
+        try:
+            os.remove(ret)
+        except:
+            pass
+        return traceback.format_exc()
+        

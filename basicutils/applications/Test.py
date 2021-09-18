@@ -53,8 +53,8 @@ def 音乐测试(ent: CoreEntity):
     # voi = getFileBytes('Assets/wf.amr')
     # return [voi]
     ret = requests.post(
-        server_api('/convert/amr?format=mp3'),
-        data={'lnk': 'https://pb.nichi.co/near-heavy-during'}
+        server_api('/convert/amr?format=mp3&mode=0'),
+        data={'lnk': 'http://127.0.0.1:8000/download/6145599b94aa42fdbe423c93'}
     ).json()['url']
     return [Voice(url=server_api('/worker/oss/'+ret))]
 

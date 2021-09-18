@@ -1,4 +1,5 @@
 from mongoengine import *
+from mongoengine.queryset.base import *
 from fapi.models.Base import *
 
 class Role(Base, Document):

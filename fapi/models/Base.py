@@ -1,7 +1,14 @@
 from mongoengine import *
-from typing import TypeVar, get_type_hints
+from typing import Optional, TypeVar, Union, get_type_hints
 import datetime
+from mongoengine import connection
+from mongoengine.connection import connect, disconnect
+from mongoengine.fields import *
+from mongoengine.pymongo_support import *
+from mongoengine.context_managers import *
+from mongoengine.document import *
 
+from fapi.models.Auth import Adapter
 INVISIBLE = TypeVar('INVISIBLE')
 
 class Base():
@@ -78,15 +85,25 @@ class SaveTimeBase(Base):
         return d
 
 class Player(Document, Base):
-    pid = StringField(primary_key=True)
+    pid = StringField()
+    aid = ReferenceField(Adapter)
     items = DictField()
     def __int__(self):
         return int(self.pid)
     def __str__(self):
         return str(self.pid)
     @classmethod
-    def chk(cls, pk):
-        return super().chk(str(pk))
+    def chk(cls, pk: str, aid: Optional[Union[Adapter, str]]=None):
+        if isinstance(pk, cls):
+            return pk
+        if aid is None:
+            return super().chk(str(pk))
+        else:
+            a = Adapter.chk(aid)
+            q = cls.objects(aid=a, pid=pk).first()
+            if not q:
+                q = cls(aid=a, pid=pk).save()
+            return q
 
 class RefPlayerBase(Base):
     _player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
