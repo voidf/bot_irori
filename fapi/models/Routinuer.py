@@ -18,12 +18,13 @@ import datetime
 from basicutils.network import CoreEntity
 from mongoengine import *
 from fapi.models.Auth import *
+from fapi.models.Player import *
 
 routiner_namemap = {} # 根据名字查找Routinuer用
 
 class Routiner(Base, Document):
     meta = {'allow_inheritance': True}
-    adapter = ReferenceField(Adapter)
+    # adapter = ReferenceField(Adapter)
     player = ReferenceField(Player)
 
     @classmethod
@@ -92,8 +93,8 @@ class CodeforcesRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         for subs in q:
-            if str(subs.adapter) in fapi.G.adapters:
-                await fapi.G.adapters[str(subs.adapter)].upload(
+            if str(subs.player.aid) in fapi.G.adapters:
+                await fapi.G.adapters[str(subs.player.aid)].upload(
                     CoreEntity(
                         player=str(subs.player),
                         chain=chain.MessageChain.auto_make(
@@ -139,13 +140,12 @@ class CodeforcesRoutinuer(Routiner):
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
 
     @classmethod
     async def add(cls, ent: CoreEntity):
         cls(
-            player=Player.chk(ent.source),
-            adapter=Adapter.trychk(ent.player),
+            player=Player.chk(ent.player, ent.source)
             # mode='Y',
         ).save()
         # await cls.update_futures(aid)
@@ -196,7 +196,7 @@ class CreditInfoRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         for subs in q:
-            await fapi.G.adapters[str(subs.adapter)].upload(
+            await fapi.G.adapters[str(subs.player.aid)].upload(
                 CoreEntity(
                     player=str(subs.player),
                     chain=chain.MessageChain.auto_make(
@@ -209,13 +209,12 @@ class CreditInfoRoutinuer(Routiner):
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
 
     @classmethod
     async def add(cls, ent: CoreEntity):
         cls(
-            adapter=Adapter.trychk(ent.source),
-            player=Player.chk(ent.player),
+            player=Player.chk(ent.player, ent.source),
         ).save()
 
 
@@ -226,10 +225,8 @@ class DDLNoticeRoutiner(Routiner):
     mem = IntField()
     @classmethod
     async def info(cls, ent: CoreEntity):
-        aid = ent.source
-        pid = ent.player
         li = []
-        for subs in cls.objects(adapter=Adapter.chk(aid), player=Player.chk(pid)):
+        for subs in cls.objects(player=Player.chk(ent.player, ent.source)):
             li.append(f"{str(subs.ddl)}    {subs.title}")
         return '\n'.join(li)
     @classmethod
@@ -240,7 +237,7 @@ class DDLNoticeRoutiner(Routiner):
         }
         cls.future_map = {}
         aid = Adapter.trychk(aid)
-        for subs in cls.objects(adapter=aid):
+        for subs in cls.objects():
             await cls.routine(aid, subs)
         # asyncio.ensure_future(cls.mainloop())
         logger.info(f'{cls} initialized')
@@ -250,26 +247,30 @@ class DDLNoticeRoutiner(Routiner):
     async def noticer(cls, aid: Union[Adapter, str], player: Union[Player, str], mem: int, message: str, delay: float):
         if delay <= 0:
             return
+        logger.debug('delay for {}', delay)
         await asyncio.sleep(delay)
         await fapi.G.adapters[str(aid)].upload(
             CoreEntity(
                 player=str(player),
-                chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if int(player)!=int(mem) else message),
+                chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if player.pid!=mem else message),
                 source='',
                 meta={}
             )
         )
     
     @classmethod
-    async def deleter(cls, obj: "DDLNoticeRoutiner", delay: float):
+    async def deleter(cls, obj: "DDLNoticeRoutiner", delay: float, nkey: tuple):
         await asyncio.sleep(delay)
+        logger.debug('{} 已完成',cls.future_map.pop(nkey))
         obj.delete()
 
     @classmethod
-    async def routine(cls, aid: Union[Adapter, str], subs: "DDLNoticeRoutiner"):
+    async def routine(cls, subs: "DDLNoticeRoutiner"):
         ETA = subs.ddl.timestamp() - datetime.datetime.now().timestamp()
+        aid = subs.player.aid
+        nkey = (str(aid), str(subs.player), subs.title) # 优化考虑化为前两个键做一个map，title做子map键
         cls.future_map[
-            (str(aid), str(subs.player), subs.title) # 优化考虑化为前两个键做一个map，title做子map键
+            nkey
         ] = [
             asyncio.ensure_future(
                 cls.noticer(
@@ -308,13 +309,14 @@ class DDLNoticeRoutiner(Routiner):
                 )
             )
         ]
-        asyncio.ensure_future(cls.deleter(subs, ETA))
+        asyncio.ensure_future(cls.deleter(subs, ETA, nkey))
+        logger.debug(cls.future_map)
             
 
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        q = cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player))
+        q = cls.objects(player=Player.chk(ent.player, ent.source))
         if q:
             q.delete()
             for i in cls.future_map[
@@ -330,19 +332,19 @@ class DDLNoticeRoutiner(Routiner):
     @classmethod
     async def add(cls, ent: CoreEntity):
         if cls.objects(
-            player=Player.chk(ent.player),
-            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player, ent.source),
+            # adapter=Adapter.trychk(ent.source),
             title=ent.meta['title']
         ):
             return False
         subs = cls(
-            player=Player.chk(ent.player),
-            adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.player, ent.source),
+            # adapter=Adapter.trychk(ent.source),
             ddl=datetime.datetime.fromtimestamp(float(ent.meta['ts'])),
             title=ent.meta['title'],
-            mem=int(ent.meta['mem'])
+            mem=int(ent.member)
         ).save()
-        await cls.routine(ent.source, subs)
+        await cls.routine(subs)
         return True
 
 from bs4 import BeautifulSoup
@@ -425,7 +427,7 @@ class WeatherReportRoutinuer(Routiner):
                     t = i('p')
                     output.append(
                         f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
-            await fapi.G.adapters[str(subs.adapter)].upload(
+            await fapi.G.adapters[str(subs.player.aid)].upload(
                 CoreEntity(
                     player=str(subs.player),
                     chain=chain.MessageChain.auto_make(
@@ -438,18 +440,16 @@ class WeatherReportRoutinuer(Routiner):
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
 
     @classmethod
     async def add(cls, ent: CoreEntity):
         c = cls.objects(
-            adapter=Adapter.trychk(ent.source),
-            player=Player.chk(ent.player)
+            player=Player.chk(ent.player, ent.source)
         ).first()
         if not c:
             c = cls(
-            adapter=Adapter.trychk(ent.source),
-            player=Player.chk(ent.player),
+            player=Player.chk(ent.player, ent.source),
             city=[]
         )
         c.city.append(ent.meta['city'])
@@ -481,7 +481,7 @@ class DailySentenceRoutinuer(Routiner):
         )
         for subs in cls.objects():
             ent.player=str(subs.player)
-            await fapi.G.adapters[str(subs.adapter)].upload(
+            await fapi.G.adapters[str(subs.player.aid)].upload(
                 ent
             )
 
@@ -500,17 +500,15 @@ class DailySentenceRoutinuer(Routiner):
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        cls.objects(adapter=Adapter.trychk(ent.source), player=Player.chk(ent.player)).delete()
+        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
 
     @classmethod
     async def add(cls, ent: CoreEntity):
         c = cls.objects(
-            adapter=Adapter.trychk(ent.source),
-            player=Player.chk(ent.player)
+            player=Player.chk(ent.player, ent.source)
         ).first()
         if not c:
             c = cls(
-            adapter=Adapter.trychk(ent.source),
-            player=Player.chk(ent.player)
+            player=Player.chk(ent.player, ent.source)
         )
         c.save()

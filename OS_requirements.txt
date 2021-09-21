@@ -26,10 +26,12 @@ loguru
 numpy
 colorclass
 terminaltables
+scikit-fuzzy
+matplotlib
 
 # legacy
-graia-application-mirai==0.15.5
-graia-broadcast==0.6.4
+# graia-application-mirai==0.15.5
+# graia-broadcast==0.6.4
 
 # irori distribution system
 # Server `apt-get install rabbitmq-server`

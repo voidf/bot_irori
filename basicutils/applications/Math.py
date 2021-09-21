@@ -679,3 +679,72 @@ def 素数前缀和(ent: CoreEntity):
             j += 1
     return [Plain(text=str(g[1]))]
 
+def 模糊推荐(ent: CoreEntity):
+    """#算命 []
+    用法：
+        #算命 <想法(字符串)> <心愿值(整数)>
+    """
+    wish, cnt = ent.chain.tostr().split(' ')
+    X = float(cnt)
+    import skfuzzy as fuzz 
+    from skfuzzy import control as ctrl
+    # import numpy
+    #定义模糊控制变量
+    X_craving_range=numpy.arange(0,101,1)
+    X_recomend_range=numpy.arange(0,101,1)
+    y_result_range=numpy.arange(0,101,1)
+    craving=ctrl.Antecedent(X_craving_range,'craving')
+    recomend=ctrl.Antecedent(X_recomend_range,'recomend')
+    result=ctrl.Consequent(y_result_range,'result')
+    #生成模糊隶属度函数
+
+    #我的欲望模糊
+    #craving.automf(3)
+    craving['s']=fuzz.trimf(craving.universe,[0,0,25])
+    craving['m']=fuzz.trimf(craving.universe,[0,25,75])
+    craving['l']=fuzz.trimf(craving.universe,[70,100,100])
+    # #ibao的推荐\
+    #recomend.automf
+    recomend['s']=fuzz.trimf(recomend.universe,[0,0,25])
+    recomend['m']=fuzz.trimf(recomend.universe,[0,25,75])
+    recomend['l']=fuzz.trimf(recomend.universe,[70,100,100])
+    # #结果d
+    result['s']=fuzz.trimf(result.universe,[0,0,25])
+    result['m']=fuzz.trimf(result.universe,[0,35,75])
+    result['l']=fuzz.trimf(result.universe,[75,100,100])
+    # result['l'].view()
+    #定义模糊规则
+    #输出为不的规则
+
+    rule1=ctrl.Rule(craving['s']&recomend['s'] | craving['m']&recomend['s'] | craving['s']&recomend['m'],result['s'])
+    #输出为海星的规则
+    rule2=ctrl.Rule(craving['l']&recomend['s'] | craving['m']&recomend['m'] | craving['l']&recomend['m'],result['m'])
+    #输出为强烈推荐的规则
+    rule3=ctrl.Rule(craving['l']&recomend['m'] | craving['m']&recomend['l'] | craving['l']&recomend['l'],result['l'])
+    #系统和环境运行初始化
+    # rule1.view()
+    resulting_ctrl=ctrl.ControlSystem([rule1,rule2,rule3])
+    resulting=ctrl.ControlSystemSimulation(resulting_ctrl)
+
+    #输入
+    ibaosay=random.randint(1,101)
+    # wish=input("请输入你的想法：")
+    # count=input("请输入你的心愿值：")
+    # X=int(count)
+    resulting.input['craving']=X
+    resulting.input['recomend']=ibaosay
+    resulting.compute()
+    ret = []
+    ret.append(f'关于{wish},ibao推荐值为:{ibaosay}')
+    res = resulting.output["result"]
+    ret.append(f'综合考虑推荐数为:{res}')
+    # print(ibaosay)
+    # print('综合考虑推荐数为:',end="")
+    # print(resulting.output['result'])
+    if(res<40):
+        ret.append("这边不建议亲呢")
+    elif(res>60):
+        ret.append("这边强烈建议亲亲去哦")
+    else:
+        ret.append("亲再考虑一下吧 亲")
+    return '\n'.join(ret)

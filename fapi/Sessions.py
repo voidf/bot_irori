@@ -9,6 +9,10 @@ from fapi import generate_jwt, verify_jwt
 from Worker import task
 from typing import Union
 from fapi.models.Auth import *
+from fapi.models.Player import *
+
+# def search_player(pid, aid):
+#     return Player.chk(pid, aid)
 
 class MiraiSession():
     def __init__(self, adapter_id: Union[str, Adapter]):
@@ -16,6 +20,7 @@ class MiraiSession():
         self._ases  = aiohttp.ClientSession()
         # self.syncid = adapter_id
         self.jwt = generate_jwt(adapter_id)
+        self.aid = adapter_id
         
     async def enter_loop(self, wsurl: str):
         """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
@@ -28,9 +33,11 @@ class MiraiSession():
                 if 'data' in j and 'type' in j['data']:
                     if j['data']['type'] == 'GroupMessage':
                         ent = CoreEntity(
-                            player=str(j['data']['sender']['group']['id'] + (1<<39)),
-                            source=str(self.jwt),
-                            meta={'mem': j['data']['sender']['id']},
+                            player=str(Player.chk(str(j['data']['sender']['group']['id'] + (1<<39)), self.aid)),
+                            jwt=str(self.jwt),
+                            source=self.aid,
+                            member=str(j['data']['sender']['id']),
+                            meta={},
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
@@ -39,9 +46,11 @@ class MiraiSession():
 
                     elif j['data']['type'] == 'FriendMessage':
                         ent = CoreEntity(
-                            player=str(j['data']['sender']['id']),
-                            source=str(self.jwt),
-                            meta={'mem': j['data']['sender']['id']},
+                            player=str(Player.chk(str(j['data']['sender']['id']), self.aid)),
+                            jwt=str(self.jwt),
+                            source=self.aid,
+                            member=str(j['data']['sender']['id']),
+                            meta={},
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
@@ -79,7 +88,8 @@ class MiraiSession():
                 elem.text = ' '.join(ato)
 
     async def auto_deliver(self, ent: CoreEntity):
-        pi = int(ent.player)
+        # pi = int(ent.player)
+        pi = int(Player.chk(ent.player).pid)
         payload = {
             "syncId": -1,
             "content": {
@@ -101,6 +111,7 @@ class MiraiSession():
 
     async def upload(self, ent: CoreEntity):
         """将消息链往mirai发送，实际上只取用了player和chain，后继应该支持meta特殊处理"""
+        logger.debug('upload triggered')
         try:
             chain = ent.chain
             ent.chain = MessageChain.get_empty()

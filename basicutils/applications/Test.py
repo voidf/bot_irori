@@ -24,11 +24,11 @@ def 乒乓球(ent: CoreEntity):
     """#ping []
     用来测试bot有没有在线
     """
-    GLOBAL.pingCtr+=1
-    if GLOBAL.pingCtr-1==0:
+    if GLOBAL.pingCtr==0:
         s = 'pong'
     else:
         s = f'pong - {GLOBAL.pingCtr}'
+    GLOBAL.pingCtr+=1
     return [Plain(s)]
 
 async def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
@@ -42,7 +42,6 @@ async def 重设渲染图片阈值(*attrs,kwargs={}):
 
 async def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
 
-async def 同步嗅探器(*attrs,kwargs={}): return [Plain(syncSniffer(getPlayer(**kwargs)))]
 import requests
 def 音乐测试(ent: CoreEntity):
     """#mu []
@@ -66,7 +65,6 @@ functionMap = {
     '#echo':表情符号查询姬,
     '#lim':重设渲染图片阈值,
     r'%clear':清空嗅探器,
-    r'%sync':同步嗅探器
 }
 
 shortMap = {

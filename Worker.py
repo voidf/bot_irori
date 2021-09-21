@@ -195,6 +195,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
         # logger.warning(entbak.chain.tostr())
 
         logger.debug(f'command: {cmd}')
+        print(task.player)
         if cmd in tot_funcs:
             # try:
                 # reply = tot_funcs[cmd](task.chain, task.meta)

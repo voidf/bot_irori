@@ -199,8 +199,6 @@ def 爬CF(ent: CoreEntity):
             if resp.status_code!=200:
                 return resp.text
             return [Plain('取消本群的CodeForces比赛提醒服务')]
-        # elif attrs[0] in ('R','render'):
-            # CFSubscribe(player=playerobj, mode='R').save()
         elif attrs[0] in GLOBAL.subscribes:
             resp = requests.post(
                 server_api('/worker/routiner'),
@@ -210,9 +208,6 @@ def 爬CF(ent: CoreEntity):
                 return resp.text
             li.append(Plain('已订阅Codeforces比赛提醒推送\n'))
     
-    # else:
-        # CFSubscribe(pk=playerobj, mode='Y').save()
-    # cfobj = CFSubscribe.trychk(playerobj)
     li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
     resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
     for i in resp:
@@ -498,7 +493,6 @@ def 爬每日一句(ent: CoreEntity):
         #每日一句 sub
     如需取消，请使用：
         #每日一句 cancel"""
-    player = ent.player
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
     ent.meta['routiner'] = 'DailySentenceRoutinuer'

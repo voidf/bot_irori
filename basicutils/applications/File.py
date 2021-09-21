@@ -1,5 +1,8 @@
 """异步与文件读写类"""
 import os
+import sys
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
 
 # if __name__ == '__main__':
     # os.chdir('..')
@@ -22,12 +25,10 @@ from loguru import logger
 # import sys
 # print(sys.path)
 
-import sys
-if os.getcwd() not in sys.path:
-    sys.path.append(os.getcwd())
 # print(sys.path)
 # print(os.getcwd())
 
+from fapi.models.Player import *
 # sys.path.append(os.getcwd())
 from Assets.签到语料 import 宜, 忌, 运势
 import requests
@@ -72,7 +73,6 @@ def 信用点命令更新订阅姬(ent: CoreEntity):
     """#信用点情报 []
     查看今天用什么命令会对信用点产生影响
     """
-    player = ent.player
     attrs = ent.chain.tostr().split(' ')
     # arg = copy.deepcopy(ent)
     ent.chain = MessageChain.get_empty()
@@ -185,8 +185,9 @@ def 信用点查询(ent: CoreEntity):
     """#信用点查询 []
     查询你的信用点情况
     """
-    user = ent.meta['mem']
-    crd = CreditLog.get(user)
+    user = ent.member
+    player = Player.chk(user, ent.source)
+    crd = CreditLog.get(player)
     ret = [f'您现在拥有信用点{crd}点，评价：']
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
@@ -282,7 +283,6 @@ def ddl通知姬(ent: CoreEntity):
         即在今天10点设置提醒
     """
 
-    player = ent.player
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
     ent.meta['routiner'] = 'DDLNoticeRoutiner'
@@ -446,9 +446,9 @@ def 仿洛谷每日签到(ent: CoreEntity):
     generate_key_count = random.randint(2,5)
     # print(kwargs['mem'])
     # print(dir(kwargs['mem']))
-    mem = str(ent.meta['mem'])
-    player = ent.player
-    entity = DailySignLog.chk(mem)
+    mem = ent.member
+    player = Player.chk(mem, ent.source)
+    entity = DailySignLog.chk(player)
     
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
@@ -469,11 +469,11 @@ def 仿洛谷每日签到(ent: CoreEntity):
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
         cd = random.randint(1,8) * entity['combo']
         ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
-        print(CreditLog.upd(mem, '+', cd))
+        print(CreditLog.upd(player, '+', cd))
         entity['info'] = ans
         entity['last_sign'] = datetime.datetime.now()
         entity.save()
-        DailySignBackUP(player=Player.chk(player), combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
+        DailySignBackUP(player=player, combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
 
     else: entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
     return [Plain(entity['info'])]

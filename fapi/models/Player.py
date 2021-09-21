@@ -1,17 +1,19 @@
 from mongoengine import *
 from typing import Optional, TypeVar, Union, get_type_hints
-import datetime
-from mongoengine import connection
-from mongoengine.connection import connect, disconnect
+
 from mongoengine.fields import *
 from mongoengine.pymongo_support import *
 from mongoengine.context_managers import *
 from mongoengine.document import *
 
+from fapi.models.Auth import Adapter
+from fapi.models.Base import *
 INVISIBLE = TypeVar('INVISIBLE')
 
-class Base():
-    """需要和mongoengine的Document多继承配套使用"""
+class Player(Document):
+    pid = StringField()
+    aid = ReferenceField(Adapter)
+    items = DictField()
     @staticmethod
     def expand_mono(obj):
         if hasattr(obj, 'get_base_info'):
@@ -34,6 +36,10 @@ class Base():
             return d
         except: # 不加注解上面会报错
             return self.get_all_info()
+    # def __int__(self):
+        # return int(self.pid)
+    def __str__(self):
+        return str(self.pk)
     def get_all_info(self, *args):
         d = {} 
         for k in self._fields_ordered:
@@ -47,38 +53,40 @@ class Base():
             d['id'] = str(self.id)
         return d
     @classmethod
-    def chk(cls, pk):
-        """确保对象存在，如不存在则创建一个，返回给定主键确定的对象"""
+    def chk(cls, pk: str, aid: Optional[Union[Adapter, str]]=None):
+        # print("CHK", pk, aid)
+        # print(pk, )
         if isinstance(pk, cls):
             return pk
-        tmp = cls.objects(pk=pk).first()
-        if not tmp:
-            return cls(pk=pk).save()
-        return tmp
+        if aid is None or len(pk)==24:
+            q = cls.objects(pk=pk).first()
+            if not q:
+                raise FileNotFoundError("指定player不存在")
+            # print(q.get_base_info())
+            return q
+        else:
+            a = Adapter.chk(aid)
+            q = cls.objects(aid=a, pid=pk).first()
+            if not q:
+                q = cls(aid=a, pid=pk).save()
+                # print("NEW PLAYER", q.get_base_info(), "CREATED!")
+            # print(q.get_base_info())
+            return q
+
+class RefPlayerBase(Base):
+    _player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)
+    @classmethod
+    def chk(cls, pk):
+        if isinstance(pk, Player):
+            return super().chk(pk)
+        else:
+            return super().chk(Player.chk(pk))
     @classmethod
     def trychk(cls, pk):
-        """若对象存在，返回主键对应的对象，否则返回None"""
-        if isinstance(pk, cls):
-            return pk
-        tmp = cls.objects(pk=pk).first()
-        if not tmp:
-            return None
-        return tmp
-
-class SaveTimeBase(Base):
-    create_time = DateTimeField()
-    def save_changes(self):
-        return self.save()
-    def first_create(self):
-        self.create_time = datetime.datetime.now()
-        return self.save_changes()
-    
-    def get_base_info(self, *args):
-        d = super().get_base_info(*args)
-        d['create_time'] = self.create_time.strftime('%Y-%m-%d')
-        return d
-
-    def get_all_info(self, *args):
-        d = super().get_all_info(*args)
-        d['create_time'] = self.create_time.strftime('%Y-%m-%d')
-        return d
+        if isinstance(pk, Player):
+            return super().trychk(pk)
+        else:
+            return super().trychk(Player.chk(pk))
+    @property
+    def player(self):
+        return Player.chk(self._data['_player'].id)
