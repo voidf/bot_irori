@@ -48,7 +48,7 @@ def convert_to_amr(typ: str, lnk: Union[bytes, str], mode: int=0):
 def convert_file_to_amr(typ: str, fp, mode: int=0):
     ret = requests.post(
         server_api(f'/convert/amr?format={typ}&mode={mode}'),
-        files={'f': open(fp,' rb')}
+        files={'f': open(fp,'rb')}
     ).json()['url']
     return server_api('/worker/oss/'+ret)
 # def convert_to_amrb(typ: str, content: bytes):
