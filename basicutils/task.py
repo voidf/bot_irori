@@ -1,5 +1,6 @@
 import sys
 import argparse
+from typing import Union
 class ArgumentParser(argparse.ArgumentParser):    
     def _get_action_from_name(self, name):
         """Given a name, get the Action instance registered with this parser.
@@ -30,9 +31,22 @@ def server_api(relative_path: str) -> str:
     return f"{dist_host}:{web_port}{relative_path}"
 
 import requests
-def convert_to_amr(typ: str, lnk: str):
-    ret = requests.post(
-        server_api(f'/convert/amr?format={typ}&mode=0'),
-        data={'lnk': lnk}
-    ).json()['url']
+def convert_to_amr(typ: str, lnk: Union[bytes, str], mode: int=0):
+    if isinstance(lnk, str):
+        ret = requests.post(
+            server_api(f'/convert/amr?format={typ}&mode={mode}'),
+            data={'lnk': lnk}
+        ).json()['url']
+    else:
+        ret = requests.post(
+            server_api(f'/convert/amr?format={typ}&mode={mode}'),
+            data={'f': lnk}
+        ).json()['url']
     return server_api('/worker/oss/'+ret)
+
+# def convert_to_amrb(typ: str, content: bytes):
+#     ret = requests.post(
+#         server_api(f'/convert/amr?format={typ}&mode=0'),
+#         data={'lnk': lnk}
+#     ).json()['url']
+#     return server_api('/worker/oss/'+ret)

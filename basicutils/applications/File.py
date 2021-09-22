@@ -386,7 +386,14 @@ def ddl通知姬(ent: CoreEntity):
 #     else:
 #         return [Plain('不存在此条目')]
 
-async def 在线P歌(*attrs, kwargs={}):
+def 在线P歌(ent: CoreEntity):
+    """#P歌 [#P]
+    传入音符，合成midi
+    例：
+        #P歌 C5 C5 G5 G5 A6 A6 G5
+    TODO:
+        加入音长，音量设置
+    """
     m = mido.MidiFile()
     t = mido.MidiTrack()
     m.tracks.append(t)
@@ -411,7 +418,7 @@ async def 在线P歌(*attrs, kwargs={}):
 
     #track.append(mido.Message('program_change', program=1, time=0)) 设置音色
 
-    for i in '\n'.join(attrs).split('\n'):
+    for i in ent.chain.tostr().split():
         if i and i != '0':
             note = note_map[i[:-1]]+int(i[-1])*12
             t.append(mido.Message('note_on', note=note, velocity=120, time=0))
@@ -421,11 +428,15 @@ async def 在线P歌(*attrs, kwargs={}):
             t.append(mido.Message('note_off', note=60, velocity=0, time=480))
     fn = f'tmp{randstr(4)}.mid'
     m.save(fn)
-    asyncio.ensure_future(rmTmpFile(fn))
-    kwargs['-voice'] = True
-    kwargs['voices'] = [fn]
-    kwargs['voices-fm'] = 'mid'
-    return []
+    with open(fn, 'rb') as f:
+        bts = f.read()
+    v = Voice(url=convert_to_amr('mid', bts))
+    # asyncio.ensure_future(rmTmpFile(fn))
+    # kwargs['-voice'] = True
+    # kwargs['voices'] = [fn]
+    # kwargs['voices-fm'] = 'mid'
+    os.remove(fn)
+    return [v]
 
 class DailySignLog(RefPlayerBase, Document):
     combo = IntField(default=0)
@@ -517,12 +528,5 @@ functionDescript = {
 用例:
     #i电 74283
 """,
-    '#P歌':
-"""
-传入音符，合成midi
-例：
-    #P歌 C5 C5 G5 G5 A6 A6 G5
-TODO:
-    加入音长，音量设置
-"""
+
 }
