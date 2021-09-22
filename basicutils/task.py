@@ -1,3 +1,4 @@
+from io import BytesIO
 import sys
 import argparse
 from typing import Union
@@ -40,10 +41,16 @@ def convert_to_amr(typ: str, lnk: Union[bytes, str], mode: int=0):
     else:
         ret = requests.post(
             server_api(f'/convert/amr?format={typ}&mode={mode}'),
-            data={'f': lnk}
+            files={'f': BytesIO(lnk)}
         ).json()['url']
     return server_api('/worker/oss/'+ret)
 
+def convert_file_to_amr(typ: str, fp, mode: int=0):
+    ret = requests.post(
+        server_api(f'/convert/amr?format={typ}&mode={mode}'),
+        files={'f': open(fp,' rb')}
+    ).json()['url']
+    return server_api('/worker/oss/'+ret)
 # def convert_to_amrb(typ: str, content: bytes):
 #     ret = requests.post(
 #         server_api(f'/convert/amr?format={typ}&mode=0'),
