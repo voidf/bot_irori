@@ -1,4 +1,4 @@
-"""异步与文件读写类"""
+"""异步与文件读写类(修复完毕)"""
 import os
 import sys
 if os.getcwd() not in sys.path:
@@ -428,9 +428,9 @@ def 在线P歌(ent: CoreEntity):
             t.append(mido.Message('note_off', note=60, velocity=0, time=480))
     fn = f'tmp{randstr(4)}.mid'
     m.save(fn)
-    with open(fn, 'rb') as f:
-        bts = f.read()
-    v = Voice(url=convert_to_amr('mid', bts))
+    # with open(fn, 'rb') as f:
+        # bts = f.read()
+    v = Voice(url=convert_file_to_amr('mid', fn))
     # asyncio.ensure_future(rmTmpFile(fn))
     # kwargs['-voice'] = True
     # kwargs['voices'] = [fn]
@@ -490,10 +490,8 @@ def 仿洛谷每日签到(ent: CoreEntity):
     return [Plain(entity['info'])]
 
 functionMap = {
-    '#ddl':ddl通知姬,
     # '#vote':投票姬,
     # '#i电':数电笔记,
-    '#P歌':在线P歌,
     # '#求签':仿洛谷每日签到,
     # '#信用点查询': 信用点查询,
     # '#信用点情报': 信用点命令更新订阅姬
@@ -501,7 +499,6 @@ functionMap = {
 
 shortMap = {
     # '#iee':'#i电',
-    '#P':'#P歌'
 }
 
 functionDescript = {
