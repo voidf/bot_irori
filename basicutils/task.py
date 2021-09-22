@@ -28,3 +28,11 @@ class ArgumentParser(argparse.ArgumentParser):
 from cfg import dist_host, web_port
 def server_api(relative_path: str) -> str:
     return f"{dist_host}:{web_port}{relative_path}"
+
+import requests
+def convert_to_amr(typ: str, lnk: str):
+    ret = requests.post(
+        server_api(f'/convert/amr?format={typ}&mode=0'),
+        data={'lnk': lnk}
+    ).json()['url']
+    return server_api('/worker/oss/'+ret)
