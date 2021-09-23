@@ -620,7 +620,7 @@ def 爬what_anime(ent: CoreEntity):
                 ret.append(Plain(get_word(info)))
 
             else:
-                ret.append(Plain(f'搜索过程中发生了一点问题：{res.status_code}'))
+                ret.append(Plain(f'搜索过程中发生了一点问题：{res.status_code}\n'))
     if not ret:
         return [Plain('您没发图哥哥！')]
     return ret
