@@ -557,53 +557,26 @@ def 爬what_anime(ent: CoreEntity):
     爬取whats_anime的番剧信息
     '''
     ret=[]
-    def get_info(info):
-        docs=info["docs"]
-        firstres=docs[0]
 
-        li=[
-            firstres['title'],
-            firstres['title_chinese'],
-            firstres['title_english'],
-            firstres['episode'],
-
-            firstres['anilist_id'],
-            firstres['filename'],
-            firstres['at'],
-            firstres['tokenthumb'],
-
-            firstres['is_adult']
-        ]
-        return li
     
-    def get_prew(ret:list,info_li:list):
-        if info_li[8]:
-            ret.append(Plain(f'结果可能包含成人内容……\n'))
-            return
-        ret.append(Image(url='https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7])))
-        #res2=requests.get(f'https://media.trace.moe/video/{info_li[4]}/{info_li[5]}?t={info_li[6]}&token={info_li[7]}',timeout=20)
-        
-        # if res2.status_code==200:
-        #     prew = f"tmpAni{randstr(3)}.png"
-        #     #prew=f'tmpVideo_{randstr(3)}.mp4'
-        #     with open(prew,'wb') as prew_f:
-        #         prew_f.write(res2.content)
-        #     asyncio.ensure_future(rmTmpFile(prew))
-        #     ret.append(generateImageFromFile(prew))
-        # else:
-        #     ret.append(Plain(f'抓图过程中发生了一点差错:{res2.status_code}\n'))
+    # def get_prew(ret:list,info_li:list):
+    #     if info_li[8]:
+    #         ret.append(Plain(f'结果可能包含成人内容……\n'))
+    #         return
+    #     ret.append(Image(url='https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7])))
 
-    def get_word(info):
-        firstres=info["docs"][0]
-        ans='\n'
 
-        ans+=f"{firstres['title_chinese']} ({firstres['title']})\n"
-        if(firstres['episode']): ans+=f"第{firstres['episode']}话\n"
-        else: ans+='（剧场版）\n'
-        ans+=f"起止位置：{int(firstres['from'])//60}:{int(firstres['from'])%60} - {int(firstres['to'])//60}:{int(firstres['to'])%60}\n"
-        ans+=f"相似度：{firstres['similarity']*100:.4f}%\n"
+    # def get_word(info):
+    #     firstres=info["docs"][0]
+    #     ans='\n'
 
-        return ans
+    #     ans+=f"{firstres['title_chinese']} ({firstres['title']})\n"
+    #     if(firstres['episode']): ans+=f"第{firstres['episode']}话\n"
+    #     else: ans+='（剧场版）\n'
+    #     ans+=f"起止位置：{int(firstres['from'])//60}:{int(firstres['from'])%60} - {int(firstres['to'])//60}:{int(firstres['to'])%60}\n"
+    #     ans+=f"相似度：{firstres['similarity']*100:.4f}%\n"
+
+        # return ans
     for pics in ent.chain:
         logger.debug(pics)
         if isinstance(pics, Image):
@@ -611,13 +584,22 @@ def 爬what_anime(ent: CoreEntity):
             res=requests.get('https://api.trace.moe/search',params={'url':pic_url},timeout=20)
             if res.status_code==200:
                 info=res.json()
-                info_li=get_info(info) #用于找图
+                
+                docs=info["result"]
+                firstres=docs[0]
+                ret.append(
+                    Plain(
+                        f'{firstres["filename"]}\n'
+                        f'第{firstres["episode"]}话\n'
+                        f"起止位置：{int(firstres['from'])//60}:{int(firstres['from'])%60} - {int(firstres['to'])//60}:{int(firstres['to'])%60}\n"
+                        f"相似度：{firstres['similarity']*100:.4f}%\n"
+                    )
+                )
+                ret.append(Image(url=firstres['image']))
 
-                #找图
-                get_prew(ret,info_li)
                 
                 #输出文字结果
-                ret.append(Plain(get_word(info)))
+                # ret.append(Plain(get_word(info)))
 
             else:
                 ret.append(Plain(f'搜索过程中发生了一点问题：{res.status_code}\n'))
