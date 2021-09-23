@@ -605,6 +605,7 @@ def 爬what_anime(ent: CoreEntity):
 
         return ans
     for pics in ent.chain:
+        logger.debug(pics)
         if isinstance(pics, Image):
             pic_url=pics.url
             res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
@@ -618,11 +619,11 @@ def 爬what_anime(ent: CoreEntity):
                 #输出文字结果
                 ret.append(Plain(get_word(info)))
 
-                return ret
             else:
                 ret.append(Plain(f'搜素过程中发生了一点问题：{res.status_code}'))
     if not ret:
         return [Plain('您没发图哥哥！')]
+    return ret
 
 def 刷CF(ent: CoreEntity):
     """#刷CF []
