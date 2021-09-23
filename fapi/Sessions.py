@@ -108,7 +108,7 @@ class MiraiSession():
                     output.append(f'<p><audio src="{i.url}""></p>')
                 else:
                     output.append(f'{i.tostr()}')
-            html = markdown.markdown(''.join(output))
+            html = markdown.markdown(''.join(output).replace('\n', '<br>'))
             t = TempFile(
                 adapter=manager,
                 filename='TempHtmlFile.htm',
