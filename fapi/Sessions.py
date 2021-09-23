@@ -96,7 +96,7 @@ class MiraiSession():
         output = []
         if '-md' in ent.meta:
             for i in ent.chain:
-                if isinstance(Image, i):
+                if isinstance(i, Image):
                     if i.url:
                         output.append(f'![]({i.url})')
                     elif i.base64:
@@ -104,7 +104,7 @@ class MiraiSession():
                             output.append(f'![](data:image/png;base64,{i.base64})')
                         else:
                             output.append(f'![](data:image/jpeg;base64,{i.base64})')
-                elif isinstance(Voice, i):
+                elif isinstance(i, Voice):
                     output.append(f'<p><audio src="{i.url}""></p>')
                 else:
                     output.append(f'{i.tostr()}')
