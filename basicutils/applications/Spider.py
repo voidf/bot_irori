@@ -608,7 +608,7 @@ def 爬what_anime(ent: CoreEntity):
         logger.debug(pics)
         if isinstance(pics, Image):
             pic_url=pics.url
-            res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
+            res=requests.get('https://api.trace.moe/search',params={'url':pic_url},timeout=20)
             if res.status_code==200:
                 info=res.json()
                 info_li=get_info(info) #用于找图
