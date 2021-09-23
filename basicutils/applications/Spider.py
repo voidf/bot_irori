@@ -521,41 +521,42 @@ def 爬每日一句(ent: CoreEntity):
         print(traceback.format_exc())
     return output
 
-async def 爬ip(*attrs,kwargs={}):
-    if not attrs:
-        return [Plain('没有输入ip哦\n'+SpiderDescript['#ip'])]
-    ip = attrs[0]
-    lnk = f'https://ip.51240.com/{ip}__ip/'
+# async def 爬ip(*attrs,kwargs={}):
+#     if not attrs:
+#         return [Plain('没有输入ip哦\n'+SpiderDescript['#ip'])]
+#     ip = attrs[0]
+#     lnk = f'https://ip.51240.com/{ip}__ip/'
 
-    r = requests.get(lnk)
+#     r = requests.get(lnk)
 
-    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
-    if not rr:
-        rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
-    if not rr:
-        return [Plain('输入有点问题？我找着找着找炸了')]
-    ans = [' '.join(i) for i in rr]
-    return [Plain('\n'.join(ans))]
+#     rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
+#     if not rr:
+#         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
+#     if not rr:
+#         return [Plain('输入有点问题？我找着找着找炸了')]
+#     ans = [' '.join(i) for i in rr]
+#     return [Plain('\n'.join(ans))]
 
-async def 反爬ip(*attrs,kwargs={}):
-    if not attrs:
-        return [Plain('没有输入地址哦\n'+SpiderDescript['#addr'])]
-    kw = ' '.join(attrs)
-    lnk = f'https://ip.51240.com/?dz={kw}'
+# async def 反爬ip(*attrs,kwargs={}):
+#     if not attrs:
+#         return [Plain('没有输入地址哦\n'+SpiderDescript['#addr'])]
+#     kw = ' '.join(attrs)
+#     lnk = f'https://ip.51240.com/?dz={kw}'
 
-    r = requests.get(lnk)
-    rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
-    if not rr:
-        rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
-    if not rr:
-        return [Plain('输入有点问题？我找着找着找炸了')]
-    ans = [' '.join(i) for i in rr]
-    return [Plain('\n'.join(ans))]
+#     r = requests.get(lnk)
+#     rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
+#     if not rr:
+#         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
+#     if not rr:
+#         return [Plain('输入有点问题？我找着找着找炸了')]
+#     ans = [' '.join(i) for i in rr]
+#     return [Plain('\n'.join(ans))]
 
-async def 爬what_anime(*attrs,kwargs={}):
-    '''
+def 爬what_anime(ent: CoreEntity):
+    '''#搜番 []
     爬取whats_anime的番剧信息
     '''
+    ret=[]
     def get_info(info):
         docs=info["docs"]
         firstres=docs[0]
@@ -579,17 +580,18 @@ async def 爬what_anime(*attrs,kwargs={}):
         if info_li[8]:
             ret.append(Plain(f'结果可能包含成人内容……\n'))
             return
-        res2=requests.get('https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7]),timeout=20)
+        ret.append(Image(url='https://trace.moe/thumbnail.php?anilist_id={}&file={}&t={}&token={}'.format(info_li[4],info_li[5],info_li[6],info_li[7])))
         #res2=requests.get(f'https://media.trace.moe/video/{info_li[4]}/{info_li[5]}?t={info_li[6]}&token={info_li[7]}',timeout=20)
-        if res2.status_code==200:
-            prew = f"tmpAni{randstr(3)}.png"
-            #prew=f'tmpVideo_{randstr(3)}.mp4'
-            with open(prew,'wb') as prew_f:
-                prew_f.write(res2.content)
-            asyncio.ensure_future(rmTmpFile(prew))
-            ret.append(generateImageFromFile(prew))
-        else:
-            ret.append(Plain(f'抓图过程中发生了一点差错:{res2.status_code}\n'))
+        
+        # if res2.status_code==200:
+        #     prew = f"tmpAni{randstr(3)}.png"
+        #     #prew=f'tmpVideo_{randstr(3)}.mp4'
+        #     with open(prew,'wb') as prew_f:
+        #         prew_f.write(res2.content)
+        #     asyncio.ensure_future(rmTmpFile(prew))
+        #     ret.append(generateImageFromFile(prew))
+        # else:
+        #     ret.append(Plain(f'抓图过程中发生了一点差错:{res2.status_code}\n'))
 
     def get_word(info):
         firstres=info["docs"][0]
@@ -602,25 +604,24 @@ async def 爬what_anime(*attrs,kwargs={}):
         ans+=f"相似度：{firstres['similarity']*100:.4f}%\n"
 
         return ans
+    for pics in ent.chain:
+        if isinstance(pics, Image):
+            pic_url=pics.url
+            res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
+            if res.status_code==200:
+                info=res.json()
+                info_li=get_info(info) #用于找图
 
-    if 'pic' in kwargs and kwargs['pic']:
-        pic_url=kwargs['pic'].url
-        res=requests.get('https://trace.moe/api/search',params={'url':pic_url},timeout=20)
-        if res.status_code==200:
-            ret=[] #保存返回结果
-            info=res.json()
-            info_li=get_info(info) #用于找图
+                #找图
+                get_prew(ret,info_li)
+                
+                #输出文字结果
+                ret.append(Plain(get_word(info)))
 
-            #找图
-            get_prew(ret,info_li)
-            
-            #输出文字结果
-            ret.append(Plain(get_word(info)))
-
-            return ret
-        else:
-            return [Plain(f'搜素过程中发生了一点问题：{res.status_code}')]
-    else:
+                return ret
+            else:
+                ret.append(Plain(f'搜素过程中发生了一点问题：{res.status_code}'))
+    if not ret:
         return [Plain('您没发图哥哥！')]
 
 def 刷CF(ent: CoreEntity):
@@ -692,9 +693,9 @@ functionMap = {
     '#什么值得听':爬歌,
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
-    '#ip':爬ip,
-    '#addr':反爬ip,
-    '#每日一句':爬每日一句,
+    # '#ip':爬ip,
+    # '#addr':反爬ip,
+    # '#每日一句':爬每日一句,
     '#搜番':爬what_anime
 }
 
@@ -703,7 +704,7 @@ shortMap = {
     '#moe':'#什么值得娘',
     '#什么值得d':'#什么值得娘',
     '#什么值得萌':'#什么值得娘',
-    '#什么值得医':'#看看病',
+    # '#什么值得医':'#看看病',
     # '#救命':'#看看病',
     '#NC':'#牛客',
     '#uta':'#什么值得听',
@@ -712,7 +713,6 @@ shortMap = {
 }
 
 functionDescript = {
-    '#LaTeX':'',
     '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
 

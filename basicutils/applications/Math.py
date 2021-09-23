@@ -1,4 +1,4 @@
-"""数学类"""
+"""数学类(重构完毕)"""
 from basicutils.database import *
 import os
 # if __name__ == '__main__':
