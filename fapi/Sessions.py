@@ -1,4 +1,5 @@
 import asyncio
+from basicutils.task import server_api
 import traceback
 import aiohttp
 from loguru import logger
@@ -10,10 +11,12 @@ from Worker import task
 from typing import Union
 from fapi.models.Auth import *
 from fapi.models.Player import *
-
+from io import BytesIO
+from fapi.routers.convert import manager
+from fapi.models.FileStorage import *
 # def search_player(pid, aid):
 #     return Player.chk(pid, aid)
-
+import markdown
 class MiraiSession():
     def __init__(self, adapter_id: Union[str, Adapter]):
         self._alive = True
@@ -90,6 +93,32 @@ class MiraiSession():
     async def auto_deliver(self, ent: CoreEntity):
         # pi = int(ent.player)
         pi = int(Player.chk(ent.player).pid)
+        output = []
+        if '-md' in ent.meta:
+            for i in ent.chain:
+                if isinstance(Image, i):
+                    if i.url:
+                        output.append(f'![]({i.url})')
+                    elif i.base64:
+                        if i.base64[:3] == 'iVB':
+                            output.append(f'![](data:image/png;base64,{i.base64})')
+                        else:
+                            output.append(f'![](data:image/jpeg;base64,{i.base64})')
+                elif isinstance(Voice, i):
+                    output.append(f'<p><audio src="{i.url}""></p>')
+                else:
+                    output.append(f'{i.tostr()}')
+            html = markdown.markdown(''.join(output))
+            t = TempFile(
+                adapter=manager,
+                filename='TempHtmlFile.htm',
+                content_type='text/html',
+                expires=datetime.datetime.now()+datetime.timedelta(seconds=3600)
+            )
+            t.content.put(BytesIO(bytes(html, 'utf-8')))
+            t.save()
+            asyncio.ensure_future(t.deleter())
+            ent.chain.__root__ = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
         payload = {
             "syncId": -1,
             "content": {

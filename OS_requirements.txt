@@ -41,6 +41,7 @@ matplotlib
 # import os
 # os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 mongoengine
+markdown
 celery
 fastapi
 flower # celery -A modulo flower
