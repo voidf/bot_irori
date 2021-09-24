@@ -1,4 +1,5 @@
 """字符串处理类"""
+from basicutils.task import server_api
 import os
 import sys
 if os.getcwd() not in sys.path:
@@ -96,14 +97,28 @@ def BVCoder(ent: CoreEntity):
 
 # async def 字符串反转(*attrs,kwargs={}):return [Plain(' '.join(attrs)[::-1])]
 
-async def 二维码生成器(*attrs,kwargs={}):
-    s = ' '.join(attrs)
+def 二维码生成器(ent: CoreEntity):
+    """#qr []
+    将输入字符串专为二维码,例:#qr mirai
+    """
+    s = ent.chain.tostr()
     q = qrcode.make(s)
+    
     fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)
     q.save(fn)
+    ent.chain.__root__.clear()
+    tmpfile = requests.post(
+        server_api('/worker/oss?delays=30'),
+        files={
+            'fileobj': open(fn, 'rb'),
+            'ents': ent.json()
+        }
+    )['url']
+
+    os.remove(fn)
     #threading.Thread(target=rmTmpFile).start()
-    asyncio.ensure_future(rmTmpFile(fn),loop=None)
-    return [generateImageFromFile(fn)]
+    # asyncio.ensure_future(rmTmpFile(fn),loop=None)
+    return [Image(url=server_api('/worker/oss/' + tmpfile))]
 
 # async def 字符串签名(*attrs,kwargs={}):
 #     if 'pic' in kwargs and kwargs['pic']:
@@ -985,7 +1000,6 @@ functionMap = {
     # '#b64d':解码base64,
     # '#rot13':rot_13,
     # '#rev':字符串反转,
-    '#qr':二维码生成器,
     # '#digest':字符串签名,
     # '#a2m':转电码,
     # '#m2a':译电码,
@@ -998,7 +1012,6 @@ functionDescript = {
     '#b64e':'base64编码,例：#b64e mirai',
     '#b64d':'base64解码,例：#b64d 114514==',
     '#rot13':'rot_13编码转换（仅大小写ascii字母）',
-    '#qr':'将输入字符串专为二维码,例:#qr mirai',
     '#rev':'字符串反转，例:#rev mirai',
     '#digest':'传入字符串则计算字符串的md5，sha1，sha256，crc32，如传入图片则只处理第一张图片，例:#digest 1145141919810',
 
