@@ -111,7 +111,7 @@ def 二维码生成器(ent: CoreEntity):
         server_api('/worker/oss?delays=30'),
         files={
             'fileobj': open(fn, 'rb'),
-            'ents': ent.json()
+            'ents': (None, ent.json())
         }
     ).json()['url']
 
