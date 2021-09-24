@@ -64,6 +64,8 @@ from fapi.models.FileStorage import FileStorage, TempFile
 async def upload_oss(delays: int = -1, fileobj: UploadFile=fastapi.File(...), ents: str = Form(...)):
     ent, src = await parse_adapter_jwt(CoreEntityJson(ents=ents))
     # delays = ent.get('delays', -1)
+    logger.debug('file name: {}', fileobj.filename)
+    logger.debug('file type: {}', fileobj.content_type)
     if delays>=0:
         fs = TempFile(
             adapter=src,
