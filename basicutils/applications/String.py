@@ -113,7 +113,7 @@ def 二维码生成器(ent: CoreEntity):
             'fileobj': open(fn, 'rb'),
             'ents': ent.json()
         }
-    )['url']
+    ).json()['url']
 
     os.remove(fn)
     #threading.Thread(target=rmTmpFile).start()
