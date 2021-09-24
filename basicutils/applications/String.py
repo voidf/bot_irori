@@ -104,7 +104,7 @@ def 二维码生成器(ent: CoreEntity):
     s = ent.chain.tostr()
     q = qrcode.make(s)
     
-    fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)
+    fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)+'.png'
     q.save(fn)
     ent.chain.__root__.clear()
     tmpfile = requests.post(

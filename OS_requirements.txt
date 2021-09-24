@@ -40,6 +40,9 @@ matplotlib
 # or
 # import os
 # os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
+# 猜解文件类型，win下需要pip install python-magic-bin, debian下sudo apt-get install libmagic1
+python-magic
+
 mongoengine
 markdown
 celery

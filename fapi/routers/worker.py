@@ -59,18 +59,21 @@ oss_route = APIRouter(
 
 from fapi.models.FileStorage import FileStorage, TempFile
 
-
+import magic
 @oss_route.post('')
 async def upload_oss(delays: int = -1, fileobj: UploadFile=fastapi.File(...), ents: str = Form(...)):
     ent, src = await parse_adapter_jwt(CoreEntityJson(ents=ents))
     # delays = ent.get('delays', -1)
     logger.debug('file name: {}', fileobj.filename)
     logger.debug('file type: {}', fileobj.content_type)
+    typ = magic.from_buffer(fileobj.file, mime=True)
+    fileobj.file.seek(0)
+    logger.debug('guessed type: {}', typ)
     if delays>=0:
         fs = TempFile(
             adapter=src,
             filename=fileobj.filename,
-            content_type=fileobj.content_type,
+            content_type=typ,
             expires=datetime.datetime.now()+datetime.timedelta(seconds=delays)
         )
         asyncio.ensure_future(fs.deleter())
@@ -78,7 +81,7 @@ async def upload_oss(delays: int = -1, fileobj: UploadFile=fastapi.File(...), en
         fs = FileStorage(
             adapter=src,
             filename=fileobj.filename,
-            content_type=fileobj.content_type
+            content_type=typ
         )
     fs.content.put(fileobj.file)
     fs.save()
