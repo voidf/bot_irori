@@ -66,8 +66,9 @@ async def upload_oss(delays: int = -1, fileobj: UploadFile=fastapi.File(...), en
     # delays = ent.get('delays', -1)
     logger.debug('file name: {}', fileobj.filename)
     logger.debug('file type: {}', fileobj.content_type)
-    buf = BytesIO(fileobj.file.read())
-    typ = magic.from_buffer(buf, mime=True)
+    # buf = BytesIO(fileobj.file.read())
+    # magic.from_descriptor(fileobj.file.fileno())
+    typ = magic.from_descriptor(fileobj.file.fileno(), mime=True)
     fileobj.file.seek(0)
     logger.debug('guessed type: {}', typ)
     if delays>=0:
