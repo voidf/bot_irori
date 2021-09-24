@@ -1,4 +1,5 @@
 """爬虫类"""
+import enum
 import os
 import sys
 
@@ -295,8 +296,11 @@ async def 爬牛客(*attrs,kwargs={}):
 
     return li
         
-async def 爬歌(*attrs,kwargs={}):
-    keyword = urllib.parse.quote(''.join(attrs))
+def 爬歌(ent: CoreEntity):
+    """#什么值得听 [#uta, #music]
+    根据给定关键词从几个平台爬歌（以后大概不会更新更多平台的咕（危
+    """
+    keyword = urllib.parse.quote(ent.chain.tostr())
     ans = []
     lnks = []
     try:
@@ -345,84 +349,14 @@ async def 爬歌(*attrs,kwargs={}):
         ans.append('酷狗炸了')
         print(traceback.format_exc())
 
-    try:
-        xiamihds = {'referer': 'https://h.xiami.com/'}
-        ses = requests.session()
-        ses.get('https://www.xiami.com')
-        lnk = f'http://api.xiami.com/web?v=2.0&app_key=1&key={keyword}&page=1&limit=20&r=search/songs'
-        r = ses.get(lnk,headers=xiamihds)
-        j = json.loads(r.text) # 这个是搜音乐信息
-        print(f'虾米 => {j}')
-        fid = j['data']['songs'][0]['song_id']
-        fname = j['data']['songs'][0]['song_name'] + '-' + j['data']['songs'][0]['artist_name']
-
-        lnk2 = f'https://api.xiami.com/web?v=2.0&app_key=1&id={fid}&r=song/detail'
-        rr = ses.get(lnk2,headers=xiamihds)
-        print(rr.text)
-        print(json.loads(rr.text)['data']['song']['listen_file'])
-        ans.append('虾米：')
-        ans.append(fname)
-        ans.append(json.loads(rr.text)['data']['song']['listen_file'])
-        lnks.append(ans[-1])
-        ans.append('')
-    except:
-        ans.append('虾米炸了')
-        print(traceback.format_exc())
-    try:
-        hds = {
-            'origin': 'http://y.qq.com/',
-            'referer': 'http://y.qq.com/',
-            # 'cookie': 'uin=; qm_keyst='
-        }
-        lnk = f'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?ct=24&qqmusic_ver=1298&new_json=1&remoteplace=txt.yqq.center&searchid=46804741196796149&t=0&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=20&w={keyword}&g_tk=5381&jsonpCallback=MusicJsonCallback10005317669353331&loginUin=0&hostUin=0&format=jsonp&inCharset=utf8&outCharset=utf-8&notice=0&platform=yqq&needNewCode=0'
-        r = ses.get(lnk)
-        j = json.loads(r.text[35:-1])  # 这个是搜音乐信息
-        fid = j['data']['song']['list'][0]['mid']
-        ffid = j['data']['song']['list'][0]['file']['media_mid']
-        fname = j['data']['song']['list'][0]['title'] + '-' + \
-            j['data']['song']['list'][0]['singer'][0]['name']
-
-        d = {
-            'req_0': {
-                'module': 'vkey.GetVkeyServer',
-                'method': 'CgiGetVkey',
-                'param': {
-                    'guid': '7332953645',
-                    'loginflag': 1,
-                    'filename': [f'M500{ffid}.mp3'],
-                    'songmid': [fid],
-                    'songtype': [0],
-                    'uin': '0',
-                    'platform': '20'
-                }
-            }
-        }
-
-        lnk2 = f'https://u.y.qq.com/cgi-bin/musicu.fcg?data={urllib.parse.quote(json.dumps(d))}'
-        rr = ses.get(lnk2, headers=hds)
-        jj = json.loads(rr.text)['req_0']['data']
-        sip = jj['sip'][0]
-
-        if jj['midurlinfo'][0]['purl']:
-            ans.append('QQ：')
-            ans.append(fname)
-            ans.append(sip+jj['midurlinfo'][0]['purl'])
-            lnks.append(ans[-1])
-            ans.append('')
-        else:
-            raise NameError('QQ没权限拿歌')
-    except:
-        ans.append('mhtsl')
-        print(traceback.format_exc())
-    print(ans)
-    print(lnks)
-    kwargs['voices'] = lnks
-    # if 'gp' in kwargs:
-    #     voices = [
-    #         GLOBAL.app.uploadVoice(getFileBytes(i)) for i in lnks
-    #     ]
-    #     return [Plain('\n'.join(ans))]+voices
-    return [Plain('\n'.join(ans))]#+[Voice(url=i) for i in lnks]
+    logger.debug(ans)
+    logger.debug(lnks)
+    if '-voice' in ent.meta:
+        for p, i in enumerate(lnks):
+            lnks[p] = Voice(url=convert_to_amr('mp3', i, 0))
+    else:
+        lnks = []
+    return [Plain('\n'.join(ans))] + lnks#+[Voice(url=i) for i in lnks]
 
 from mongoengine import *
 
@@ -673,7 +607,6 @@ functionMap = {
     # '#看看病':没救了,
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
-    '#什么值得听':爬歌,
     '#AT':爬AtCoder,
     '#牛客':爬牛客,
     # '#ip':爬ip,
@@ -690,8 +623,6 @@ shortMap = {
     # '#什么值得医':'#看看病',
     # '#救命':'#看看病',
     '#NC':'#牛客',
-    '#uta':'#什么值得听',
-    '#music':'#什么值得听',
 
 }
 
@@ -713,7 +644,7 @@ functionDescript = {
 可用参数:
     reset（取消提醒）
 """,
-    '#什么值得听':'根据给定关键词从几个平台爬歌（以后会更新更多平台的咕（危（虾米好像很容易ban人',
+    '#什么值得听':'',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
     '#addr':'根据给定地址爬ip。例：#addr 谷歌',
     
