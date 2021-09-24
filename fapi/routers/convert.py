@@ -67,13 +67,18 @@ def limitAudioSizeByCut(src) -> str:
     return dst
 
 @convert_route.post('/amr')
-async def convert_to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), lnk: Optional[str]=Form('')):
+async def to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), lnk: Optional[str]=Form('')):
     """
     format:
+
         ffmpeg需要根据传入的扩展名确定源格式，一般是三个小写字母
+        
     mode:
+
         0: 不裁剪
+
         1: 限制质量
+
         2: 限制长度"""
     fname = f'tmp{datetime.datetime.now().timestamp()}.{format}'
     with open(fname, 'wb') as fi:

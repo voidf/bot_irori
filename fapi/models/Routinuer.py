@@ -1,4 +1,6 @@
 from asyncio.tasks import ensure_future
+from fapi.routers.convert import to_amr
+from basicutils.task import convert_to_amr, server_api
 from basicutils.applications.File import ddl通知姬
 from time import sleep
 from typing import Union
@@ -470,10 +472,11 @@ class DailySentenceRoutinuer(Routiner):
             f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}'
         ) as resp:
             j = await resp.json()
+        amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
         ent = CoreEntity(
             player='',
             chain=MessageChain.auto_make(
-                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=j['tts'])]
+                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
             ),
             # , Voice(url=j['tts'])
             source='',
