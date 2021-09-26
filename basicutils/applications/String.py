@@ -1,5 +1,4 @@
 """字符串处理类"""
-from mongoengine import base
 import os
 import sys
 if os.getcwd() not in sys.path:
@@ -9,16 +8,9 @@ from basicutils.task import *
 import basicutils.CONST as GLOBAL
 # if __name__ == '__main__':
 #     os.chdir('..')
-import re
-import asyncio
-import requests
-import json
 import random
 import os
-import base64
 import qrcode
-import hashlib
-import zlib
 from urllib.parse import quote
 from basicutils.database import *
 from basicutils.chain import *
@@ -915,8 +907,8 @@ def 答案之书(ent: CoreEntity):
         elif attrs[-1] in GLOBAL.unsubscribes:
             Sniffer.remove(player,'#答案之书')
             return [Plain('【答案之书】禁用sniffer')]
-    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
-    ans = random.choice(book_of_answers+dynamic_answers)
+    # dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers)
     return [Plain(ans.strip())]
 
 def 答案之书en(ent: CoreEntity):
@@ -938,8 +930,8 @@ def 答案之书en(ent: CoreEntity):
         elif attrs[-1] in GLOBAL.unsubscribes:
             Sniffer.remove(player,'#答案之书en')
             return [Plain('【book of answers】sniff mode off')]
-    dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
-    ans = random.choice(book_of_answers_en+dynamic_answers)
+    # dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
+    ans = random.choice(book_of_answers_en)
     return [Plain(ans.strip())]
 
 def KMP(ent: CoreEntity):
