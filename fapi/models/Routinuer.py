@@ -472,13 +472,13 @@ class DailySentenceRoutinuer(Routiner):
             f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}'
         ) as resp:
             j = await resp.json()
-        amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
+        # amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
+        amr = j['tts']
         ent = CoreEntity(
             player='',
             chain=MessageChain.auto_make(
                 [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
             ),
-            # , Voice(url=j['tts'])
             source='',
             meta={}
         )
