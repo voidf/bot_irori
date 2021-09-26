@@ -35,7 +35,7 @@ manager = Adapter.objects(
 
 def nolimitAudioSize(src, extension) -> str:
     dst = generateTmpFileName(ext='.amr')
-    if extension in ("mid", "midi") and platform.system() != 'Windows':
+    if extension in ("mid", "midi"):
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 {dst}')
@@ -50,7 +50,7 @@ def limitAudioSizeByBitrate(src, extension) -> str:
     dur = os.popen(f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {src}').read()
     dur = float(dur)
     print(dur)
-    if extension in ("mid", "midi") and platform.system() != 'Windows':
+    if extension in ("mid", "midi"):
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
@@ -60,7 +60,7 @@ def limitAudioSizeByBitrate(src, extension) -> str:
 def limitAudioSizeByCut(src, extension) -> str:
     """超出部分会被剪掉"""
     dst = generateTmpFileName(ext='.amr')
-    if extension in ("mid", "midi") and platform.system() != 'Windows':
+    if extension in ("mid", "midi"):
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
