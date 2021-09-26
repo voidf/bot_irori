@@ -1,11 +1,11 @@
 """字符串处理类"""
 from mongoengine import base
-from basicutils.task import pimg_base64, server_api
 import os
 import sys
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
+from basicutils.task import *
 import basicutils.CONST as GLOBAL
 # if __name__ == '__main__':
 #     os.chdir('..')
