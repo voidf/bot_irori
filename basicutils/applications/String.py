@@ -1,6 +1,6 @@
 """字符串处理类"""
 from mongoengine import base
-from basicutils.task import server_api
+from basicutils.task import pimg_base64, server_api
 import os
 import sys
 if os.getcwd() not in sys.path:
@@ -106,11 +106,11 @@ def 二维码生成器(ent: CoreEntity):
     q = qrcode.make(s)
     
     fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)+'.png'
-    bio = BytesIO()
-    q.save(bio)
-    bio.seek(0)
+    # bio = BytesIO()
+    # q.save(bio)
+    # bio.seek(0)
 
-    b64 = base64.b64encode(bio.read()).decode('utf-8')
+    # b64 = base64.b64encode(bio.read()).decode('utf-8')
     # q.save(fn)
     # q._img
     # ent.chain.__root__.clear()
@@ -126,7 +126,7 @@ def 二维码生成器(ent: CoreEntity):
     #threading.Thread(target=rmTmpFile).start()
     # asyncio.ensure_future(rmTmpFile(fn),loop=None)
     # return [Image(url=server_api('/worker/oss/' + tmpfile))]
-    return [Image(base64=b64)]
+    return [Image(base64=pimg_base64(q))]
 
 # async def 字符串签名(*attrs,kwargs={}):
 #     if 'pic' in kwargs and kwargs['pic']:
