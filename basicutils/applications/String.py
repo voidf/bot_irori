@@ -1,4 +1,5 @@
 """字符串处理类"""
+from mongoengine import base
 from basicutils.task import server_api
 import os
 import sys
@@ -105,20 +106,27 @@ def 二维码生成器(ent: CoreEntity):
     q = qrcode.make(s)
     
     fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)+'.png'
-    q.save(fn)
-    ent.chain.__root__.clear()
-    tmpfile = requests.post(
-        server_api('/worker/oss?delays=30'),
-        files={
-            'fileobj': open(fn, 'rb'),
-            'ents': (None, ent.json())
-        }
-    ).json()['url']
+    bio = BytesIO()
+    q.save(bio)
+    bio.seek(0)
 
-    os.remove(fn)
+    b64 = base64.b64encode(bio.read()).decode('utf-8')
+    # q.save(fn)
+    # q._img
+    # ent.chain.__root__.clear()
+    # tmpfile = requests.post(
+        # server_api('/worker/oss?delays=30'),
+        # files={
+            # 'fileobj': open(fn, 'rb'),
+            # 'ents': (None, ent.json())
+        # }
+    # ).json()['url']
+
+    # os.remove(fn)
     #threading.Thread(target=rmTmpFile).start()
     # asyncio.ensure_future(rmTmpFile(fn),loop=None)
-    return [Image(url=server_api('/worker/oss/' + tmpfile))]
+    # return [Image(url=server_api('/worker/oss/' + tmpfile))]
+    return [Image(base64=b64)]
 
 # async def 字符串签名(*attrs,kwargs={}):
 #     if 'pic' in kwargs and kwargs['pic']:

@@ -353,10 +353,10 @@ def 爬歌(ent: CoreEntity):
     logger.debug(lnks)
     if '-voice' in ent.meta:
         for p, i in enumerate(lnks):
-            lnks[p] = Voice(url=convert_to_amr('mp3', i, 0))
+            lnks[p] = Voice(url=i)
     else:
         lnks = []
-    return [Plain('\n'.join(ans))] + lnks#+[Voice(url=i) for i in lnks]
+    return [Plain('\n'.join(ans))] + lnks
 
 from mongoengine import *
 
@@ -440,8 +440,7 @@ def 爬每日一句(ent: CoreEntity):
     r = requests.get(
         f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
     j = json.loads(r.text)
-    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=convert_to_amr('mp3', j['tts']))]
-    # , Voice(url=j['tts'])
+    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=j['tts'])]
 
     print(output)
     try:
