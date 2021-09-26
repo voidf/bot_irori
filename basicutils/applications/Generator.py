@@ -757,7 +757,8 @@ def 舔狗生成器(ent: CoreEntity):
 		#舔 太太 画 手 图
 	"""
 	attrs = ent.chain.tostr().split(' ')
-	print(attrs)
+	if not any(attrs):
+		attrs = []
 	pat = ['太太','画','手','图']
 	for i in range(min(len(attrs),len(pat))):
 		pat[i] = attrs[i]
