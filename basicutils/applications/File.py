@@ -385,7 +385,7 @@ def ddl通知姬(ent: CoreEntity):
 #         return GLOBAL.DEKnowledge[ins]
 #     else:
 #         return [Plain('不存在此条目')]
-
+import base64
 def 在线P歌(ent: CoreEntity):
     """#P歌 [#P]
     传入音符，合成midi
@@ -427,10 +427,16 @@ def 在线P歌(ent: CoreEntity):
             t.append(mido.Message('note_on', note=60, velocity=0, time=0))
             t.append(mido.Message('note_off', note=60, velocity=0, time=480))
     fn = f'tmp{randstr(4)}.mid'
-    m.save(fn)
+    # m.save(fn)
+    bio = BytesIO()
+    m.save(file=bio)
+    bio.seek(0)
+    b64 = base64.b64encode(bio.read()).decode('utf-8')
+    
     # with open(fn, 'rb') as f:
         # bts = f.read()
-    v = Voice(url=convert_file_to_amr('mid', fn))
+    # v = Voice(url=convert_file_to_amr('mid', fn))
+    v = Voice(base64=b64)
     # asyncio.ensure_future(rmTmpFile(fn))
     # kwargs['-voice'] = True
     # kwargs['voices'] = [fn]

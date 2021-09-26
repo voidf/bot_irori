@@ -5,6 +5,7 @@ import traceback
 import aiohttp
 import os
 from fastapi.param_functions import Form
+import magic
 from fapi.models.FileStorage import *
 import fapi.G
 import fastapi
@@ -66,8 +67,9 @@ def limitAudioSizeByCut(src) -> str:
     # asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
+import base64
 @convert_route.post('/amr')
-async def to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), lnk: Optional[str]=Form('')):
+async def to_amr(mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), lnk: Optional[str]=Form(''), b64: Optional[str] = Form('')):
     """
     format:
 
@@ -80,20 +82,35 @@ async def to_amr(format: str, mode: int = 0, f: Optional[UploadFile] = fastapi.F
         1: 限制质量
 
         2: 限制长度"""
-    fname = f'tmp{datetime.datetime.now().timestamp()}.{format}'
+    fname = f'tmp{datetime.datetime.now().timestamp()}'
     with open(fname, 'wb') as fi:
         if lnk:
             ses = aiohttp.ClientSession()
             async with ses.get(lnk) as resp:
                 fi.write(await resp.content.read())
+        elif b64:
+            fi.write(base64.b64decode(b64))
         else:
             fi.write(await f.read())
     try:
-        ret = [
-            nolimitAudioSize,
-            limitAudioSizeByBitrate,
-            limitAudioSizeByCut
-        ][mode](fname)
+        typ = magic.from_file(fname, mime=True)
+        logger.debug(magic.from_file(fname))
+        logger.debug(magic.from_file(fname, mime=True))
+        
+        if typ == 'application/octet-stream':
+            fn = fname + '.amr'
+            os.rename(fname, fn)
+            ret = fn
+            fname = fn
+        else:
+            fn = fname + '.' + typ.split('/')[1]
+            os.rename(fname, fn)
+            fname = fn
+            ret = [
+                nolimitAudioSize,
+                limitAudioSizeByBitrate,
+                limitAudioSizeByCut
+            ][mode](fname)
         with open(ret, 'rb') as fi:
             t = TempFile(
                 adapter=manager,

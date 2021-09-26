@@ -1,4 +1,7 @@
 import asyncio
+import base64
+
+import fastapi
 from basicutils.task import server_api
 import traceback
 import aiohttp
@@ -12,7 +15,7 @@ from typing import Union
 from fapi.models.Auth import *
 from fapi.models.Player import *
 from io import BytesIO
-from fapi.routers.convert import manager
+from fapi.routers.convert import manager, to_amr
 from fapi.models.FileStorage import *
 # def search_player(pid, aid):
 #     return Player.chk(pid, aid)
@@ -151,6 +154,11 @@ class MiraiSession():
                     await asyncio.sleep(float(i.meta['delay']))
                     ent.chain.__root__.clear()
                 elif isinstance(i, Voice):
+                    i = Voice(url=server_api('/worker/oss/' + (await to_amr(
+                        ent.meta.get('-vmode', 0),
+                        lnk=i.url if i.url else '',
+                        b64=i.base64 if i.base64 else ''
+                    ))['url']))
                     if ent.chain.__root__:
                         await self.auto_deliver(ent)
                     ent.chain.__root__.clear()
