@@ -24,7 +24,11 @@ class MessageChain(BaseModel):
         for i in obj:
             # logger.warning(i)
             if isinstance(i, Element):
-                tobeappend = i
+                if i.meta:
+                    handled_elements.append(i)
+                    continue
+                else:
+                    tobeappend = i
             elif isinstance(i, dict) and "type" in i:
                 for ii in Element.__subclasses__():
                     if ii.__name__ == i["type"]:
@@ -33,7 +37,9 @@ class MessageChain(BaseModel):
             elif isinstance(i, (tuple, list)):
                 newchain = cls.parse_obj(i)
                 for j in newchain:
-                    if handled_elements and handled_elements[-1].type == 'Plain' and j.type == 'Plain':
+                    if j.meta:
+                        handled_elements.append(j)
+                    elif handled_elements and handled_elements[-1].type == 'Plain' and not handled_elements[-1].meta and j.type == 'Plain':
                         handled_elements[-1].text += j.text
                     else:
                         handled_elements.append(j)
@@ -45,7 +51,7 @@ class MessageChain(BaseModel):
             if tobeappend.type == "Plain":
                 if not tobeappend.text:
                     continue
-                if handled_elements and handled_elements[-1].type == "Plain":
+                if handled_elements and handled_elements[-1].type == "Plain" and not handled_elements[-1].meta:
                     handled_elements[-1].text += tobeappend.text
                     continue
             handled_elements.append(tobeappend)

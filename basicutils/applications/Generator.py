@@ -813,6 +813,7 @@ def 舔狗生成器(ent: CoreEntity):
 	# asyncio.ensure_future(msgSerializer(construct,**kwargs))
 	for p, i in enumerate(construct[1:]):
 		i.meta['delay'] = len(construct[p].text) / 5
+	
 	return construct
 
 async def 川普生成器(*attrs, kwargs={}):
