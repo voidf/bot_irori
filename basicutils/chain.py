@@ -44,6 +44,8 @@ class MessageChain(BaseModel):
                 continue
             elif isinstance(i, str):
                 tobeappend = Plain(text=i)
+            logger.debug(tobeappend)
+            logger.debug(tobeappend.json())
 
                 
             if tobeappend.type == "Plain": # 转换后的Element
