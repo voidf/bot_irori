@@ -22,14 +22,14 @@ class MessageChain(BaseModel):
     def parse_obj(cls, obj: List[Element]) -> "MessageChain":
         handled_elements = []
         for i in obj:
-            # logger.warning(i)
-            if isinstance(i, Element):
+            logger.warning(i)
+            if isinstance(i, Element): # 已经是Element
                 if i.meta:
                     handled_elements.append(i)
                     continue
                 else:
                     tobeappend = i
-            elif isinstance(i, dict) and "type" in i:
+            elif isinstance(i, dict) and "type" in i: # 目前为dict，但可以转换成Element
                 for ii in Element.__subclasses__():
                     if ii.__name__ == i["type"]:
                         tobeappend = ii.parse_obj(i)
@@ -37,9 +37,7 @@ class MessageChain(BaseModel):
             elif isinstance(i, (tuple, list)):
                 newchain = cls.parse_obj(i)
                 for j in newchain:
-                    if j.meta:
-                        handled_elements.append(j)
-                    elif handled_elements and handled_elements[-1].type == 'Plain' and not handled_elements[-1].meta and j.type == 'Plain':
+                    if not j.meta and handled_elements and handled_elements[-1].type == 'Plain' and j.type == 'Plain':
                         handled_elements[-1].text += j.text
                     else:
                         handled_elements.append(j)
@@ -48,10 +46,10 @@ class MessageChain(BaseModel):
                 tobeappend = Plain(text=i)
 
                 
-            if tobeappend.type == "Plain":
+            if tobeappend.type == "Plain": # 转换后的Element
                 if not tobeappend.text:
                     continue
-                if handled_elements and handled_elements[-1].type == "Plain" and not handled_elements[-1].meta:
+                if not tobeappend.meta and handled_elements and handled_elements[-1].type == "Plain":
                     handled_elements[-1].text += tobeappend.text
                     continue
             handled_elements.append(tobeappend)
