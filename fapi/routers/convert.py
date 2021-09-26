@@ -33,16 +33,16 @@ manager = Adapter.objects(
     username='file_manager'
 ).first()
 
-def nolimitAudioSize(src) -> str:
+def nolimitAudioSize(src, extension) -> str:
     dst = generateTmpFileName(ext='.amr')
-    if src[-3:] == "mid" and platform.system() != 'Windows':
+    if extension in ("mid", "midi") and platform.system() != 'Windows':
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 {dst}')
     # asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
-def limitAudioSizeByBitrate(src) -> str:
+def limitAudioSizeByBitrate(src, extension) -> str:
     """依赖ffmpeg，生成一个临时文件，全 损 音 质"""
     # lim = 8 * 1024 # 即1MB，大于1M发不出去
     lim = 8000
@@ -50,17 +50,17 @@ def limitAudioSizeByBitrate(src) -> str:
     dur = os.popen(f'ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {src}').read()
     dur = float(dur)
     print(dur)
-    if src[-3:] == "mid" and platform.system() != 'Windows':
+    if extension in ("mid", "midi") and platform.system() != 'Windows':
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y -i - -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -b:a {lim / dur}k {dst}')
     # asyncio.ensure_future(rmTmpFile(dst))
     return dst
 
-def limitAudioSizeByCut(src) -> str:
+def limitAudioSizeByCut(src, extension) -> str:
     """超出部分会被剪掉"""
     dst = generateTmpFileName(ext='.amr')
-    if src[-3:] == "mid" and platform.system() != 'Windows':
+    if extension in ("mid", "midi") and platform.system() != 'Windows':
         os.system(f'timidity {src} -Ow -o - | ffmpeg -y - -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
     else:
         os.system(f'ffmpeg -y -i {src} -codec amr_nb -ac 1 -ar 8000 -fs 1000K {dst}')
@@ -103,14 +103,15 @@ async def to_amr(mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), ln
             ret = fn
             fname = fn
         else:
-            fn = fname + '.' + typ.split('/')[1]
+            ext = typ.split('/')[1]
+            fn = fname + '.' + ext
             os.rename(fname, fn)
             fname = fn
             ret = [
                 nolimitAudioSize,
                 limitAudioSizeByBitrate,
                 limitAudioSizeByCut
-            ][mode](fname)
+            ][mode](fname, ext)
         with open(ret, 'rb') as fi:
             t = TempFile(
                 adapter=manager,
