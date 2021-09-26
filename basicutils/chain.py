@@ -10,7 +10,7 @@ from io import BytesIO
 
 class Element(BaseModel):
     type: str = None
-    meta: Optional[dict] = {}
+    meta: dict = {}
     def json(self):
         return super().json(exclude_none=True)
     def tostr(self) -> str:
@@ -22,7 +22,7 @@ class MessageChain(BaseModel):
     def parse_obj(cls, obj: List[Element]) -> "MessageChain":
         handled_elements = []
         for i in obj:
-            logger.warning(i)
+            # logger.warning(i)
             if isinstance(i, Element): # 已经是Element
                 if i.meta:
                     handled_elements.append(i)
@@ -44,8 +44,8 @@ class MessageChain(BaseModel):
                 continue
             elif isinstance(i, str):
                 tobeappend = Plain(text=i)
-            logger.debug(tobeappend)
-            logger.debug(tobeappend.json())
+            # logger.debug(tobeappend)
+            # logger.debug(tobeappend.json())
 
                 
             if tobeappend.type == "Plain": # 转换后的Element
@@ -111,7 +111,7 @@ class Plain(Element):
     type: str = "Plain"
     text: str
     def __init__(self, text: str, *_, **__):
-        super().__init__(text=text)
+        super().__init__(text=text, **__)
     def tostr(self) -> str:
         return self.text
 
