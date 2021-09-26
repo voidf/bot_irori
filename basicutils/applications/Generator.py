@@ -1,4 +1,5 @@
 """生成器类"""
+import enum
 import os
 import sys
 
@@ -708,11 +709,15 @@ def 希望没事生成器(ent: CoreEntity):
 
 	return [Image(base64=pimg_base64(PImage.alpha_composite(nyaSrc,layer2)))]
 
-async def 希望工程(*attrs, kwargs={}):
+def 希望工程(ent: CoreEntity):
+	"""#希望工程 []
+	希望人没事生成器（一般）,例:#希望 人别死我家门口
+	"""
 	font = ImageFont.truetype(emoji_font,100)
 	nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
 	draw = ImageDraw.Draw(layer2)
+	attrs = ent.chain.tostr().split(' ')
 	
 	text = attrs[0]
 	beginPixel = (540-len(text)*50,900)
@@ -723,71 +728,92 @@ async def 希望工程(*attrs, kwargs={}):
 		draw.text(beginPixel,text,fill=(r,g,b,255),font=font)
 	else:
 		draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
-	p = generateTmpFileName('Wish')
+	return [Image(base64=pimg_base64(PImage.alpha_composite(nyaSrc,layer2)))]
 
-	PImage.alpha_composite(nyaSrc,layer2).save(p)
-	asyncio.ensure_future(rmTmpFile(p),loop=None)
-	return [generateImageFromFile(p)]
+def 出拳(ent: CoreEntity): 
+	"""#拳 []
+	轮到我出拳了！（
+	格式:
+		#拳 <事件> <主体>
+	例:
+		#拳 我们女孩子到底要怎么活着 女性
+	"""
+	attrs = ent.chain.tostr().split(' ')
+	return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]
 
-async def 打拳姬(*attrs, kwargs={}): return [Plain(f'''看到这句话我气得浑身发抖，大热天的全身冷汗手脚冰凉，这个社会还能不能好了，{attrs[0]}你们才满意，眼泪不争气的流了下来，这个国到处充斥着对{attrs[1]}的压迫，{attrs[1]}何时才能真正的站起来。''')]
+def 懂的都懂(ent: CoreEntity): 
+	"""#懂 []
+	懂的都懂,不懂的我也不多解释
+	"""
+	return [Plain('这种事情见得多了，我只想说懂的都懂，不懂的我也不多解释，毕竟自己知道就好，细细品吧。你们也别来问我怎么了，利益牵扯太大，说了对你我都没好处，当不知道就行了，其余的我只能说这里面水很深，牵扯到很多东西。详细情况你们自己是很难找的，网上大部分已经删除干净了，所以我只能说懂的都懂。懂的人已经基本都获利上岸了，不懂的人永远不懂，关键懂的人都是自己悟的，你也不知道谁是懂的人也没法请教，大家都藏着掖着生怕别人知道自己懂的事，所以不懂的你甚至都不知道自己不懂。在有些时候，某些人对某些事情不懂装懂，还以为别人不懂。其实自己才是不懂的，别人懂的够多了，不仅懂，还懂的超越了这个范围，但是某些不懂的人让懂的人完全教不懂，所以不懂的人永远不懂，只能不懂装懂，别人说懂的都懂，只要点点头就行了。其实你我都懂，不懂没必要装懂，毕竟里面牵扯到很多懂不了的事，懂的人觉得没必要说出来，不懂的人看见又来问七问八，最后跟他说了他也不一定能懂，就算懂了以后也对他不好，毕竟懂的太多了不是好。懂了吗？')]
 
-async def 懂的都懂(*attrs, kwargs={}): return [Plain('这种事情见得多了，我只想说懂的都懂，不懂的我也不多解释，毕竟自己知道就好，细细品吧。你们也别来问我怎么了，利益牵扯太大，说了对你我都没好处，当不知道就行了，其余的我只能说这里面水很深，牵扯到很多东西。详细情况你们自己是很难找的，网上大部分已经删除干净了，所以我只能说懂的都懂。懂的人已经基本都获利上岸了，不懂的人永远不懂，关键懂的人都是自己悟的，你也不知道谁是懂的人也没法请教，大家都藏着掖着生怕别人知道自己懂的事，所以不懂的你甚至都不知道自己不懂。在有些时候，某些人对某些事情不懂装懂，还以为别人不懂。其实自己才是不懂的，别人懂的够多了，不仅懂，还懂的超越了这个范围，但是某些不懂的人让懂的人完全教不懂，所以不懂的人永远不懂，只能不懂装懂，别人说懂的都懂，只要点点头就行了。其实你我都懂，不懂没必要装懂，毕竟里面牵扯到很多懂不了的事，懂的人觉得没必要说出来，不懂的人看见又来问七问八，最后跟他说了他也不一定能懂，就算懂了以后也对他不好，毕竟懂的太多了不是好。懂了吗？')]
-
-async def 舔狗生成器(*attrs, kwargs={}):
+def 舔狗生成器(ent: CoreEntity):
+	"""#舔 [#pr]
+	稍微有点难用的舔狗生成器
+	用法:
+		#舔 [人名] [动词,表示待舔人的技能] [待舔人用于施展技能的身体部位] [待舔人的技能产物]
+	没填的部分会用默认值填满。
+	默认值:
+		#舔 太太 画 手 图
+	"""
+	attrs = ent.chain.tostr().split(' ')
 	pat = ['太太','画','手','图']
 	for i in range(min(len(attrs),len(pat))):
 		pat[i] = attrs[i]
 	construct = [
-		{"msg":f"您太会{pat[1]}了我跪下来给您用免洗洗{pat[2]}液洗{pat[2]}"},
-		{"msg":f"太会{pat[1]}了"},
-		{"msg":f"什么{pat[2]}，怎么长的"},
-		{"msg":f"太神了"},
-		{"msg":f"塞纳河畔的水我的泪"},
-		{"msg":f"我嚎到邻居跟我一起嚎kamisama"},
-		{"msg":f"整个小区声控灯被我嚎碎"},
-		{"msg":f"{pat[0]}您太会{pat[1]}了"},
-		{"msg":f"太会了"},
-		{"msg":f"神仙下凡普渡众生"},
-		{"msg":f"中西结合融会贯通的大善心"},
-		{"msg":f"您太会了"},
-		{"msg":f"绝了"},
-		{"msg":f"绝炸了"},
-		{"msg":f"我首当其冲放烟花"},
-		{"msg":f"您太会了"},
-		{"msg":f"我晚上看到{pat[3]}从床上蹦起落下三百六十度头骨错位大喊"},
-		{"msg":f"您太会了！！！！！！！！！"},
-		{"msg":f"我拿起手机一看，头骨瞬间回位"},
-		{"msg":f"您简直神了"},
-		{"msg":f"这是什么神仙连{pat[1]}都能包治百病"},
-		{"msg":f"{pat[1]}医双修神仙"},
-		{"msg":f"绝了"},
-		{"msg":f"您这种神仙活该位列仙班"},
-		{"msg":f"仙班的甲子班"},
-		{"msg":f"您不是kami就没有神仙了"},
-		{"msg":f"简直绝了"},
-		{"msg":f"神仙的菜想必也是极好吃的"},
-		{"msg":f"不仅物理炒菜"},
-		{"msg":f"精神上还喂饱了好多人"},
-		{"msg":f"简直活佛济世"},
-		{"msg":f"不行我要再去看看"},
-		{"msg":f"太神了"},
-		{"msg":f"神迹"},
-		{"msg":f"未来滚滚历史长河中名{pat[1]}必有您一份"},
-		{"msg":f"难道你就觉得它只是{pat[1]}"},
-		{"msg":f"难道你又不更远一点想到，那神仙下凡拯救众生的善心"},
+		Plain(f"!{pat[0]}!!!!!!"),
+		Plain(f"您太会{pat[1]}了我跪下来给您用免洗洗{pat[2]}液洗{pat[2]}"),
+		Plain(f"太会{pat[1]}了"),
+		Plain(f"什么{pat[2]}，怎么长的"),
+		Plain(f"太神了"),
+		Plain(f"塞纳河畔的水我的泪"),
+		Plain(f"我嚎到邻居跟我一起嚎kamisama"),
+		Plain(f"整个小区声控灯被我嚎碎"),
+		Plain(f"{pat[0]}您太会{pat[1]}了"),
+		Plain(f"太会了"),
+		Plain(f"神仙下凡普渡众生"),
+		Plain(f"中西结合融会贯通的大善心"),
+		Plain(f"您太会了"),
+		Plain(f"绝了"),
+		Plain(f"绝炸了"),
+		Plain(f"我首当其冲放烟花"),
+		Plain(f"您太会了"),
+		Plain(f"我晚上看到{pat[3]}从床上蹦起落下三百六十度头骨错位大喊"),
+		Plain(f"您太会了！！！！！！！！！"),
+		Plain(f"我拿起手机一看，头骨瞬间回位"),
+		Plain(f"您简直神了"),
+		Plain(f"这是什么神仙连{pat[1]}都能包治百病"),
+		Plain(f"{pat[1]}医双修神仙"),
+		Plain(f"绝了"),
+		Plain(f"您这种神仙活该位列仙班"),
+		Plain(f"仙班的甲子班"),
+		Plain(f"您不是kami就没有神仙了"),
+		Plain(f"简直绝了"),
+		Plain(f"神仙的菜想必也是极好吃的"),
+		Plain(f"不仅物理炒菜"),
+		Plain(f"精神上还喂饱了好多人"),
+		Plain(f"简直活佛济世"),
+		Plain(f"不行我要再去看看"),
+		Plain(f"太神了"),
+		Plain(f"神迹"),
+		Plain(f"未来滚滚历史长河中名{pat[1]}必有您一份"),
+		Plain(f"难道你就觉得它只是{pat[1]}"),
+		Plain(f"难道你又不更远一点想到，那神仙下凡拯救众生的善心"),
 		# 这里有几句话太难通用：
 		# > 那个炸毛毛毛
 		# > 绝了
 		# > 灵活的姿态，准确的用色，美丽的线条
 		# > 绝了
-		{"msg":f"我透过手机屏幕感受到了直击心灵的震撼"},
-		{"msg":f"我每个细胞带着我全身尖叫活性爆发整个人获得了超凡的能量就因为您的{pat[1]}"},
-		{"msg":f"我激情落泪"},
-		{"msg":f"我把我自己耳朵都嚎聋了"},
-		{"msg":f"恨不得摆上一车喇叭歌颂您的光辉事迹"}
+		Plain(f"我透过手机屏幕感受到了直击心灵的震撼"),
+		Plain(f"我每个细胞带着我全身尖叫活性爆发整个人获得了超凡的能量就因为您的{pat[1]}"),
+		Plain(f"我激情落泪"),
+		Plain(f"我把我自己耳朵都嚎聋了"),
+		Plain(f"恨不得摆上一车喇叭歌颂您的光辉事迹")
 	]
-	asyncio.ensure_future(msgSerializer(construct,**kwargs))
-	return [Plain(f"!{pat[0]}!!!!!!")]
+	# asyncio.ensure_future(msgSerializer(construct,**kwargs))
+	for p, i in enumerate(construct[1:]):
+		i.meta['delay'] = len(construct[p].text) / 5
+	return construct
 
 async def 川普生成器(*attrs, kwargs={}):
 	s = ' '.join(attrs) if attrs else '中国'
@@ -857,11 +883,6 @@ async def 今日人品(*attrs,kwargs={}):
 	#return [Plain(ans)]
 
 functionMap = {
-	'#舔':舔狗生成器,
-	'#解答':优质解答生成器,
-	'#希望工程':希望工程,
-	'#同学':同学你好生成器,
-	'#拳':打拳姬,
 	'#Trump':川普生成器,
 	"#Roll":骰子,
 	"#军舰":军舰,
@@ -878,27 +899,13 @@ shortMap = {
 }
 
 functionDescript = {
-	'#懂':'懂的都懂,不懂的我也不多解释',
-	'#希望工程':'希望人没事生成器（一般）,例:#希望 人别死我家门口',
 	'#Roll':'44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(不包含)>',
 	'#军舰':'重来！这么小声还想问"#军舰"怎么开?',
 	"#今日人品":'取得你今天的人品值（0~100）',
 	'#Trump':'No one knows Trump Generator better than me!',
-	'#拳':
-"""
-轮到我出拳了！（
-格式:
-	#拳 <事件> <主体>
-例:
-	#拳 我们女孩子到底要怎么活着 女性
-""",
+
 	'#舔':
 """
-稍微有点难用的舔狗生成器
-用法:
-	#舔 [人名] [动词,表示待舔人的技能] [待舔人用于施展技能的身体部位] [待舔人的技能产物]
-没填的部分会用默认值填满。
-默认值:
-	#舔 太太 画 手 图
+
 """
 }
