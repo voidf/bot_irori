@@ -377,7 +377,6 @@ QQFaces = {
 	"liwu": 325,
 }
 
-恶臭键值 = sorted(list(这 for 这 in 恶臭字典.keys() if 这!='d'))
 
 subscribes = ('S','sub','subscribe','订阅','推送','push','enable')
 unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭嘴', 'damare', 'E', 'yamero', '停','disable','clear')

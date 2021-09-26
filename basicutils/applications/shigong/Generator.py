@@ -574,6 +574,9 @@ def 同学你好生成器(ent: CoreEntity):
 	"d": "11-4-5+1-4"
 }
 
+恶臭键值 = sorted(list(这 for 这 in 恶臭字典.keys() if 这!='d'))
+
+
 def 这么臭的函数有必要定义吗(ent: CoreEntity):
     """#论证 []
     这么臭的功能有必要解释吗
