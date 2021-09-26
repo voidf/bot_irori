@@ -52,9 +52,10 @@ def convert_file_to_amr(typ: str, fp, mode: int=0):
     ).json()['url']
     return server_api('/worker/oss/'+ret)
 import base64
-def pimg_base64(img) -> str:
+from PIL import Image as PImage
+def pimg_base64(img: PImage.Image) -> str:
     bio = BytesIO()
-    img.save(bio)
+    img.save(bio, format='PNG')
     bio.seek(0)
     return base64.b64encode(bio.read()).decode('utf-8')
 # def convert_to_amrb(typ: str, content: bytes):
