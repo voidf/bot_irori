@@ -426,7 +426,7 @@ def 在线P歌(ent: CoreEntity):
         else:
             t.append(mido.Message('note_on', note=60, velocity=0, time=0))
             t.append(mido.Message('note_off', note=60, velocity=0, time=480))
-    fn = f'tmp{randstr(4)}.mid'
+    # fn = f'tmp{randstr(4)}.mid'
     # m.save(fn)
     bio = BytesIO()
     m.save(file=bio)
@@ -441,7 +441,7 @@ def 在线P歌(ent: CoreEntity):
     # kwargs['-voice'] = True
     # kwargs['voices'] = [fn]
     # kwargs['voices-fm'] = 'mid'
-    os.remove(fn)
+    # os.remove(fn)
     return [v]
 
 class DailySignLog(RefPlayerBase, Document):
