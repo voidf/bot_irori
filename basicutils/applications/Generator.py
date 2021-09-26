@@ -667,7 +667,7 @@ def 优质解答生成器(ent: CoreEntity):
 	return [Image(base64=pimg_base64(PImage.alpha_composite(nyaSrc,layer2)))]
 
 def 自己不會百度嗎(ent: CoreEntity):
-	"""#百度 []
+	"""#百度 [#baidu]
 	自己不會百度嗎?那我來幫你百度一下
 	"""
 	return [Plain(f"http://iwo.im/?q={ent.chain.tostr()}")]
@@ -818,23 +818,32 @@ def 舔狗生成器(ent: CoreEntity):
 	
 	return construct
 
-async def 川普生成器(*attrs, kwargs={}):
-	s = ' '.join(attrs) if attrs else '中国'
+def 川普生成器(ent: CoreEntity):
+	"""#Trump [#trump]
+	No one knows Trump Generator better than me!
+	"""
+	s = ent.chain.tostr()
+	if not s:
+		s = '中国'
 	pat = f"{chr(128588)}没有人\n{chr(128080)}比我\n{chr(128076)}更懂\n{chr(9757)}{s}"
 	return [Plain(pat)]
 
-async def 骰子(*attrs, kwargs={}):
-	if(len(attrs)>=2):
+def 骰子(ent: CoreEntity):
+	"""#Roll [#roll]
+	44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(包含)>
+	"""
+	attrs = ent.chain.tostr().split(' ')
+	if (len(attrs)>=2):
 		x,y=(int(i) for i in attrs[:2])
 		return [Plain(f"{random.randint(min(x,y),max(x,y))}")]
 	else:
 		return [Plain("我要怎么给你Roll哦")]
 
-async def 军舰(*attrs, kwargs={}):
-	try:
-		return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
-	except Exception as e:
-		return [Plain(str(e))]
+def 军舰(ent: CoreEntity):
+	"""#军舰 [#jj]
+	重来！这么小声还想问"#军舰"怎么开?
+	"""
+	return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
 
 async def 今日人品(*attrs,kwargs={}):
 	player_id=kwargs['mem'].id
@@ -886,29 +895,13 @@ async def 今日人品(*attrs,kwargs={}):
 	#return [Plain(ans)]
 
 functionMap = {
-	'#Trump':川普生成器,
-	"#Roll":骰子,
-	"#军舰":军舰,
 	"#今日人品":今日人品,
-	'#懂':懂的都懂,
 }
 
 shortMap = {
-	'#pr':'#舔',
-	'#trump':'#Trump',
-	'#jj': "#军舰",
 	"#jrrp": "#今日人品",
-	'#baidu':'#百度'
 }
 
 functionDescript = {
-	'#Roll':'44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(不包含)>',
-	'#军舰':'重来！这么小声还想问"#军舰"怎么开?',
 	"#今日人品":'取得你今天的人品值（0~100）',
-	'#Trump':'No one knows Trump Generator better than me!',
-
-	'#舔':
-"""
-
-"""
 }
