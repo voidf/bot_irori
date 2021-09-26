@@ -37,6 +37,7 @@ class CoreEntityJson(BaseModel):
 async def parse_adapter_jwt(f: CoreEntityJson) -> Tuple[CoreEntity, Adapter]:
     logger.critical(f)
     ent = CoreEntity.handle_json(f.ents)
+    logger.debug(ent)
     src, msg = verify_jwt(ent.jwt)
     ent.jwt = ''
     if not src:
