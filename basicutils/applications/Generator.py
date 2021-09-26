@@ -620,12 +620,14 @@ def 这么臭的函数有必要定义吗(ent: CoreEntity):
 		print(e)
 		return [Plain('这么恶臭的字串有必要论证吗')]
 
+emoji_font = 'Assets/851tegaki_zatsu_normal_0883.ttf'
+
 def 猫图生成器(ent: CoreEntity):
 	"""#nya []
 	生成猫表情，目前大概最多放4个中文字，例:#nya 要命
 	"""
 	attrs = ent.chain.tostr().split(' ')
-	font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',18)
+	font = ImageFont.truetype(emoji_font, 18)
 	nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
 	layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -648,7 +650,7 @@ def 优质解答生成器(ent: CoreEntity):
 	生成优质解答图片,例:#解答 自分で百度しろ
 	"""
 	attrs = ent.chain.tostr().split(' ')
-	font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
+	font = ImageFont.truetype(emoji_font,25)
 	nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -674,7 +676,7 @@ def IPlay生成器(ent: CoreEntity):
 	自己试试效果吧，例:#iplay I play BanG Dream!
 	"""
 
-	font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',25)
+	font = ImageFont.truetype(emoji_font,25)
 	Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
 	layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -689,7 +691,7 @@ def 希望没事生成器(ent: CoreEntity):
 	"""#希望 []
 	希望人没事生成器（莲华）,例:#希望 人别死我家门口
 	"""
-	font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
+	font = ImageFont.truetype(emoji_font,100)
 	nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
 	layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
 	draw = ImageDraw.Draw(layer2)
@@ -707,7 +709,7 @@ def 希望没事生成器(ent: CoreEntity):
 	return [Image(base64=pimg_base64(PImage.alpha_composite(nyaSrc,layer2)))]
 
 async def 希望工程(*attrs, kwargs={}):
-	font = ImageFont.truetype('Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf',100)
+	font = ImageFont.truetype(emoji_font,100)
 	nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
 	draw = ImageDraw.Draw(layer2)
