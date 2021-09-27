@@ -49,8 +49,6 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
-                        # if j['data']['sender']['group']['id'] not in (699731560, 491959457):
-                            # continue
 
                     elif j['data']['type'] == 'FriendMessage':
                         pid = str(j['data']['sender']['id'])
