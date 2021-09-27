@@ -228,39 +228,72 @@ def 爬CF(ent: CoreEntity):
         li = '没有即将开始的比赛'
     return li
 
-def 爬AtCoder(*attrs,kwargs={}):
+def 爬AtCoder(ent: CoreEntity):
     """#AT []
     爬取AtCoder将要开始的比赛的时间表
     可用参数:
         reset（取消提醒）
     """
-    try:
-        gp = kwargs['gp'].id
-    except:
-        gp = kwargs['gp']
+    attrs = ent.chain.tostr().split(' ')
+    ent.meta['routiner'] = 'AtcoderRoutinuer'
+    li = []
 
-    player = getPlayer(**kwargs)
-    ATNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
-            
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
-            ATCoderSubscribe.chk(player).delete()
+            resp = requests.delete(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
+            if resp.status_code!=200:
+                return resp.text
             return [Plain('取消本群的AtCoder比赛提醒服务')]
-    else:
-        ATCoderSubscribe.chk(player)
-    li = []
-    if ATCoderSubscribe.objects(pk=Player.chk(player)):
-        ATData = fetchAtCoderContests()
-        if ATData['running']:
-            li.append(Plain('正在运行的比赛：\n'))
-            for cont in ATData['running']:
-                li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-        li.append(Plain('将来的比赛：\n'))
-        for cont in ATData['upcoming']:
+    elif attrs[0] in GLOBAL.subscribes:
+        resp = requests.post(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        li.append(Plain('已订阅AtCoder比赛提醒推送\n'))
+    def fetchAtCoderContests() -> dict:
+        j = {}
+        l = []
+        r = requests.get('https://atcoder.jp/contests/',
+                        headers=GLOBAL.AtCoderHeaders, timeout=30)
+        s = BeautifulSoup(r.text, 'html.parser')
+        try:
+            for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
+                if p:
+                    l.append({
+                        'length': i('td')[2].text,
+                        'ranking_range': i('td')[3].text,
+                        'title': i('a')[1].text,
+                        'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                    })
+        except:
+            pass
+        j['running'] = l
+        l = []
+        # 持续时间 排名区间 比赛名 比赛时间
+        for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
+            if p:
+                l.append({
+                    'length': i('td')[2].text,
+                    'ranking_range': i('td')[3].text,
+                    'title': i('a')[1].text,
+                    'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                })
+        j['upcoming'] = l
+        print(j)
+        return j
+    ATData = fetchAtCoderContests()
+    if ATData['running']:
+        li.append(Plain('正在运行的比赛：\n'))
+        for cont in ATData['running']:
             li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-            cont['title'] = '【AT】'+cont['title']
-        OTNoticeManager(ATData['upcoming'],**kwargs)
-        li.append(Plain('已自动订阅AtCoder的比赛提醒服务，取消请使用#AT reset'))
+    li.append(Plain('将来的比赛：\n'))
+    for cont in ATData['upcoming']:
+        li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
     return li
 
 def 爬LaTeX(ent: CoreEntity):
