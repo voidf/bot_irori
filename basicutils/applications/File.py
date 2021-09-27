@@ -30,7 +30,6 @@ from loguru import logger
 
 from fapi.models.Player import *
 # sys.path.append(os.getcwd())
-from Assets.签到语料 import 宜, 忌, 运势
 import requests
 import copy
 
