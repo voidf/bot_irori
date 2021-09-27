@@ -512,7 +512,7 @@ def 炒币模拟器(ent: CoreEntity):
                 qty = float(qty.replace('$', ''))
                 cnt = qty / rate
             else:
-                cnt = qty
+                cnt = float(qty)
                 qty = float(qty) * rate
             credit = player.items.setdefault('credit', 500)
             if credit < qty:
@@ -532,7 +532,7 @@ def 炒币模拟器(ent: CoreEntity):
                 qty = float(qty.replace('$', ''))
                 cnt = qty / rate
             else:
-                cnt = qty
+                cnt = float(qty)
                 qty = float(qty) * rate
             player.items.setdefault('credit', 500)
             player.items.setdefault('cryptocurrency', {})
