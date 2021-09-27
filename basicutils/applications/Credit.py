@@ -482,9 +482,10 @@ def 炒币模拟器(ent: CoreEntity):
     else:
         cmd, *args = attrs
         if cmd == 'typ':
-            li = get_cryptocurrencies()
-            logger.debug(li)
-            return ['支持的币种列表：'] + li
+            return "支持的币种列表：['BTC', 'ETH', 'XRP', 'BCH', 'ADA', 'LTC', 'XEM', 'XLM', 'EOS', 'NEO', 'MIOTA', 'DASH', 'XMR', 'TRX', 'XTZ', 'DOGE', 'ETC', 'VEN', 'USDT', 'BNB']"
+            # li = get_cryptocurrencies()
+            # logger.debug(li)
+            # return ['支持的币种列表：'] + li
         elif cmd == 'info':
             return fetch_cryptocurrency_info(args[0])[0]
         elif cmd == 'buy':
@@ -539,7 +540,7 @@ def 炒币模拟器(ent: CoreEntity):
             if not ret:
                 return '您没有币！'
             else:
-                return ['您拥有的币如下：', '币种   数量'] + ret
+                return '\n'.join(['您拥有的币如下：', '币种   数量'] + ret)
 
             # return
         else:
