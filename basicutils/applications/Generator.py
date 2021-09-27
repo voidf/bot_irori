@@ -1,5 +1,4 @@
-"""生成器类"""
-import enum
+"""生成器类（迁移完毕）"""
 import os
 import sys
 
@@ -8,9 +7,7 @@ if os.getcwd() not in sys.path:
 from PIL import ImageFont,ImageDraw
 from PIL import Image as PImage
 import re
-import asyncio
 import random
-from basicutils import CONST as GLOBAL
 from basicutils.chain import *
 from basicutils.network import *
 from basicutils.task import *
@@ -651,7 +648,6 @@ def 优质解答生成器(ent: CoreEntity):
 	"""#解答 []
 	生成优质解答图片,例:#解答 自分で百度しろ
 	"""
-	attrs = ent.chain.tostr().split(' ')
 	font = ImageFont.truetype(emoji_font,25)
 	nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
@@ -845,47 +841,3 @@ def 军舰(ent: CoreEntity):
 	重来！这么小声还想问"#军舰"怎么开?
 	"""
 	return [Plain(random.choice(["那么小声还想开军舰？","听不见！"]))]
-
-async def 今日人品(*attrs,kwargs={}):
-	player_id=kwargs['mem'].id
-	if player_id not in GLOBAL.JRRP_map: #已经存在信息直接读取，否则生成新数字
-		temp_rpval=random.randint(0,100)
-		GLOBAL.JRRP_map[player_id]=[temp_rpval]
-		#随机抽取字典值
-		b=list(GLOBAL.JRRP_words)
-		random.shuffle(b)
-		if temp_rpval==100:
-			GLOBAL.JRRP_map[player_id].extend([['诸事皆宜'],['-']])
-		elif 80<=temp_rpval<=99:
-			GLOBAL.JRRP_map[player_id].extend([b[0:5],b[5:6]])
-		elif 60<=temp_rpval:
-			GLOBAL.JRRP_map[player_id].extend([b[0:4],b[4:6]])
-		elif 40<=temp_rpval:
-			GLOBAL.JRRP_map[player_id].extend([b[0:3],b[3:6]])
-		elif 20<=temp_rpval:
-			GLOBAL.JRRP_map[player_id].extend([b[0:2],b[2:6]])
-		elif 1<=temp_rpval:
-			GLOBAL.JRRP_map[player_id].extend([b[0:1],b[1:6]])
-		elif temp_rpval==0:
-			GLOBAL.JRRP_map[player_id].extend([['-'],['诸事不宜']])
-
-	rp_val=GLOBAL.JRRP_map[player_id][0]
-	print(rp_val)
-	print(GLOBAL.JRRP_map[player_id])
-	ans='你今天的人品为：'+str(rp_val)+'\n'
-	ans+='宜：'+','.join(GLOBAL.JRRP_map[player_id][1])+'\n'
-	ans+='忌：'+','.join(GLOBAL.JRRP_map[player_id][2])+'\n'
-
-	return [Plain(ans)]
-
-functionMap = {
-	"#今日人品":今日人品,
-}
-
-shortMap = {
-	"#jrrp": "#今日人品",
-}
-
-functionDescript = {
-	"#今日人品":'取得你今天的人品值（0~100）',
-}
