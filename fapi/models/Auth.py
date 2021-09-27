@@ -16,6 +16,7 @@ class Adapter(Base, Document):
     username = StringField(primary_key=True)
     password = StringField()
     role = ReferenceField(Role, reverse_delete_rule=DO_NOTHING)
+    items = DictField()
     @classmethod
     def chk(cls, pk):
         return super().chk(pk)
