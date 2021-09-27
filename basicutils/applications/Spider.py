@@ -238,7 +238,7 @@ def 爬AtCoder(ent: CoreEntity):
     ent.meta['routiner'] = 'AtcoderRoutinuer'
     li = []
 
-    if len(attrs):
+    if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
             resp = requests.delete(
                 server_api('/worker/routiner'),
@@ -247,14 +247,14 @@ def 爬AtCoder(ent: CoreEntity):
             if resp.status_code!=200:
                 return resp.text
             return [Plain('取消本群的AtCoder比赛提醒服务')]
-    elif attrs[0] in GLOBAL.subscribes:
-        resp = requests.post(
-            server_api('/worker/routiner'),
-            json={'ents': ent.json()}
-        )
-        if resp.status_code!=200:
-            return resp.text
-        li.append(Plain('已订阅AtCoder比赛提醒推送\n'))
+        elif attrs[0] in GLOBAL.subscribes:
+            resp = requests.post(
+                server_api('/worker/routiner'),
+                json={'ents': ent.json()}
+            )
+            if resp.status_code!=200:
+                return resp.text
+            li.append(Plain('已订阅AtCoder比赛提醒推送\n'))
     def fetchAtCoderContests() -> dict:
         j = {}
         l = []
