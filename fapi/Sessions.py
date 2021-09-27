@@ -27,6 +27,7 @@ class MiraiSession():
         # self.syncid = adapter_id
         self.jwt = generate_jwt(adapter_id)
         self.aid = adapter_id
+        self.dbobj = Adapter.trychk(self.aid)
         
     async def enter_loop(self, wsurl: str):
         """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
@@ -38,8 +39,9 @@ class MiraiSession():
                 # logger.warning(j)
                 if 'data' in j and 'type' in j['data']:
                     if j['data']['type'] == 'GroupMessage':
+                        pid = str(j['data']['sender']['group']['id'] + (1<<39))
                         ent = CoreEntity(
-                            player=str(Player.chk(str(j['data']['sender']['group']['id'] + (1<<39)), self.aid)),
+                            player=str(Player.chk(pid, self.aid)),
                             jwt=str(self.jwt),
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
@@ -47,12 +49,13 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
-                        if j['data']['sender']['group']['id'] not in (699731560, 491959457):
-                            continue
+                        # if j['data']['sender']['group']['id'] not in (699731560, 491959457):
+                            # continue
 
                     elif j['data']['type'] == 'FriendMessage':
+                        pid = str(j['data']['sender']['id'])
                         ent = CoreEntity(
-                            player=str(Player.chk(str(j['data']['sender']['id']), self.aid)),
+                            player=str(Player.chk(pid, self.aid)),
                             jwt=str(self.jwt),
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
@@ -60,6 +63,13 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
+                    if 'white_list' in self.dbobj.items:
+                        if pid not in self.dbobj.items['white_list']:
+                            continue
+                    elif 'black_list' in self.dbobj.items:
+                        if pid in self.dbobj.items['black_list']:
+                            continue
+
                         # continue # debug
                     # TODO: 临时消息，系统命令
 
