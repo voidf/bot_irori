@@ -1,6 +1,8 @@
 """信用点类"""
 import os
 import sys
+
+from bs4 import BeautifulSoup
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
@@ -9,12 +11,10 @@ if os.getcwd() not in sys.path:
 # print(os.listdir('.'))
 # print(__name__)
 import basicutils.CONST as C
-import asyncio
 import random
 import copy
 import traceback
 import datetime
-import mido
 from basicutils.algorithms import *
 from basicutils.network import *
 from basicutils.database import *
@@ -419,4 +419,114 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
     else: entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
     return [Plain(entity['info'])]
+
+def get_cryptocurrencies():
+    r = requests.get(
+        f'''https://www.nasdaq.com/market-activity/cryptocurrency''',
+        headers={
+            "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+            "accept-encoding":"gzip, deflate, br",
+            "accept-language":"zh-CN,zh;q=0.9",
+            "cache-control":"no-cache",
+            "dnt":"1",
+            "pragma":"no-cache",
+            "sec-fetch-mode":"navigate",
+            "sec-fetch-site":"none",
+            "sec-fetch-user":"?1",
+            "upgrade-insecure-requests":"1",
+            "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+        }
+    )
+    res = r.text
+        # print(res)
+    b = BeautifulSoup(res, 'html.parser')
+    ccs = [i['data-symbol'] for i in b('tr', attrs={'data-asset-class':'cryptocurrency'})]
+    # print(ccs)
+    return ccs
+
+def fetch_cryptocurrency_info(typ: str = 'BTC'):
+    lnk = f'https://api.nasdaq.com/api/quote/{typ}/info?assetclass=crypto'
+    r = requests.get(lnk, headers={
+        "accept":"application/json, text/plain, */*",
+        "accept-encoding":"gzip, deflate, br",
+        "accept-language":"zh-CN,zh;q=0.9",
+        "cache-control":"no-cache",
+        "dnt":"1",
+        "origin":"https://www.nasdaq.com",
+        "pragma":"no-cache",
+        "referer":"https://www.nasdaq.com/market-activity/cryptocurrency/btc",
+        "sec-fetch-dest":"empty",
+        "sec-fetch-mode":"cors",
+        "sec-fetch-site":"same-site",
+        "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+    })
+    j = json.loads(r.text)
+    report = (f"币种：{j['data']['companyName']}\n"
+    f"今日最高：{j['data']['keyStats']['High']['value']}\n"
+    f"今日最低：{j['data']['keyStats']['Low']['value']}\n"
+    f"现在价格：{j['data']['primaryData']['lastSalePrice']}\n"
+    f"刷新时间：{j['data']['primaryData']['lastTradeTimestamp']}\n"
+    f"变动幅度：{j['data']['primaryData']['percentageChange']}")
+
+    return report, j
+
+def 炒币模拟器(ent: CoreEntity):
+    """#炒币 []
+    谨以此功能纪念20年末矿潮，向想炒币但没钱也不想花钱的用户提供。
+
+    """
+    attrs = ent.chain.tostr().split(' ')
+
+    if not any(attrs):
+        return '请使用"#h #炒币"查看具体用法'
+    else:
+        cmd, *args = attrs
+        if cmd == 'typ':
+            return ['支持的币种列表：'] + get_cryptocurrencies()
+        elif cmd == 'info':
+            return fetch_cryptocurrency_info(args[0])[0]
+        elif cmd == 'buy':
+            typ, qty, *ato = args
+            player = Player.chk(ent.member, ent.source)
+            rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
+            if '$' in qty:
+                qty = float(qty.replace('$', ''))
+                cnt = qty / rate
+            else:
+                cnt = qty
+                qty = float(qty) * rate
+            credit = player.items.setdefault('credit', 500)
+            if credit < qty:
+                return f'您的信用点不足，仍需另外{qty-credit}点才能买入'
+            credit -= qty
+            player.items.setdefault('cryptocurrency', {})
+            player.items['cryptocurrency'][typ] = player.items['cryptocurrency'].get(typ, 0) + cnt
+            player.items['credit'] = credit
+            player.save()
+            return f'购买成功：花费{qty}信用点，买入{cnt}单位的{typ}。'
+        elif cmd == 'sell':
+            typ, qty, *ato = args
+            player = Player.chk(ent.member, ent.source)
+            rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
+
+            if '$' in qty:
+                qty = float(qty.replace('$', ''))
+                cnt = qty / rate
+            else:
+                cnt = qty
+                qty = float(qty) * rate
+            player.items.setdefault('credit', 500)
+            player.items.setdefault('cryptocurrency', {})
+            cc = player.items['cryptocurrency'].setdefault(typ, 0)
+            if cc < cnt:
+                return f'您的{typ}不足，还需{cnt - cc}才能卖出您期望的信用点（手续费前）'
+            cc -= cnt
+            tax = qty * 0.01
+            qty *= 0.99
+            player.items['credit'] += qty
+            player.items['cryptocurrency'][typ] = cc
+            player.save()
+            return f"卖出成功：卖出{typ}共{cnt}单位，获得{qty}信用点，系统收取手续费{tax}(1%)。"
+        else:
+            return '请使用"#h #炒币"查看具体用法'
 
