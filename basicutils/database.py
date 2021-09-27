@@ -197,6 +197,12 @@ class CreditLog(RefPlayerBase, Document):
         c2 = c2.strip()
         cls.chk(user).update(credit=float(c2))
         return True
+    
+    @classmethod
+    def sync(cls):
+        for i in cls.objects():
+            i.player.items['credit'] = i.credit
+            i.player.save()
 
 
 class Sniffer(Document, RefPlayerBase):

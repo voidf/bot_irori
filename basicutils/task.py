@@ -31,33 +31,7 @@ from cfg import dist_host, web_port
 def server_api(relative_path: str) -> str:
     return f"{dist_host}:{web_port}{relative_path}"
 
-import requests
-def convert_to_amr(typ: str, lnk: Union[bytes, str], mode: int=0):
-    if isinstance(lnk, str):
-        ret = requests.post(
-            server_api(f'/convert/amr?format={typ}&mode={mode}'),
-            data={'lnk': lnk}
-        ).json()['url']
-    else:
-        ret = requests.post(
-            server_api(f'/convert/amr?format={typ}&mode={mode}'),
-            files={'f': BytesIO(lnk)}
-        ).json()['url']
-    return server_api('/worker/oss/'+ret)
 
-def convert_file_to_amr(typ: str, fp, mode: int=0):
-    ret = requests.post(
-        server_api(f'/convert/amr?format={typ}&mode={mode}'),
-        files={'f': open(fp,'rb')}
-    ).json()['url']
-    return server_api('/worker/oss/'+ret)
-import base64
-from PIL import Image as PImage
-def pimg_base64(img: PImage.Image) -> str:
-    bio = BytesIO()
-    img.save(bio, format='PNG')
-    bio.seek(0)
-    return base64.b64encode(bio.read()).decode('utf-8')
 # def convert_to_amrb(typ: str, content: bytes):
 #     ret = requests.post(
 #         server_api(f'/convert/amr?format={typ}&mode=0'),

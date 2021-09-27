@@ -14,6 +14,7 @@ from basicutils import CONST as GLOBAL
 from basicutils.chain import *
 from basicutils.network import *
 from basicutils.task import *
+from basicutils.media import *
 
 def 不会吧(ent: CoreEntity):
 	"""#不会吧 []
@@ -582,15 +583,15 @@ def 这么臭的函数有必要定义吗(ent: CoreEntity):
 	attrs = ent.chain.tostr().split(' ')
 	def 最小(数):
 		左 = 0
-		右 = len(GLOBAL.恶臭键值)-1
+		右 = len(恶臭键值)-1
 		中 = (左+右+1) >> 1
 		while 左<右:
-			if 数>=GLOBAL.恶臭键值[中]:
+			if 数>=恶臭键值[中]:
 				左 = 中
 			else:
 				右 = 中-1
 			中 = (左+右+1) >> 1
-		return GLOBAL.恶臭键值[左]
+		return 恶臭键值[左]
 
 	def 恶臭递归(恶臭数):
 		if 恶臭数<0:
@@ -602,12 +603,12 @@ def 这么臭的函数有必要定义吗(ent: CoreEntity):
 			长 = 长[1] - 长[0] - 1
 			return '('+恶臭递归(int(恶臭数*10**长)) + ')/('+恶臭递归(10**长) +')'
 			
-		if 恶臭数 in GLOBAL.恶臭字典:
-			return GLOBAL.恶臭字典[恶臭数]
+		if 恶臭数 in 恶臭字典:
+			return 恶臭字典[恶臭数]
 		除 = 最小(恶臭数)
 		print('num=>',恶臭数,'\t','div=>',除)
 		
-		return str(f'({GLOBAL.恶臭字典[除]}*{恶臭递归(恶臭数//除)}+{恶臭递归(恶臭数%除)})')
+		return str(f'({恶臭字典[除]}*{恶臭递归(恶臭数//除)}+{恶臭递归(恶臭数%除)})')
 
 	try:
 		try:
@@ -876,23 +877,6 @@ async def 今日人品(*attrs,kwargs={}):
 	ans+='忌：'+','.join(GLOBAL.JRRP_map[player_id][2])+'\n'
 
 	return [Plain(ans)]
-	#rp_val=GLOBAL.JRRP_map[player_id]
-	#ans='你今天的人品为：'+str(rp_val)+'\n评价：'
-	#if rp_val==100:
-	#    ans+='心想事成'
-	#elif 80<=rp_val<=99:
-	#    ans+='万事如意'
-	#elif 60<=rp_val<=79:
-	#    ans+='修短随化'
-	#elif 40<=rp_val<=59:
-	#    ans+='因祸得福'
-	#elif 20<=rp_val<=39:
-	#    ans+='落魄不偶'
-	#elif 1<=rp_val<=19:
-	#    ans+='有命无运'
-	#elif rp_val==0:
-	#    ans+='危！'
-	#return [Plain(ans)]
 
 functionMap = {
 	"#今日人品":今日人品,
