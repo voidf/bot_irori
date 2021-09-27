@@ -228,7 +228,12 @@ def 爬CF(ent: CoreEntity):
         li = '没有即将开始的比赛'
     return li
 
-async def 爬AtCoder(*attrs,kwargs={}):
+def 爬AtCoder(*attrs,kwargs={}):
+    """#AT []
+    爬取AtCoder将要开始的比赛的时间表
+    可用参数:
+        reset（取消提醒）
+    """
     try:
         gp = kwargs['gp'].id
     except:
@@ -606,7 +611,6 @@ functionMap = {
     # '#看看病':没救了,
     '#什么值得学':爬OIWiki,
     '#什么值得娘':爬萌娘,
-    '#AT':爬AtCoder,
     '#牛客':爬牛客,
     # '#ip':爬ip,
     # '#addr':反爬ip,
@@ -630,12 +634,7 @@ functionDescript = {
     '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
 
     '#看看病':'从jhu看板爬目前各个国家疫情的数据',
-    '#AT':
-"""
-爬取AtCoder将要开始的比赛的时间表
-可用参数:
-    reset（取消提醒）
-""",
+
     '#牛客':
 """
 爬取牛客将要开始的比赛的时间表

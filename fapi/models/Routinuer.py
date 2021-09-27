@@ -144,9 +144,121 @@ class CodeforcesRoutinuer(Routiner):
     async def add(cls, ent: CoreEntity):
         cls(
             player=Player.chk(ent.player, ent.source)
-            # mode='Y',
         ).save()
-        # await cls.update_futures(aid)
+
+import basicutils.CONST as C
+from bs4 import BeautifulSoup
+class AtcoderRoutinuer(Routiner):
+    # mode = StringField(default='Y')
+
+    @staticmethod
+    async def spider():
+        ses: aiohttp.ClientSession
+        async with aiohttp.ClientSession() as ses:
+            resp: aiohttp.ClientResponse
+            li = []
+            async with ses.get(
+                'https://atcoder.jp/contests/',
+                headers=C.AtCoderHeaders,
+                timeout=30
+            ) as resp:
+                s = BeautifulSoup(await resp.text(), 'html.parser')
+                try:
+                    for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
+                        if p:
+                            begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                            li.append({
+                                'id': i('a')[1]['href'],
+                                'name': i('a')[1].text,
+                                'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
+                            })
+                except:
+                    pass
+                for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
+                    if p:
+                        begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                        li.append({
+                            'id': i('a')[1]['href'],
+                            'name': i('a')[1].text,
+                            'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
+                        })
+                # for i in j:
+                #     if i['phase'] == 'FINISHED':
+                #         break
+                #     li.append(i)
+                #     """
+                #     可用属性：
+                #     id                  比赛id
+                #     name                比赛名
+                #     relativeTimeSeconds 为负数时表示还差多少秒开始
+                #     """
+                    
+        return li
+
+    @classmethod
+    async def notify(cls, contest: dict):
+        # if isinstance(player, Player):
+        #     player = str(player.pid)
+        if contest['relativeTimeSeconds'] < 3600:
+            return
+        await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
+        q = cls.objects()
+        # if q:
+        for subs in q:
+            if str(subs.player.aid) in fapi.G.adapters:
+                await fapi.G.adapters[str(subs.player.aid)].upload(
+                    CoreEntity(
+                        player=str(subs.player),
+                        chain=chain.MessageChain.auto_make(
+                            f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                            f"注册链接：https://atcoder.jp{contest['id']}"
+                        ),
+                        source='',
+                        meta={}
+                    )
+                )
+
+    @classmethod
+    async def update_futures(cls):
+        # q = cls.objects(adapter=Adapter.trychk(aid))
+        # if q:
+        li = await AtcoderRoutinuer.spider()
+            # for subscribers in q:
+                # mp = cls.contest_futures.setdefault(str(aid), {}).setdefault(str(subscribers.player), {})
+        mp =  cls.contest_futures
+        for contest in li:
+            if contest['id'] in mp:
+                mp[contest['id']].cancel()
+            mp[contest['id']] = asyncio.ensure_future(
+                cls.notify(contest)
+            )
+
+    @classmethod
+    async def resume(cls, aid: str):
+        if not fapi.G.initialized:
+            cls.contest_futures = {}
+            await cls.update_futures()
+            asyncio.ensure_future(cls.mainloop())
+
+
+    @classmethod
+    async def mainloop(cls):
+        cycle = 86400
+        offset = 3600 * 8 # UTC+8, 24 - 8 = 16
+        while 1:
+            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
+            await asyncio.sleep(tosleep)
+            await cls.update_futures()
+
+    @classmethod
+    async def cancel(cls, ent: CoreEntity):
+        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
+
+    @classmethod
+    async def add(cls, ent: CoreEntity):
+        cls(
+            player=Player.chk(ent.player, ent.source)
+        ).save()
 
 import random
 import basicutils.CONST as CONST
