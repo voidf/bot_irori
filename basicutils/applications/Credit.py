@@ -534,7 +534,7 @@ def 炒币模拟器(ent: CoreEntity):
             player.items.setdefault('credit', 500)
             ret = []
             # player.
-            for k, v in player.items.setdefault('cryptocurrency', {}):
+            for k, v in player.items.setdefault('cryptocurrency', {}).items():
                 ret.append(f'{k}: {v}')
             if not ret:
                 return '您没有币！'
