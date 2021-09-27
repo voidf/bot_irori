@@ -471,8 +471,24 @@ def fetch_cryptocurrency_info(typ: str = 'BTC'):
     return report, j
 
 def 炒币模拟器(ent: CoreEntity):
-    """#炒币 []
+    """#炒币 [#超笔]
     谨以此功能纪念20年末矿潮，向想炒币但没钱也不想花钱的用户提供。
+    本功能所有数据以nasdaq为依据。
+    用法：
+        #炒币 typ
+            查看支持的币种列表
+        #炒币 info <币种>
+            查看对应币种的行情
+        #炒币 buy <币种> $<信用点数>
+            购买相当于这么多信用点的币
+        #炒币 buy <币种> <币个数>
+            购买这么多个币
+        #炒币 sell <币种> $<信用点数>
+            卖出相当于这么多信用点的币（税前）
+        #炒币 sell <币种> <币个数>
+            卖出这么多币
+        #炒币 my
+            查看您拥有币的数量
 
     """
     attrs = ent.chain.tostr().split(' ')
