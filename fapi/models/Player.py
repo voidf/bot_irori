@@ -8,6 +8,9 @@ from mongoengine.document import *
 
 from fapi.models.Auth import Adapter
 from fapi.models.Base import *
+from basicutils.algorithms import *
+import basicutils.CONST
+
 INVISIBLE = TypeVar('INVISIBLE')
 
 class Player(Document):
@@ -72,6 +75,22 @@ class Player(Document):
                 # print("NEW PLAYER", q.get_base_info(), "CREATED!")
             # print(q.get_base_info())
             return q
+    
+    def upd_credit(self, operator: str, val: float) -> bool:
+        """修改用户的信用点
+        参数：
+            [str]operator(操作符)
+            [int]val(操作数)
+        返回：
+            [bool]是否操作成功
+        """
+        if operator not in basicutils.CONST.credit_operators: return False
+        c = self.items.get('credit', 500)
+        c, c2 = evaluate_expression(f'{c}{operator}{float(val)}')
+        c2 = float(c2.strip())
+        self.items['credit'] = c2
+        self.save()
+        return True
 
 class RefPlayerBase(Base):
     _player = ReferenceField(Player, primary_key=True, reverse_delete_rule=2)

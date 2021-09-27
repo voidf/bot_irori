@@ -174,36 +174,19 @@ class Vote(Document, RefPlayerBase):
 
 import basicutils.CONST
 from basicutils.algorithms import evaluate_expression
-class CreditLog(RefPlayerBase, Document):
-    credit = FloatField(default=500)
-    @classmethod
-    def get(cls, user: Union[int, str]) -> int:
-        return cls.chk(user).credit
-    @classmethod
-    def upd(cls, user: Union[int, str], operator: str, val: float) -> bool:
-        """修改用户的信用点
-        参数：
-            [int]user(QQ号)
-            [str]operator(操作符)
-            [int]val(操作数)
-        返回：
-            [bool]是否操作成功
-        用例：
-            CreditLog.upd(114514, '+', 1)
-        """
-        if operator not in basicutils.CONST.credit_operators: return False
-        c = cls.get(user)
-        c, c2 = evaluate_expression(f'{c}{operator}{float(val)}')
-        c2 = c2.strip()
-        cls.chk(user).update(credit=float(c2))
-        return True
+# class CreditLog(RefPlayerBase, Document):
+#     credit = FloatField(default=500)
+#     @classmethod
+#     def get(cls, user: Union[int, str]) -> int:
+#         return cls.chk(user).credit
     
-    @classmethod
-    def sync(cls):
-        for i in cls.objects():
-            plr = Player.objects(pk=i.player.pk).first()
-            plr.items['credit'] = i.credit
-            plr.save()
+    
+    # @classmethod
+    # def sync(cls):
+    #     for i in cls.objects():
+    #         plr = Player.objects(pk=i.player.pk).first()
+    #         plr.items['credit'] = i.credit
+    #         plr.save()
 
 
 class Sniffer(Document, RefPlayerBase):

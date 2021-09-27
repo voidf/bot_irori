@@ -132,7 +132,7 @@ def 成分查询(ent: CoreEntity):
     """
     attrs = ent.chain.tostr().split(' ')
     user = attrs[0]
-    crd = CreditLog.get(user)
+    crd = Player.chk(user, ent.source).items.get('credit', 500)
     ret = [f'用户{user}现在拥有信用点{crd}点，评价：']
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
@@ -143,7 +143,7 @@ def 信用点查询(ent: CoreEntity):
     """
     user = ent.member
     player = Player.chk(user, ent.source)
-    CreditLog.sync()
+    # CreditLog.sync()
     # crd = CreditLog.get(player)
     crd = player.items.setdefault('credit', 500)
     # player.save()
@@ -197,7 +197,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
         cd = random.randint(1,8) * entity['combo']
         ans = f"{fortune}\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
-        print(CreditLog.upd(player, '+', cd))
+        player.upd_credit('+', cd)
         entity['info'] = ans
         entity['last_sign'] = datetime.datetime.now()
         entity.save()
