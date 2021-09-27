@@ -201,8 +201,9 @@ class CreditLog(RefPlayerBase, Document):
     @classmethod
     def sync(cls):
         for i in cls.objects():
-            i.player.items['credit'] = i.credit
-            i.player.save()
+            plr = Player.objects(pk=i.player.pk).first()
+            plr.items['credit'] = i.credit
+            plr.save()
 
 
 class Sniffer(Document, RefPlayerBase):
