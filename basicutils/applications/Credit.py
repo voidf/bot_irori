@@ -393,7 +393,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         entity['combo'] += 1
 
         rp = random.random() * 100
-        d = len(运势) - 1
+        d = len(运势)
         f = 100 / d
         for p, i in enumerate(运势):
             if 100 - (p+1) * f < rp:
