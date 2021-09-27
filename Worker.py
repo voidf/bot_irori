@@ -36,7 +36,7 @@ def task(s: str):
     # TODO: 压为图片，分段上传，延时上传(x)
     # TODO: 在服务端Adapter实现
     logger.critical(res)
-    ent.chain = res
+    ent.chain = MessageChain.auto_make(res)
     if ent.chain.__root__:
         resp = requests.post(
             server_api("/worker/submit"),

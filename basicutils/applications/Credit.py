@@ -482,7 +482,9 @@ def 炒币模拟器(ent: CoreEntity):
     else:
         cmd, *args = attrs
         if cmd == 'typ':
-            return ['支持的币种列表：'] + get_cryptocurrencies()
+            li = get_cryptocurrencies()
+            logger.debug(li)
+            return ['支持的币种列表：'] + li
         elif cmd == 'info':
             return fetch_cryptocurrency_info(args[0])[0]
         elif cmd == 'buy':
@@ -527,6 +529,19 @@ def 炒币模拟器(ent: CoreEntity):
             player.items['cryptocurrency'][typ] = cc
             player.save()
             return f"卖出成功：卖出{typ}共{cnt}单位，获得{qty}信用点，系统收取手续费{tax}(1%)。"
+        elif cmd == 'my':
+            player = Player.chk(ent.member, ent.source)
+            player.items.setdefault('credit', 500)
+            ret = []
+            # player.
+            for k, v in player.items.setdefault('cryptocurrency', {}):
+                ret.append(f'{k}: {v}')
+            if not ret:
+                return '您没有币！'
+            else:
+                return ['您拥有的币如下：', '币种   数量'] + ret
+
+            # return
         else:
             return '请使用"#h #炒币"查看具体用法'
 

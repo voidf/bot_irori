@@ -77,4 +77,5 @@ def get_cryptocurrencies():
     print(ccs)
     return ccs
 # print(make_req2(1))
-print(fetch('ETH'))
+# print(fetch('ETH'))
+print(get_cryptocurrencies())
