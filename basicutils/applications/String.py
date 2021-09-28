@@ -902,6 +902,7 @@ def 答案之书(ent: CoreEntity):
             Sniffer.append(player,'#答案之书',r'啥')
             Sniffer.append(player,'#答案之书',r'怎么')
             Sniffer.append(player,'#答案之书',r'如何')
+            Sniffer.append(player,'#答案之书',r'i宝')
             Sniffer.append(player,'#答案之书',r'为什么')
             return [Plain('【答案之书】sniff模式')]
         elif attrs[-1] in GLOBAL.unsubscribes:

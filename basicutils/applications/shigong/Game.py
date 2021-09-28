@@ -1,56 +1,49 @@
 """小游戏类"""
 import os
-if __name__ == '__main__':
-    os.chdir('..')
-    
-import GLOBAL
-from bs4 import BeautifulSoup
-from PIL import ImageFont, ImageDraw
+import sys
+
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
+
+
 from PIL import Image as PImage
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-import re
 import asyncio
 import requests
-import json5
-import json
 import numpy
 import random
-import base64
-import qrcode
-import io
-import string
-import math
-import urllib
 import copy
-import ctypes
-import functools
-import traceback
-import http.client
-import statistics
-import csv
-import hashlib
-import zlib
-import time
-import datetime
-import urllib
-import mido
-import shutil
-from Utils import *
-from Sniffer import removeSniffer, syncSniffer, clearSniffer, appendSniffer, overwriteSniffer
-importMirai()
-
+from basicutils.chain import *
+from basicutils.network import *
+import basicutils.CONST as GLOBAL
 
 from mongoengine import *
-from database_utils import *
+from fapi.models.Player import *
 
-async def asobi2048(*attrs, kwargs={}):
-    player = getPlayer(**kwargs)
+class Asobi2048Data(RefPlayerBase, Document):
+    mat = ListField(ListField(IntField()))
+
+
+def asobi2048(ent: CoreEntity):
+    """#2048 []
+    开始2048游戏，wasd控制移动方向，init用于初始化，传参gamestart进入快速操作模式（慎用
+    可用参数：
+        w:向上滑动
+        a:向左滑动
+        s:向下滑动
+        d:向右滑动
+        init [(可选)2~8]:初始化游戏棋盘，加数字可以定制棋盘大小
+        gamestart:快速游戏模式，每句话都当做2048游戏的命令处理
+    例子：
+        #2048 init (初始化游戏棋盘)
+        #2048 w (向上滑动)
+    """
+    attrs = ent.chain.tostr().split(' ')
+    player = ent.player
     f = False
     n = 4
 
-    if not attrs:
-        return [Plain('想玩2048的话请像 #2048 w 这样写')]
+    if not any(attrs):
+        return [Plain('请使用#h #2048查看用法')]
 
     asobientity = Asobi2048Data.chk(player)
     try:
@@ -305,17 +298,7 @@ shortMap = {'#zx':'#折线','#hdpt':'#华容道'}
 functionDescript = {
     '#2048':
 """
-开始2048游戏，wasd控制移动方向，init用于初始化，传参gamestart进入快速操作模式（慎用
-可用参数：
-    w:向上滑动
-    a:向左滑动
-    s:向下滑动
-    d:向右滑动
-    init [(可选)2~8]:初始化游戏棋盘，加数字可以定制棋盘大小
-    gamestart:快速游戏模式，每句话都当做2048游戏的命令处理
-例子：
-    #2048 init (初始化游戏棋盘)
-    #2048 w (向上滑动)
+
 """,
     '#华容道':
 """
