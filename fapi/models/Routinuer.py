@@ -103,7 +103,7 @@ class CodeforcesRoutinuer(Routiner):
                 logger.critical(str(plr.aid))
                 logger.critical('\n')
                 if str(plr.aid) in fapi.G.adapters:
-                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                    await fapi.G.adapters[str(plr.aid)].upload(
                         CoreEntity(
                             player=str(subs.player),
                             chain=chain.MessageChain.auto_make(
