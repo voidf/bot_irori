@@ -1,4 +1,5 @@
 """信用点类"""
+import math
 import os
 import sys
 
@@ -409,7 +410,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         if fortune in ('大凶','危'): y = [('诸事不宜','')]
         for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
         for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
-        cd = random.randint(1,8) * entity['combo']
+        cd = math.ceil(rp/10) * entity['combo']
         ans = f"{fortune} (运: {rp:.3f}%)\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
         player.upd_credit('+', cd)
         entity['info'] = ans
