@@ -11,7 +11,8 @@ from basicutils.chain import *
 # Core内部传输用
 class CoreEntity(BaseModel):
     chain: MessageChain
-    player: str  = '' # 发送来源player号
+    player: str  = '' # 发送来源player ObjectId
+    pid: str  = ''    # 发送来源player id
     source: str  = '' # 发送来源Adapterid或是相关jwt
     meta: dict   = {} # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
     jwt: str     = '' # 令牌

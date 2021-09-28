@@ -1,4 +1,5 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
+from fapi.models.Auth import Adapter
 from basicutils.task import server_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
@@ -197,8 +198,19 @@ def sub_task(task: CoreEntity) -> MessageChain:
         logger.debug(f'command: {cmd}')
         print(task.player)
         if cmd in tot_funcs:
-            # try:
-                # reply = tot_funcs[cmd](task.chain, task.meta)
+            adapter = Adapter.trychk(task.source)
+            if not adapter:
+                return []
+            if 'white_list' in adapter.items:
+                if task.pid in adapter.items['white_list']:
+                    if cmd not in adapter.items['white_list'][task.pid]:
+                        logger.debug('ignored due to white list')
+                        return []
+            elif 'black_list' in adapter.items:
+                if task.pid in adapter.items['black_list']:
+                    if cmd in adapter.items['black_list'][task.pid]:
+                        logger.debug('ignored due to black list')
+                        return []
             reply = tot_funcs[cmd](task)
             # except:
                 # reply = MessageChain.auto_make(traceback.format_exc())

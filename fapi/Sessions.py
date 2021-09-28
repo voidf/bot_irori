@@ -27,7 +27,7 @@ class MiraiSession():
         # self.syncid = adapter_id
         self.jwt = generate_jwt(adapter_id)
         self.aid = adapter_id
-        self.dbobj = Adapter.trychk(self.aid)
+        # self.dbobj = Adapter.trychk(self.aid)
         
     async def enter_loop(self, wsurl: str):
         """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
@@ -43,6 +43,7 @@ class MiraiSession():
                         ent = CoreEntity(
                             player=str(Player.chk(pid, self.aid)),
                             jwt=str(self.jwt),
+                            pid=pid,
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
                             meta={},
@@ -55,18 +56,19 @@ class MiraiSession():
                         ent = CoreEntity(
                             player=str(Player.chk(pid, self.aid)),
                             jwt=str(self.jwt),
+                            pid=pid,
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
                             meta={},
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
-                    if 'white_list' in self.dbobj.items:
-                        if pid not in self.dbobj.items['white_list']:
-                            continue
-                    elif 'black_list' in self.dbobj.items:
-                        if pid in self.dbobj.items['black_list']:
-                            continue
+                    # if 'white_list' in self.dbobj.items:
+                        # if pid not in self.dbobj.items['white_list']:
+                            # continue
+                    # elif 'black_list' in self.dbobj.items:
+                        # if pid in self.dbobj.items['black_list']:
+                            # continue
 
                         # continue # debug
                     # TODO: 临时消息，系统命令
