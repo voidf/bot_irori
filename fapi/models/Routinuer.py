@@ -85,7 +85,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 2150
+        ofs = 2050
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -95,23 +95,26 @@ class CodeforcesRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         logger.critical(q)
-        for subs in q:
-            logger.critical('通知{}中...', subs.get_base_info())
-            logger.critical(fapi.G.adapters)
-            logger.critical(str(subs.player.aid))
-            if str(subs.player.aid) in fapi.G.adapters:
-                await fapi.G.adapters[str(subs.player.aid)].upload(
-                    CoreEntity(
-                        player=str(subs.player),
-                        chain=chain.MessageChain.auto_make(
-                            f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                            f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
-                        ),
-                        source='',
-                        meta={}
+        try:
+            for subs in q:
+                # logger.critical('通知{}中...', subs.get_base_info())
+                logger.critical(fapi.G.adapters)
+                logger.critical(str(subs.player.aid))
+                logger.critical('\n')
+                if str(subs.player.aid) in fapi.G.adapters:
+                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                        CoreEntity(
+                            player=str(subs.player),
+                            chain=chain.MessageChain.auto_make(
+                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                                f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                            ),
+                            source='',
+                            meta={}
+                        )
                     )
-                )
-
+        except:
+            logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
         # q = cls.objects(adapter=Adapter.trychk(aid))
