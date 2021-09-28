@@ -86,7 +86,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 1050
+        ofs = 950
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -103,6 +103,7 @@ class CodeforcesRoutinuer(Routiner):
                     logger.critical(fapi.G.adapters)
                     # plr = Player.chk(subs.player)
                     logger.critical(str(subs.player.aid))
+                    logger.critical(str(subs.player.aid) in fapi.G.adapters)
                     # logger.critical('\n')
                 except DoesNotExist:
                     subs.delete()
