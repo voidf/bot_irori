@@ -201,6 +201,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
             adapter = Adapter.trychk(task.source)
             if not adapter:
                 return []
+            logger.debug(adapter.items)
             if 'white_list' in adapter.items:
                 if task.pid in adapter.items['white_list']:
                     if cmd not in adapter.items['white_list'][task.pid]:
