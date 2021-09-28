@@ -86,7 +86,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 800
+        ofs = 650
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -110,20 +110,20 @@ class CodeforcesRoutinuer(Routiner):
                     logger.critical('delete illegal file {}', subs.pk)
                 except:
                     logger.error(traceback.format_exc())
-                    if str(subs.player.aid) in fapi.G.adapters:
+                if str(subs.player.aid) in fapi.G.adapters:
 
-                        await fapi.G.adapters[str(subs.player.aid)].upload(
-                            CoreEntity(
-                                player=str(subs.player),
-                                chain=chain.MessageChain.auto_make(
-                                    f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                                    f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
-                                ),
-                                source='',
-                                meta={}
-                            )
+                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                        CoreEntity(
+                            player=str(subs.player),
+                            chain=chain.MessageChain.auto_make(
+                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                                f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                            ),
+                            source='',
+                            meta={}
                         )
-                        logger.critical('upload done')
+                    )
+                    logger.critical('upload done')
         except:
             logger.error(traceback.format_exc())
     @classmethod
