@@ -1,3 +1,4 @@
+from mongoengine.errors import DoesNotExist
 from basicutils.task import *
 from basicutils.media import *
 from time import sleep
@@ -85,7 +86,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 1650
+        ofs = 1350
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -95,15 +96,20 @@ class CodeforcesRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         logger.critical(q)
-        try:
-            for subs in q:
+        for subs in q:
+            try:
                 # logger.critical('通知{}中...', subs.get_base_info())
                 logger.critical(fapi.G.adapters)
-                plr = Player.chk(subs.player)
-                logger.critical(str(plr.aid))
+                # plr = Player.chk(subs.player)
+                logger.critical(str(subs.player.aid))
                 logger.critical('\n')
-                if str(plr.aid) in fapi.G.adapters:
-                    await fapi.G.adapters[str(plr.aid)].upload(
+            except DoesNotExist:
+                subs.delete()
+                logger.critical('delete illegal file {}', subs.pk)
+            except:
+                logger.error(traceback.format_exc())
+                if str(subs.player.aid) in fapi.G.adapters:
+                    await fapi.G.adapters[str(subs.player.aid)].upload(
                         CoreEntity(
                             player=str(subs.player),
                             chain=chain.MessageChain.auto_make(
@@ -114,8 +120,6 @@ class CodeforcesRoutinuer(Routiner):
                             meta={}
                         )
                     )
-        except:
-            logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
         # q = cls.objects(adapter=Adapter.trychk(aid))
