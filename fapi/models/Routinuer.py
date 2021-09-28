@@ -85,7 +85,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 1900
+        ofs = 1750
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -99,9 +99,10 @@ class CodeforcesRoutinuer(Routiner):
             for subs in q:
                 # logger.critical('通知{}中...', subs.get_base_info())
                 logger.critical(fapi.G.adapters)
-                logger.critical(str(subs.player.aid))
+                plr = Player.chk(subs.player)
+                logger.critical(str(plr.aid))
                 logger.critical('\n')
-                if str(subs.player.aid) in fapi.G.adapters:
+                if str(plr.aid) in fapi.G.adapters:
                     await fapi.G.adapters[str(subs.player.aid)].upload(
                         CoreEntity(
                             player=str(subs.player),
