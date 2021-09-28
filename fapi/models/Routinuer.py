@@ -86,9 +86,10 @@ class CodeforcesRoutinuer(Routiner):
         # if isinstance(player, Player):
         #     player = str(player.pid)
         ofs = 3200
+        contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
+        logger.debug('通知在{}s后抵达', contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
             return
-        logger.debug('通知在{}s后抵达', contest['relativeTimeSeconds'] - ofs)
         await asyncio.sleep(contest['relativeTimeSeconds'] - ofs)
         q = cls.objects()
         # if q:
