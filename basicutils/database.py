@@ -138,22 +138,20 @@ connect(**cfg.db)
 
 # TODO: 考虑移入Routiner
 
-class NowCoderSubscribe(RefPlayerBase, Document):
-    pass
+# class NowCoderSubscribe(RefPlayerBase, Document):
+#     pass
 
 
 # TODO: 考虑移入application
 
-class SlidingPuzzle(Document, RefPlayerBase):
-    bg = ImageField()
-    mat = ListField(ListField(IntField()))
 
 
-class Vote(Document, RefPlayerBase):
-    title = StringField()
-    items = DictField()
-    memberChoices = DictField()
-    limit = IntField(default=5)
+
+# class Vote(Document, RefPlayerBase):
+#     title = StringField()
+#     items = DictField()
+#     memberChoices = DictField()
+#     limit = IntField(default=5)
 
 # class DDLLog(RefPlayerBase, Document):
 #     content = DictField()
@@ -163,8 +161,6 @@ class Vote(Document, RefPlayerBase):
 # class CreditSubscribe(RefPlayerBase, Document):
 #     pass
 
-import basicutils.CONST
-from basicutils.algorithms import evaluate_expression
 # class CreditLog(RefPlayerBase, Document):
 #     credit = FloatField(default=500)
 #     @classmethod

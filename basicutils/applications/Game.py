@@ -5,7 +5,8 @@ import sys
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
-
+from io import BytesIO
+from basicutils.media import *
 from PIL import Image as PImage
 import asyncio
 import requests
@@ -15,7 +16,7 @@ import copy
 from basicutils.chain import *
 from basicutils.network import *
 import basicutils.CONST as GLOBAL
-
+from basicutils.database import *
 from mongoengine import *
 from fapi.models.Player import *
 
@@ -143,10 +144,10 @@ def asobi2048(ent: CoreEntity):
                             grids[i][j] = 0
                             f = True
     elif attrs[0].lower() in GLOBAL.unsubscribes:
-        removeSniffer(player,'#2048')
+        Sniffer.remove(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
-        overwriteSniffer(player,'#2048','.*')
+        Sniffer.overwrite(player,'#2048','.*')
         return [Plain(text=random.choice(['断言：你知道你在干什么————刷屏模式开始……', '快速游戏模式开启，关闭请使用bye']))]
     if f:
         zeromap = []
@@ -167,9 +168,25 @@ def asobi2048(ent: CoreEntity):
 
 
 
+class SlidingPuzzle(Document, RefPlayerBase):
+    bg = ImageField()
+    mat = ListField(ListField(IntField()))
 
-async def asobiSlidingPuzzle(*attrs,kwargs={}):
-    player = getPlayer(**kwargs)
+def asobiSlidingPuzzle(ent: CoreEntity):
+    """#华容道 [#滑动拼图, #hrd]
+    源自八数码问题，
+    简单的滑动拼图还要解释吗（
+    可用参数：
+        w:向上滑动
+        a:向左滑动
+        s:向下滑动
+        d:向右滑动
+        init [(可选)2~6]:初始化游戏棋盘，加数字可以定制棋盘大小
+        bg <图片>:换背景
+        t:用文本方式打印拼图
+    """
+    player = ent.player
+    attrs = ent.chain.tostr().split(' ')
 
     def find1(array):
         for p,i in enumerate(array):
@@ -177,7 +194,7 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
                 if j == 1:
                     return p,q
 
-    def splitImage(fn:str,n:int,array)->str:
+    def splitImage(fn:str,n:int,array)->PImage.Image:
         """
         根据传入的array将图片重组
         array得是n*n的numpy.array对象
@@ -202,11 +219,12 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
             for j in range(n):
                 if array[i][j]!=1:
                     dst.paste(newbg[int(array[i][j]-1)],(i * cell, j * cell, (i + 1) * cell, (j + 1) * cell))
-
-        sfn = 'tmp' + randstr(4) + '.png'
-        dst.save(sfn)
-        asyncio.ensure_future(rmTmpFile(sfn))
-        return sfn
+        # bio = BytesIO()
+        # dst.save(bio, format='PNG')
+        # sfn = 'tmp' + randstr(4) + '.png'
+        # dst.save(sfn)
+        # asyncio.ensure_future(rmTmpFile(sfn))
+        return dst
 
     sp = SlidingPuzzle.chk(player)
     if not sp.bg:
@@ -245,7 +263,7 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
         sp.save()
         return [
             Plain(f'移动拼图初始化完成\n{grids}'),
-            generateImageFromFile(splitImage(sp.bg,n,grids))
+            Image(base64=pimg_base64(splitImage(sp.bg,n,grids)))
         ]
         
         
@@ -272,45 +290,22 @@ async def asobiSlidingPuzzle(*attrs,kwargs={}):
         elif attrs[0] in ('txt','t','T','文字'):
             return [Plain(f'{grids}')]
         elif attrs[0] in ('bg','changebackground','换图','换老婆'):
-            if 'pic' in kwargs and kwargs['pic']:
-                src = requests.get(kwargs['pic'].url).content
-                sp.bg = BytesIO(src)
-                sp.save()
-                return [Plain('图片背景更新成功')]
+            # if 'pic' in ent.meta and ent.meta['pic']:
+            for i in ent.chain:
+                if isinstance(i, Image):
+                    src = requests.get(i.url).content
+                    sp.bg = BytesIO(src)
+                    sp.save()
+                    return [Plain('图片背景更新成功')]
+            return '您没发图捏'
         elif attrs[0] in ('快速模式','gamestart'):
-            overwriteSniffer(player,'#华容道','.*')
+            Sniffer.overwrite(player,'#华容道','.*')
             return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
         elif attrs[0] in GLOBAL.unsubscribes:
-            removeSniffer(player,'#华容道')
+            Sniffer.remove(player,'#华容道')
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     sp.mat = grids.tolist()
     sp.save()
-    return [generateImageFromFile(splitImage(sp.bg,n,grids))]
+    return [Image(base64=pimg_base64(splitImage(sp.bg,n,grids)))]
 
-
-functionMap = {
-    '#2048':asobi2048,
-    '#华容道':asobiSlidingPuzzle
-}
-shortMap = {'#zx':'#折线','#hdpt':'#华容道'}
-
-functionDescript = {
-    '#2048':
-"""
-
-""",
-    '#华容道':
-"""
-源自八数码问题，
-简单的滑动拼图还要解释吗（
-可用参数：
-    w:向上滑动
-    a:向左滑动
-    s:向下滑动
-    d:向右滑动
-    init [(可选)2~6]:初始化游戏棋盘，加数字可以定制棋盘大小
-    bg <图片>:换背景
-    t:用文本方式打印拼图
-"""
-}
