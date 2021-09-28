@@ -86,7 +86,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 1250
+        ofs = 1050
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -96,30 +96,35 @@ class CodeforcesRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         logger.critical(q)
-        for subs in q:
-            try:
-                # logger.critical('通知{}中...', subs.get_base_info())
-                logger.critical(fapi.G.adapters)
-                # plr = Player.chk(subs.player)
-                logger.critical(str(subs.player.aid))
-                logger.critical('\n')
-            except DoesNotExist:
-                subs.delete()
-                logger.critical('delete illegal file {}', subs.pk)
-            except:
-                logger.error(traceback.format_exc())
-                if str(subs.player.aid) in fapi.G.adapters:
-                    await fapi.G.adapters[str(subs.player.aid)].upload(
-                        CoreEntity(
-                            player=str(subs.player),
-                            chain=chain.MessageChain.auto_make(
-                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                                f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
-                            ),
-                            source='',
-                            meta={}
+        try:
+            for subs in q:
+                try:
+                    # logger.critical('通知{}中...', subs.get_base_info())
+                    logger.critical(fapi.G.adapters)
+                    # plr = Player.chk(subs.player)
+                    logger.critical(str(subs.player.aid))
+                    # logger.critical('\n')
+                except DoesNotExist:
+                    subs.delete()
+                    logger.critical('delete illegal file {}', subs.pk)
+                except:
+                    logger.error(traceback.format_exc())
+                    if str(subs.player.aid) in fapi.G.adapters:
+
+                        await fapi.G.adapters[str(subs.player.aid)].upload(
+                            CoreEntity(
+                                player=str(subs.player),
+                                chain=chain.MessageChain.auto_make(
+                                    f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                                    f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                                ),
+                                source='',
+                                meta={}
+                            )
                         )
-                    )
+                        logger.critical(subs.player.get_base_info())
+        except:
+            logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
         # q = cls.objects(adapter=Adapter.trychk(aid))
