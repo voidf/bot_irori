@@ -137,17 +137,10 @@ connect(**cfg.db)
 #     mode = StringField(default='Y')
 
 # TODO: 考虑移入Routiner
-class ATCoderSubscribe(RefPlayerBase, Document):
-    pass
 
 class NowCoderSubscribe(RefPlayerBase, Document):
     pass
 
-class SentenceSubscribe(RefPlayerBase, Document):
-    pass
-
-class WeatherSubscribe(Document, RefPlayerBase):
-    city = ListField(StringField())
 
 # TODO: 考虑移入application
 
@@ -155,8 +148,6 @@ class SlidingPuzzle(Document, RefPlayerBase):
     bg = ImageField()
     mat = ListField(ListField(IntField()))
 
-class Asobi2048Data(RefPlayerBase, Document):
-    mat = ListField(ListField(IntField()))
 
 class Vote(Document, RefPlayerBase):
     title = StringField()
