@@ -86,7 +86,7 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        ofs = 900
+        ofs = 800
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
         if contest['relativeTimeSeconds'] < ofs:
@@ -123,7 +123,7 @@ class CodeforcesRoutinuer(Routiner):
                                 meta={}
                             )
                         )
-                        logger.critical(subs.player.get_base_info())
+                        logger.critical('upload done')
         except:
             logger.error(traceback.format_exc())
     @classmethod
