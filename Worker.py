@@ -206,7 +206,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
                     if cmd not in adapter.items['white_list'][task.pid]:
                         logger.debug('ignored due to white list')
                         return []
-            elif 'black_list' in adapter.items:
+            if 'black_list' in adapter.items:
                 if task.pid in adapter.items['black_list']:
                     if cmd in adapter.items['black_list'][task.pid]:
                         logger.debug('ignored due to black list')
