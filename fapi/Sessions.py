@@ -29,10 +29,11 @@ class MiraiSession():
         self.aid = adapter_id
         # self.dbobj = Adapter.trychk(self.aid)
         
-    async def enter_loop(self, wsurl: str):
-        """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
-        self.ws = await self._ases.ws_connect(wsurl, headers={})
+    async def receive_loop(self, wsurl: str):
         async for msg in self.ws:
+            # if not self._alive:
+                # logger.warning('manually closed')
+                # break
             if msg.type == aiohttp.WSMsgType.TEXT:
                 logger.debug(msg.data)
                 j = json.loads(msg.data)
@@ -63,12 +64,6 @@ class MiraiSession():
                             chain=MessageChain.auto_make(j['data']['messageChain'])
                         )
                         await self.preprocess(ent)
-                    # if 'white_list' in self.dbobj.items:
-                        # if pid not in self.dbobj.items['white_list']:
-                            # continue
-                    # elif 'black_list' in self.dbobj.items:
-                        # if pid in self.dbobj.items['black_list']:
-                            # continue
 
                         # continue # debug
                     # TODO: 临时消息，系统命令
@@ -87,6 +82,16 @@ class MiraiSession():
                 logger.critical(f'connection closed {wsurl}')
             # elif msg.type == aiohttp.WSMsgType.ERROR:
                 break
+
+    async def enter_loop(self, wsurl: str):
+        """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
+        self.ws = await self._ases.ws_connect(wsurl, headers={})
+        self.receiver = asyncio.ensure_future(self.receive_loop(wsurl))
+        
+    async def close(self):
+        self.receiver.cancel()
+        await self.ws.close()
+        await self._ases.close()
     
     async def preprocess(self, ent: CoreEntity):
         for elem in ent.chain:

@@ -74,10 +74,10 @@ def encrypt(s: str) -> str:
     return hashlib.sha256((s + salt).encode('utf-8')).hexdigest()
 
 
-def generate_jwt(adapter: Union[Adapter, str]):
+def generate_jwt(adapter: Union[Adapter, str], expire_seconds: float = 120.0):
     token_dict = {
         'id': str(adapter.pk) if isinstance(adapter, Adapter) else adapter,
-        'ts': str(datetime.datetime.now().timestamp())
+        'ts': str(datetime.datetime.now().timestamp() + datetime.timedelta(seconds=expire_seconds))
     }
     return jwt.encode(
         token_dict,  # payload, 有效载体
@@ -87,6 +87,8 @@ def generate_jwt(adapter: Union[Adapter, str]):
 def verify_jwt(token):
     try:
         payload = jwt.decode(token, jwt_key)
+        if datetime.datetime.now().timestamp() > float(payload['ts']):
+            return None, "令牌过期"
         adapter = Adapter.objects(pk=payload['id']).first()
         if not adapter:
             return None, "无此用户"
