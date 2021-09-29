@@ -112,7 +112,8 @@ async def register_auth(f: register_form):
 
 
 o2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
-async def logout_auth(tk: str = Depends(o2_scheme)):
+@auth_route.delete('/mirai')
+async def mirai_logout(tk: str = Depends(o2_scheme)):
     a, msg = verify_jwt(tk)
     if not a:
         return falseReturn(401, msg)
@@ -120,7 +121,7 @@ async def logout_auth(tk: str = Depends(o2_scheme)):
     return trueReturn()
 
 @auth_route.post('/mirai')
-async def mirai_auth(tk: str = Depends(o2_scheme), miraiwsurl: str = Form(...)):
+async def mirai_login(tk: str = Depends(o2_scheme), miraiwsurl: str = Form(...)):
     a, msg = verify_jwt(tk)
     if not a:
         return falseReturn(401, msg)
