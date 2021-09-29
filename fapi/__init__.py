@@ -77,7 +77,7 @@ def encrypt(s: str) -> str:
 def generate_jwt(adapter: Union[Adapter, str], expire_seconds: float = 120.0):
     token_dict = {
         'id': str(adapter.pk) if isinstance(adapter, Adapter) else adapter,
-        'ts': str(datetime.datetime.now().timestamp() + datetime.timedelta(seconds=expire_seconds))
+        'ts': str((datetime.datetime.now()+ datetime.timedelta(seconds=expire_seconds)).timestamp())
     }
     return jwt.encode(
         token_dict,  # payload, 有效载体
