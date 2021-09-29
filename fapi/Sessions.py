@@ -25,7 +25,7 @@ class MiraiSession():
         self._alive = True
         self._ases  = aiohttp.ClientSession()
         # self.syncid = adapter_id
-        self.jwt = generate_jwt(adapter_id)
+        # self.jwt = generate_jwt(adapter_id)
         self.aid = adapter_id
         # self.dbobj = Adapter.trychk(self.aid)
         
@@ -43,7 +43,7 @@ class MiraiSession():
                         pid = str(j['data']['sender']['group']['id'] + (1<<39))
                         ent = CoreEntity(
                             player=str(Player.chk(pid, self.aid)),
-                            jwt=str(self.jwt),
+                            jwt=generate_jwt(self.aid),
                             pid=pid,
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
@@ -56,7 +56,7 @@ class MiraiSession():
                         pid = str(j['data']['sender']['id'])
                         ent = CoreEntity(
                             player=str(Player.chk(pid, self.aid)),
-                            jwt=str(self.jwt),
+                            jwt=generate_jwt(self.aid),
                             pid=pid,
                             source=self.aid,
                             member=str(j['data']['sender']['id']),
