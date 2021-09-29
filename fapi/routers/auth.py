@@ -31,7 +31,7 @@ class login_form(BaseModel):
     password: str
     miraiwsurl: str
 
-async def try_close_mirai(a: Adapter):
+async def try_close_session(a: Adapter):
     if a.username in fapi.G.adapters:
         await fapi.G.adapters[a.username].close()
         return True
@@ -39,7 +39,7 @@ async def try_close_mirai(a: Adapter):
         return False
 
 async def connect_mirai(a: Adapter, miraiwsurl: str):
-    await try_close_mirai(a)
+    await try_close_session(a)
     await Routiner.recover_routiners(a)
     if not fapi.G.initialized:
         await TempFile.resume()
@@ -112,12 +112,12 @@ async def register_auth(f: register_form):
 
 
 o2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
-@auth_route.delete('/mirai')
-async def mirai_logout(tk: str = Depends(o2_scheme)):
+@auth_route.delete('/logout')
+async def logout_session(tk: str = Depends(o2_scheme)):
     a, msg = verify_jwt(tk)
     if not a:
         return falseReturn(401, msg)
-    await try_close_mirai(a)
+    await try_close_session(a)
     return trueReturn()
 
 @auth_route.post('/mirai')
