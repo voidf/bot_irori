@@ -1,3 +1,4 @@
+from mongoengine.errors import DoesNotExist
 from basicutils.task import *
 from basicutils.media import *
 from time import sleep
@@ -85,25 +86,42 @@ class CodeforcesRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
-        if contest['relativeTimeSeconds'] < 3600:
+        ofs = 3600
+        contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
+        logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
+        if contest['relativeTimeSeconds'] < ofs:
+            logger.critical('returned')
             return
-        await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
+        await asyncio.sleep(contest['relativeTimeSeconds'] - ofs)
         q = cls.objects()
         # if q:
-        for subs in q:
-            if str(subs.player.aid) in fapi.G.adapters:
-                await fapi.G.adapters[str(subs.player.aid)].upload(
-                    CoreEntity(
-                        player=str(subs.player),
-                        chain=chain.MessageChain.auto_make(
-                            f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                            f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
-                        ),
-                        source='',
-                        meta={}
-                    )
-                )
+        logger.critical(q)
+        try:
+            for subs in q:
+                try:
+                    logger.critical(fapi.G.adapters)
+                    logger.critical(str(subs.player.aid))
+                except DoesNotExist:
+                    subs.delete()
+                    logger.critical('delete illegal file {}', subs.pk)
+                except:
+                    logger.error(traceback.format_exc())
+                if str(subs.player.aid) in fapi.G.adapters:
 
+                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                        CoreEntity(
+                            player=str(subs.player),
+                            chain=chain.MessageChain.auto_make(
+                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                                f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                            ),
+                            source='',
+                            meta={}
+                        )
+                    )
+                    logger.critical('upload done')
+        except:
+            logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
         # q = cls.objects(adapter=Adapter.trychk(aid))
@@ -142,9 +160,11 @@ class CodeforcesRoutinuer(Routiner):
 
     @classmethod
     async def add(cls, ent: CoreEntity):
-        cls(
-            player=Player.chk(ent.player, ent.source)
-        ).save()
+        plr = Player.chk(ent.player, ent.source)
+        if not cls.objects(player=plr):
+            cls(
+                player=plr
+            ).save()
 
 import basicutils.CONST as C
 from bs4 import BeautifulSoup
@@ -199,24 +219,35 @@ class AtcoderRoutinuer(Routiner):
     async def notify(cls, contest: dict):
         # if isinstance(player, Player):
         #     player = str(player.pid)
+        contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         if contest['relativeTimeSeconds'] < 3600:
             return
         await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
         q = cls.objects()
-        # if q:
-        for subs in q:
-            if str(subs.player.aid) in fapi.G.adapters:
-                await fapi.G.adapters[str(subs.player.aid)].upload(
-                    CoreEntity(
-                        player=str(subs.player),
-                        chain=chain.MessageChain.auto_make(
-                            f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                            f"注册链接：https://atcoder.jp{contest['id']}"
-                        ),
-                        source='',
-                        meta={}
+        try:
+            for subs in q:
+                try:
+                    logger.critical(fapi.G.adapters)
+                    logger.critical(str(subs.player.aid))
+                except DoesNotExist:
+                    subs.delete()
+                    logger.critical('delete illegal file {}', subs.pk)
+                except:
+                    logger.error(traceback.format_exc())
+                if str(subs.player.aid) in fapi.G.adapters:
+                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                        CoreEntity(
+                            player=str(subs.player),
+                            chain=chain.MessageChain.auto_make(
+                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
+                                f"注册链接：https://atcoder.jp{contest['id']}"
+                            ),
+                            source='',
+                            meta={}
+                        )
                     )
-                )
+        except:
+            logger.error(traceback.format_exc())
 
     @classmethod
     async def update_futures(cls):
@@ -256,9 +287,11 @@ class AtcoderRoutinuer(Routiner):
 
     @classmethod
     async def add(cls, ent: CoreEntity):
-        cls(
-            player=Player.chk(ent.player, ent.source)
-        ).save()
+        plr = Player.chk(ent.player, ent.source)
+        if not cls.objects(player=plr):
+            cls(
+                player=plr
+            ).save()
 
 import random
 import basicutils.CONST as CONST

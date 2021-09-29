@@ -36,7 +36,7 @@ def task(s: str):
     res = sub_task(ent)
     # TODO: 压为图片，分段上传，延时上传(x)
     # TODO: 在服务端Adapter实现
-    logger.critical(res)
+    logger.critical(f"{res}"[:300])
     ent.chain = MessageChain.auto_make(res)
     if ent.chain.__root__:
         resp = requests.post(
@@ -44,7 +44,7 @@ def task(s: str):
             json={"ents": ent.json()}
         )
         if resp.status_code!=200:
-            logger.critical(resp.text)
+            logger.critical(resp.text[:300])
 
 @app.task
 def pull():
@@ -144,7 +144,7 @@ def import_applications():
                     # logger.debug(f'\t ignoring {n}')
                     continue
                 if argsinfo.args == ['ent']:
-                    logger.info(f'\t imported {n}')
+                    # logger.info(f'\t imported {n}')
                     header, f.__doc__ = f.__doc__.split('\n', 1)
                     fname, *ato = header.split(' ', 1)
                     # print(ato)
@@ -196,12 +196,11 @@ def sub_task(task: CoreEntity) -> MessageChain:
         # logger.warning(entbak.chain.tostr())
 
         logger.debug(f'command: {cmd}')
-        print(task.player)
+        # print(task.player)
         if cmd in tot_funcs:
             adapter = Adapter.trychk(task.source)
             if not adapter:
                 return []
-            logger.debug(adapter.items)
             if 'white_list' in adapter.items:
                 if task.pid in adapter.items['white_list']:
                     if cmd not in adapter.items['white_list'][task.pid]:
@@ -212,6 +211,8 @@ def sub_task(task: CoreEntity) -> MessageChain:
                     if cmd in adapter.items['black_list'][task.pid]:
                         logger.debug('ignored due to black list')
                         return []
+                
+            logger.debug('hit function: {}', tot_funcs[cmd])
             reply = tot_funcs[cmd](task)
             # except:
                 # reply = MessageChain.auto_make(traceback.format_exc())
@@ -242,7 +243,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
                         else:
                             q.chain = entbak.chain
                         # q.
-                        logger.debug(q.chain.tostr())
+                        logger.debug(q.chain.tostr()[:300])
                         # logger.debug(entbak.chain.tostr())
                         reply = tot_funcs[cmd](q)
                         replies.append(reply)
