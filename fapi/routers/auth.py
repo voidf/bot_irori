@@ -12,7 +12,6 @@ from typing import Optional
 from pydantic import BaseModel
 from cfg import *
 
-from passlib.context import CryptContext
 from fapi.models.Auth import *
 from fapi import encrypt, generate_jwt, trueReturn, falseReturn, verify_jwt
 import time
@@ -112,7 +111,7 @@ async def register_auth(f: register_form):
         return {"access_token": tk, "token_type": "bearer"}
 
 
-o2_scheme = OAuth2PasswordBearer(tokenUrl='login')
+o2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 async def logout_auth(tk: str = Depends(o2_scheme)):
     a, msg = verify_jwt(tk)
     if not a:
