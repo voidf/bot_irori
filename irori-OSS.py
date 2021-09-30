@@ -27,7 +27,7 @@ async def upload_(authkey: str, f: UploadFile = File(...)):
     
     fs.content.put(f.file)
     fs.save()
-    return {'url': str(fs.pk)}
+    return {'url': cfg.oss_host + 'download/' + str(fs.pk)}
 
     # bs = FileStorage(content=f.file.read())
 
