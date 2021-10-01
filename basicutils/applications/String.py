@@ -50,9 +50,9 @@ def BVCoder(ent: CoreEntity):
     add=8728348608
     try:
         try:
-            ostr = [Plain(text=enc(int(i))+'\n') for i in attrs]
+            ostr = [Plain(text=enc(int(attrs))+'\n')]
         except:
-            ostr = [Plain(text='av'+str(dec(i))+'\n') for i in attrs]
+            ostr = [Plain(text='av'+str(dec(attrs))+'\n')]
     except Exception as e:
         ostr = [Plain(text=str(e))]
     return ostr
