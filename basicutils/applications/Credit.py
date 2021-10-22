@@ -507,6 +507,7 @@ def 炒币模拟器(ent: CoreEntity):
             return fetch_cryptocurrency_info(args[0])[0]
         elif cmd == 'buy':
             typ, qty, *ato = args
+            typ = typ.upper()
             player = Player.chk(ent.member, ent.source)
             rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
             if '$' in qty:
@@ -526,6 +527,7 @@ def 炒币模拟器(ent: CoreEntity):
             return f'购买成功：花费{qty}信用点，买入{cnt}单位的{typ}。'
         elif cmd == 'sell':
             typ, qty, *ato = args
+            typ = typ.upper()
             player = Player.chk(ent.member, ent.source)
             rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
 
