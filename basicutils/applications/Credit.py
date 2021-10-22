@@ -463,8 +463,8 @@ def fetch_cryptocurrency_info(typ: str = 'BTC'):
     })
     j = json.loads(r.text)
     report = (f"币种：{j['data']['companyName']}\n"
-    f"今日最高：{j['data']['keyStats']['High']['value']}\n"
-    f"今日最低：{j['data']['keyStats']['Low']['value']}\n"
+    # f"今日最高：{j['data']['keyStats']['High']['value']}\n"
+    # f"今日最低：{j['data']['keyStats']['Low']['value']}\n"
     f"现在价格：{j['data']['primaryData']['lastSalePrice']}\n"
     f"刷新时间：{j['data']['primaryData']['lastTradeTimestamp']}\n"
     f"变动幅度：{j['data']['primaryData']['percentageChange']}")
