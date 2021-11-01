@@ -8,7 +8,7 @@ from loguru import logger
 from mongoengine.fields import DateTimeField, IntField, ListField, StringField
 from basicutils import chain
 import fapi.G
-
+from basicutils import make_banner
 from fapi.models.Base import *
 from mongoengine import *
 import aiohttp
@@ -20,6 +20,7 @@ from fapi.models.Auth import *
 from fapi.models.Player import *
 
 routiner_namemap = {} # 根据名字查找Routinuer用
+retries = 20 # 比赛订阅爬虫超时重试次数
 
 class Routiner(Base, Document):
     meta = {'allow_inheritance': True}
@@ -59,28 +60,36 @@ class CodeforcesRoutinuer(Routiner):
     # mode = StringField(default='Y')
 
     @staticmethod
-    async def spider():
+    async def spider()-> list:
         ses: aiohttp.ClientSession
+        retry_time = retries
         async with aiohttp.ClientSession() as ses:
-            resp: aiohttp.ClientResponse
-            li = []
-            async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
-                j = (await resp.json())['result']
-                for i in j:
-                    if i['phase'] == 'FINISHED':
-                        break
-                    li.append(i)
-                    """
-                    可用属性：
-                    id                  比赛id
-                    name                比赛名
-                    startTimeSeconds    开始时间戳
-                    relativeTimeSeconds 为负数时表示还差多少秒开始
-                    durationSeconds     时长
+            while retry_time:
+                retry_time -= 1
+                try:
+                        resp: aiohttp.ClientResponse
+                        li = []
+                        async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
+                            j = (await resp.json())['result']
+                            for i in j:
+                                if i['phase'] == 'FINISHED':
+                                    break
+                                li.append(i)
+                                """
+                                可用属性：
+                                id                  比赛id
+                                name                比赛名
+                                startTimeSeconds    开始时间戳
+                                relativeTimeSeconds 为负数时表示还差多少秒开始
+                                durationSeconds     时长
 
-                    """
-                    
-        return li
+                                """
+                        return li
+                except:
+                    logger.warning(make_banner('Error occured when fetching codeforces'))
+                    logger.warning(traceback.format_exc())
+            logger.critical(make_banner('Error occured when fetching codeforces, max retries exceed.', '!'))
+            return []
 
     @classmethod
     async def notify(cls, contest: dict):
@@ -150,6 +159,7 @@ class CodeforcesRoutinuer(Routiner):
         cycle = 86400
         offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
+            logger.debug('updating codeforces routiner...')
             tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
             await asyncio.sleep(tosleep)
             await cls.update_futures()
@@ -172,48 +182,57 @@ class AtcoderRoutinuer(Routiner):
     # mode = StringField(default='Y')
 
     @staticmethod
-    async def spider():
+    async def spider() -> list:
         ses: aiohttp.ClientSession
         async with aiohttp.ClientSession() as ses:
             resp: aiohttp.ClientResponse
-            li = []
-            async with ses.get(
-                'https://atcoder.jp/contests/',
-                headers=C.AtCoderHeaders,
-                timeout=30
-            ) as resp:
-                s = BeautifulSoup(await resp.text(), 'html.parser')
+            retry_time = retries
+            while retry_time:
+                retry_time -= 1
                 try:
-                    for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
-                        if p:
-                            begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                            li.append({
-                                'id': i('a')[1]['href'],
-                                'name': i('a')[1].text,
-                                'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
-                            })
+                    li = []
+                    async with ses.get(
+                        'https://atcoder.jp/contests/',
+                        headers=C.AtCoderHeaders,
+                        timeout=30
+                    ) as resp:
+                        s = BeautifulSoup(await resp.text(), 'html.parser')
+                        try:
+                            for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
+                                if p:
+                                    begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                                    li.append({
+                                        'id': i('a')[1]['href'],
+                                        'name': i('a')[1].text,
+                                        'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
+                                    })
+                        except:
+                            pass
+                        for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
+                            if p:
+                                begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                                li.append({
+                                    'id': i('a')[1]['href'],
+                                    'name': i('a')[1].text,
+                                    'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
+                                })
+                    # for i in j:
+                    #     if i['phase'] == 'FINISHED':
+                    #         break
+                    #     li.append(i)
+                    #     """
+                    #     可用属性：
+                    #     id                  比赛id
+                    #     name                比赛名
+                    #     relativeTimeSeconds 为负数时表示还差多少秒开始
+                    #     """
+                        
+                        return li
                 except:
-                    pass
-                for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
-                    if p:
-                        begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                        li.append({
-                            'id': i('a')[1]['href'],
-                            'name': i('a')[1].text,
-                            'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
-                        })
-                # for i in j:
-                #     if i['phase'] == 'FINISHED':
-                #         break
-                #     li.append(i)
-                #     """
-                #     可用属性：
-                #     id                  比赛id
-                #     name                比赛名
-                #     relativeTimeSeconds 为负数时表示还差多少秒开始
-                #     """
-                    
-        return li
+                    logger.warning(make_banner('Error occured when fetching atcoder'))
+                    logger.warning(traceback.format_exc())
+            logger.critical(make_banner('Error occured when fetching atcoder, max retries exceed.', '!'))
+            return []
 
     @classmethod
     async def notify(cls, contest: dict):
@@ -277,6 +296,7 @@ class AtcoderRoutinuer(Routiner):
         cycle = 86400
         offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
+            logger.debug('updating atcoder routiner...')
             tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
             await asyncio.sleep(tosleep)
             await cls.update_futures()
