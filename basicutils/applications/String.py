@@ -719,7 +719,7 @@ def 答案之书(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if attrs:
-        if attrs[-1] in CONST:
+        if attrs[-1] in CONST.subscribes:
             sni: Sniffer = Sniffer.overwrite(player,'#答案之书')
             sni.add(
                 '#答案之书',
