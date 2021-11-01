@@ -295,6 +295,7 @@ def deepl(ent: CoreEntity):
             '#deepl',
             [
                 TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'https{0,1}://', 99, False),
                 TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('EN', tr))
             ]
         )
@@ -340,6 +341,7 @@ def 咕狗翻译(ent: CoreEntity):
             '#gkr',
             [
                 TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'https{0,1}://', 99, False),
                 TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('en', tr))
             ]
         )
@@ -375,6 +377,7 @@ def 百度翻译(ent: CoreEntity):
             '#bkr',
             [
                 TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'https{0,1}://', 99, False),
                 TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('en', tr))
             ]
         )
