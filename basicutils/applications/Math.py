@@ -15,8 +15,6 @@ import http.client
 import statistics
 import time
 import datetime
-# from Utils import *
-# from Sniffer import *
 from basicutils.algorithms import *
 from basicutils.chain import *
 from basicutils.network import *
@@ -367,10 +365,17 @@ def 计算器(ent: CoreEntity):
 
     player = ent.player
     if attrs[0] in GLOBAL.subscribes:
-        Sniffer.overwrite(player, '#计算器', r'^[abcdefABCDEFoxj.0-9\s+-/*&^<>~=|%\(\)]+$')
+        sni: Sniffer = Sniffer.overwrite(player, '#计算器')
+        sni.add(
+            '#计算器',
+            [
+                TriggerRule(r'^[abcdefABCDEFoxj.\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'^[abcdefABCDEFoxj.0-9\s+-/*&^<>~=|%\(\)]+$'),
+            ]
+        )
         return [Plain('遇到可运算表达式直接输出结果')]
     elif attrs[0] in GLOBAL.unsubscribes:
-        Sniffer.remove(player, '#计算器')
+        Sniffer.drop(player, '#计算器')
         return [Plain('禁用快速计算')]
     exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
     return [Plain(f"{exp} = {res}")]
@@ -579,8 +584,9 @@ def 球盒(ent: CoreEntity):
         #球盒 <盒子相同？(0/1)><球相同？(0/1)><允许空盒子？(0/1)> n m
     用例：
         #球盒 110 20 5
-    上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。"""
-    # 参考https://www.cnblogs.com/sdfzsyq/p/9838857.html的算法
+    上述命令求的是盒子相同，球相同，不允许空盒子的情况下将20个球放入5个盒子的方案数。
+    参考 https://www.cnblogs.com/sdfzsyq/p/9838857.html 的算法
+    """
     attrs = ent.chain.tostr().split(' ')
     if len(attrs)!=3:
         return '不是这么用的！请输入#h #球盒'

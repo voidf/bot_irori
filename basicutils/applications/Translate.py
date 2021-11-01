@@ -280,23 +280,26 @@ def deepl(ent: CoreEntity):
         "PT" - Portuguese (all Portuguese varieties mixed)
         "RU" - Russian
         "ZH" - Chinese
-    同传模式（每句都触发）：
-        #deepl ="""
+    """
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.remove(player,'#deepl')
+        Sniffer.drop(player, '#deepl')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'ZH'))
         if not tr: tr = 'ZH'
         tr = tr.upper()
-        Sniffer.overwrite(player,'#deepl', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'EN', tr)
+        sni: Sniffer = Sniffer.overwrite(player, '#deepl')
+        sni.add(
+            '#deepl',
+            [
+                TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('EN', tr))
+            ]
+        )
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
-        if attrs[2] == '=':
-            Sniffer.overwrite(player,'#deepl','.*',attrs[0], attrs[1])
-            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=deepl_translate(l1=attrs[0], l2=attrs[1], src=' '.join(attrs[2:])))]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
@@ -317,8 +320,6 @@ def 咕狗翻译(ent: CoreEntity):
     从fufu那里焊接来的咕狗翻译功能
     格式：
         #gkr <源语言> <目标语言> <待翻译部分>
-    进入快速翻译模式（每句都处理）:
-        #gkr <源语言> <目标语言> =
     订阅智能翻译(不带等号指定语言时默认翻成中文)：
         #gkr --q=[目标语言]
     或：
@@ -329,17 +330,21 @@ def 咕狗翻译(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.remove(player,'#gkr')
+        Sniffer.drop(player, '#gkr')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))
         if not tr: tr = 'zh'
-        Sniffer.overwrite(player,'#gkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
+        sni: Sniffer = Sniffer.overwrite(player, '#gkr')
+        sni.add(
+            '#gkr',
+            [
+                TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('en', tr))
+            ]
+        )
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
-        if attrs[2] == '=':
-            Sniffer.overwrite(player,'#gkr','.*',attrs[0], attrs[1])
-            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=googleTrans([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
@@ -350,8 +355,6 @@ def 百度翻译(ent: CoreEntity):
     从fufu那里焊接来的度娘翻译功能
     格式：
         #bkr <源语言> <目标语言> <待翻译部分>
-    进入快速翻译模式（每句都处理）:
-        #bkr <源语言> <目标语言> =
     订阅智能翻译(不带等号指定语言时默认翻成中文)：
         #bkr --q=[目标语言]
     或：
@@ -362,17 +365,21 @@ def 百度翻译(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.remove(player,'#bkr')
+        Sniffer.drop(player, '#bkr')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))
         if not tr: tr = 'zh'
-        Sniffer.overwrite(player,'#bkr', r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', 'en', tr)
+        sni: Sniffer = Sniffer.overwrite(player, '#bkr')
+        sni.add(
+            '#bkr',
+            [
+                TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('en', tr))
+            ]
+        )
         return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
-        if attrs[2] == '=':
-            Sniffer.overwrite(player,'#bkr','.*',attrs[0], attrs[1])
-            return [Plain(f'同传模式启动（{attrs[0]}=>{attrs[1]},结束打E）')]
         return [Plain(text=BDtranslate([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
     else:
         return [Plain(text='原谅我不知道你在说什么（\n')]

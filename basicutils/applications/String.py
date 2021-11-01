@@ -5,7 +5,7 @@ if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
 from basicutils.task import *
-import basicutils.CONST as GLOBAL
+from basicutils import CONST
 # if __name__ == '__main__':
 #     os.chdir('..')
 import random
@@ -15,6 +15,7 @@ from urllib.parse import quote
 from basicutils.database import *
 from basicutils.chain import *
 from basicutils.network import *
+from basicutils.media import *
 from basicutils.algorithms import randstr
 # from Utils import *
 
@@ -97,7 +98,7 @@ def 二维码生成器(ent: CoreEntity):
     s = ent.chain.tostr()
     q = qrcode.make(s)
     
-    fn = 'tmpqrcode'+randstr(GLOBAL.randomStrLength)+'.png'
+    fn = 'tmpqrcode'+randstr(CONST.randomStrLength)+'.png'
     # bio = BytesIO()
     # q.save(bio)
     # bio.seek(0)
@@ -711,182 +712,6 @@ book_of_answers = [
 
 book_of_answers = list(set(book_of_answers))
 
-book_of_answers_en = [
-    "A Substantial Effort Will Be Required",
-    "A Year From Now It Won't Matter",
-    "Absolutely Not",
-    "Accept A Change To Your Routine",
-    "Act As Though It Is Already Real",
-    "Adopt An Adventurous Attitude",
-    "Allow Yoursele To Rest First",
-    "Approach Cautiously",
-    "Ask Your Father",
-    "Ask Your Mother",
-    "Assistance Would Make Your Progress A Success",
-    "Avoid The First Solution",
-    "Be Delightfully Sure Of It",
-    "Be More Generous",
-    "Be Patient",
-    "Be Practical",
-    "Bet On It",
-    "Better To Wait",
-    "Collaboration Will Be The Key",
-    "Consider It An Opportunity",
-    "Count To 10; Ask Again",
-    "Deal With It Later",
-    "Definitely",
-    "Do It Early",
-    "Don't Ask For Any More At This Time",
-    "Don't Be Concerned",
-    "Don't Be Pressured Into Acting Too Quickly",
-    "Don't Be Ridiculous",
-    "Don't Bet On It",
-    "Don't Doubt It",
-    "Don't Forget To Have Fun",
-    "Don't Get Caught Up In Your Emotions",
-    "Don't Hesitate",
-    "Don't Ignore The Obvious",
-    "Don't Overdo It",
-    "Don't Wait",
-    "Don't Waste Your Time",
-    "Doubt It",
-    "Enjoy The Experience",
-    "Expect To Settle",
-    "Explore It With Playful Curiosity",
-    "Finish Something Else First",
-    "Focus On Your Home Life",
-    "Follow Someone Else's Lead",
-    "Follow The Advice Of Experts",
-    "Follow Through On Your Obligations",
-    "Follow Through With Your Good Intentions",
-    "Gentle Persistence Will Pay Off",
-    "Get A Clearer View",
-    "Get It In Writing",
-    "Give It All You've Got",
-    "If It's Done Well; If Not, Don't Do It At All",
-    "If You Do As You're Told",
-    "If You Don't Resist",
-    "Investigate And Then Enjoy It",
-    "It Cannot Fail",
-    "It Could Be Extraordinary",
-    "It Is Certain",
-    "It Is Not Significant",
-    "It Is Significant",
-    "It Is Something You Won't Forget",
-    "It Is Sure To Make Things Interesting",
-    "It Is Uncertain",
-    "It Is Worth The Trouble",
-    "It May Already Be A Done Deal",
-    "It May Be Difficult But You Will Find Value In It",
-    "It Seems Assured",
-    "It Will Affect How Others See You",
-    "It Will Be A Pleasure",
-    "It Will Bring Good Luck",
-    "It Will Create A Stir",
-    "It Will Remain Unpredictable",
-    "It Will Sustain You",
-    "It Would Be Better To Focus On Your Work",
-    "It Would Be Inadvisable",
-    "It'll Cost You",
-    "It's A Good Time To Make Plans",
-    "It's Gonna Be Great",
-    "It's Not Worth A Struggle",
-    "It's Time For You To Go",
-    "Keep An Open Mind",
-    "Keep It To Yourself",
-    "Laugh About It",
-    "Leave Behind Old Solutions",
-    "Let It Go",
-    "Listen More Carefully; Then You Will Know",
-    "Make A List Of Why",
-    "Make A List Of Why Not",
-    "Maybe",
-    "Mishaps Are Highly Probable",
-    "Move On",
-    "Never",
-    "No",
-    "No Matter What",
-    "Not If You're Alone",
-    "Now You Can",
-    "Only Do It Once",
-    "Others Will Depend On Your Choices",
-    "Pay Attention To The Details",
-    "Perhaps, When You're Older",
-    "Prepare For The Unexpected",
-    "Press For Closure",
-    "Proceed At A More Relaxed Pace",
-    "Realize That Too Many Choices Is As Difficult As Too Few",
-    "Reconsider Your Approach",
-    "Related Issues May Surface",
-    "Remain Flexible",
-    "Remove Your Own Obstacles",
-    "Reprioritize What Is Important",
-    "Respect The Rules",
-    "Save Your Energy",
-    "Seek Out More Options",
-    "Setting Priorities Will Be A Necessary Part Of The Process",
-    "Settle It Soon",
-    "Shift Your Focus",
-    "Speak Up About It",
-    "Startling Events May Occur As A Result",
-    "Take A Chance",
-    "Take Charge",
-    "Take More Time To Decide",
-    "Tell Someone What It Means To You",
-    "That Would Be A Waste Of Money",
-    "That's Out Of Your Control",
-    "The Answer Is In Your Backyard",
-    "The Answer May Come To You In Another Language",
-    "The Best Solution May Not Be The Obvious One",
-    "The Chance Will Not Come Again Soon",
-    "The Circumstances Will Change Very Quickly",
-    "The Outcome Will Be Positive",
-    "The Situation Is Unclear",
-    "There Is A Substantial Link To Another Situation",
-    "There Is Good Reason To Be Optimistic",
-    "There Is No Guarantee",
-    "There Will Be Obstacles To Overcome",
-    "This Is A Good Time To Make A New Plan",
-    "To Ensure The Best Decision, Be Calm",
-    "Trust Your Intuition",
-    "Trust Your Original Thought",
-    "Try A More Unlikely Solution",
-    "Unfavorable At This Time",
-    "Unquestionably",
-    "Upgrade Any Way You Can",
-    "Use Your Imagination",
-    "Wait",
-    "Wait For A Better Offer",
-    "Watch And See What Happens",
-    "Watch Your Step As You Go",
-    "Whatever You Do The Results Will Be Lasting",
-    "Yes",
-    "Yes,But Don't Force It",
-    "You Are Sure To Have Support",
-    "You Are Too Close To See",
-    "You Could Find Yourself Unable To Compromise",
-    "You Don't Really Care",
-    "You Know Better Now Than Ever Before",
-    "You May Have Opposition",
-    "You May Have To Drop Other Things",
-    "You Must",
-    "You Must Act Now",
-    "You Will Find Out Everything You'll Need To Know",
-    "You Will Need To Accommodate",
-    "You Will Not Be Disappointed",
-    "You'll Be Happy You Did",
-    "You'll Get The Final Word",
-    "You'll Have To Compromise",
-    "You'll Have To Make It Up As You Go",
-    "You'll Need More Information",
-    "You'll Need To Consider Other Ways",
-    "You'll Need To Take The Initiative",
-    "You'll Regret It",
-    "Your Actions Will Improve Thin"
-]
-
-book_of_answers_en = list(set(book_of_answers_en))
-
 def 答案之书(ent: CoreEntity):
     '''#答案之书 [#why, #wsm, #ans]
     向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？
@@ -894,46 +719,31 @@ def 答案之书(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if attrs:
-        if attrs[-1] in ('sub','sniff'):
-            Sniffer.overwrite(player,'#答案之书',r'\?')
-            Sniffer.append(player,'#答案之书',r'\？')
-            Sniffer.append(player,'#答案之书',r'¿')
-            Sniffer.append(player,'#答案之书',r'吗')
-            Sniffer.append(player,'#答案之书',r'啥')
-            Sniffer.append(player,'#答案之书',r'怎么')
-            Sniffer.append(player,'#答案之书',r'如何')
-            Sniffer.append(player,'#答案之书',r'i宝')
-            Sniffer.append(player,'#答案之书',r'为什么')
+        if attrs[-1] in CONST:
+            sni: Sniffer = Sniffer.overwrite(player,'#答案之书')
+            sni.add(
+                '#答案之书',
+                [
+                    TriggerRule(r'https{0,1}://', 99, False),
+                    TriggerRule(r'\?'),
+                    TriggerRule(r'\？'),
+                    TriggerRule(r'\¿'),
+                    TriggerRule(r'吗'),
+                    TriggerRule(r'啥'),
+                    TriggerRule(r'怎么'),
+                    TriggerRule(r'如何'),
+                    TriggerRule(r'i宝'),
+                    TriggerRule(r'为什么'),
+                ]
+            )
             return [Plain('【答案之书】sniff模式')]
-        elif attrs[-1] in GLOBAL.unsubscribes:
-            Sniffer.remove(player,'#答案之书')
+        elif attrs[-1] in CONST.unsubscribes:
+            Sniffer.drop(player,'#答案之书')
             return [Plain('【答案之书】禁用sniffer')]
     # dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers)
     return [Plain(ans.strip())]
 
-def 答案之书en(ent: CoreEntity):
-    '''#答案之书en [#whye, #wsme, #anse]
-    向答案之书(英文)提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？
-    '''
-    player = ent.player
-    attrs = ent.chain.tostr().split(' ')
-    if attrs:
-        if attrs[-1] in ('sub','sniff'):
-            Sniffer.overwrite(player,'#答案之书en',r'\?')
-            Sniffer.append(player,'#答案之书en',r'\？')
-            Sniffer.append(player,'#答案之书en',r'¿')
-            Sniffer.append(player,'#答案之书en',r'吗')
-            Sniffer.append(player,'#答案之书en',r'怎么')
-            Sniffer.append(player,'#答案之书en',r'如何')
-            Sniffer.append(player,'#答案之书en',r'为什么')
-            return [Plain('【book of answers】sniff mode on')]
-        elif attrs[-1] in GLOBAL.unsubscribes:
-            Sniffer.remove(player,'#答案之书en')
-            return [Plain('【book of answers】sniff mode off')]
-    # dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
-    ans = random.choice(book_of_answers_en)
-    return [Plain(ans.strip())]
 
 def KMP(ent: CoreEntity):
     """#KMP []

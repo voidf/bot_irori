@@ -175,30 +175,55 @@ connect(**cfg.db)
     #         plr.items['credit'] = i.credit
     #         plr.save()
 
+from dataclasses import dataclass
 
+@dataclass
+class TriggerRule():
+    pattern: str
+    priority: int = 100
+    trigger: bool = True
+    args: tuple = tuple()
+    
+from typing import List
 class Sniffer(Document, RefPlayerBase):
     commands = DictField()
+
     @classmethod
-    def overwrite(cls, player, event, pattern, *attrs):
-        eventObj = {event: {'sniff': [pattern], 'attrs': attrs}}
+    def overwrite(cls, player, event):
+        eventObj = {event: []}
         # print(Player.objects())
         sni = cls.chk(player)
         # print(Player.objects())
         sni.commands.update(eventObj)
-        sni.save()
+        return sni.save()
 
     @classmethod
-    def append(cls, player, event, pattern):
+    def append(cls, player, event, pattern, priority=100, trigger=True, *args):
         sni = cls.chk(player)
-        sni.commands[event]['sniff'].append(pattern)
-        sni.save()
+        sni.commands[event].append({
+            'pattern': pattern,
+            'priority': priority,
+            'trigger': trigger,
+            'args': args
+        })
+        return sni.save()
+    
+    def add(self, event, rules: List[TriggerRule]):
+        for i in rules:
+            self.commands[event].append({
+                'pattern': i.pattern,
+                'priority': i.priority,
+                'trigger': i.trigger,
+                'args': i.args
+            })
+        self.save()
 
     @classmethod
-    def clear(cls, player):
+    def drop(cls, player):
         cls.objects(pk=Player.chk(player)).delete()
     
     @classmethod
-    def remove(cls, player, event):
+    def clear(cls, player, event):
         sni = cls.chk(player)
         sni.commands.pop(event, "未找到对应sniffer")
         sni.save()

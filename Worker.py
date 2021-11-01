@@ -1,4 +1,5 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
+from basicutils.database import TriggerRule
 from fapi.models.Auth import Adapter
 from basicutils.task import server_api
 import os
@@ -233,11 +234,15 @@ def sub_task(task: CoreEntity) -> MessageChain:
             q.meta['sniffer_invoke'] = True
             replies = []
             for cmd, content in S.commands.items():
-                for regexp in content['sniff']:
-                    if re.search(regexp, rawtext, re.S):
-                        if content['attrs']:
+                content.sort(key=lambda x: x['priority'])
+                for rule in content:
+                    rule = TriggerRule(**rule)
+                    if re.search(rule.pattern, rawtext, re.S):
+                        if rule.trigger == False:
+                            break
+                        if rule.args:
                             q.chain = MessageChain.auto_merge(
-                                ' '.join(content['attrs']) + ' ',
+                                ' '.join(rule.args) + ' ',
                                 entbak.chain
                             )
                         else:

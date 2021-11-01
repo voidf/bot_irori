@@ -144,10 +144,14 @@ def asobi2048(ent: CoreEntity):
                             grids[i][j] = 0
                             f = True
     elif attrs[0].lower() in GLOBAL.unsubscribes:
-        Sniffer.remove(player,'#2048')
+        Sniffer.drop(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
-        Sniffer.overwrite(player,'#2048','.*')
+        sni: Sniffer = Sniffer.overwrite(player,'#2048')
+        sni.add(
+            '#2048',
+            [TriggerRule('.*')]
+        )
         return [Plain(text=random.choice(['断言：你知道你在干什么————刷屏模式开始……', '快速游戏模式开启，关闭请使用bye']))]
     if f:
         zeromap = []
@@ -299,10 +303,14 @@ def asobiSlidingPuzzle(ent: CoreEntity):
                     return [Plain('图片背景更新成功')]
             return '您没发图捏'
         elif attrs[0] in ('快速模式','gamestart'):
-            Sniffer.overwrite(player,'#华容道','.*')
+            sni: Sniffer = Sniffer.overwrite(player,'#华容道')
+            sni.add(
+                '#华容道',
+                [TriggerRule('.*')]
+            )
             return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
         elif attrs[0] in GLOBAL.unsubscribes:
-            Sniffer.remove(player,'#华容道')
+            Sniffer.drop(player,'#华容道')
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     sp.mat = grids.tolist()
