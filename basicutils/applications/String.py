@@ -738,7 +738,7 @@ def 答案之书(ent: CoreEntity):
             )
             return [Plain('【答案之书】sniff模式')]
         elif attrs[-1] in CONST.unsubscribes:
-            Sniffer.drop(player,'#答案之书')
+            Sniffer.clear(player,'#答案之书')
             return [Plain('【答案之书】禁用sniffer')]
     # dynamic_answers = [f"http://iwo.im/?q={quote(' '.join(attrs))}"]
     ans = random.choice(book_of_answers)

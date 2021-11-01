@@ -220,10 +220,12 @@ class Sniffer(Document, RefPlayerBase):
 
     @classmethod
     def drop(cls, player):
+        """丢掉当前player的所有sniffer"""
         cls.objects(pk=Player.chk(player)).delete()
     
     @classmethod
     def clear(cls, player, event):
+        """删除当前player的指定命令的sniffer"""
         sni = cls.chk(player)
         sni.commands.pop(event, "未找到对应sniffer")
         sni.save()

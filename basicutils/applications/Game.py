@@ -144,7 +144,7 @@ def asobi2048(ent: CoreEntity):
                             grids[i][j] = 0
                             f = True
     elif attrs[0].lower() in GLOBAL.unsubscribes:
-        Sniffer.drop(player,'#2048')
+        Sniffer.clear(player,'#2048')
         return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
         sni: Sniffer = Sniffer.overwrite(player,'#2048')
@@ -310,7 +310,7 @@ def asobiSlidingPuzzle(ent: CoreEntity):
             )
             return [Plain(text=random.choice(['老婆快速重组模式，退出请用bye']))]
         elif attrs[0] in GLOBAL.unsubscribes:
-            Sniffer.drop(player,'#华容道')
+            Sniffer.clear(player,'#华容道')
             return [Plain(text=random.choice(['还是慢慢拼老婆吧']))]
 
     sp.mat = grids.tolist()

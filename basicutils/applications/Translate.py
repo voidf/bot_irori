@@ -284,7 +284,7 @@ def deepl(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.drop(player, '#deepl')
+        Sniffer.clear(player, '#deepl')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'ZH'))
@@ -330,7 +330,7 @@ def 咕狗翻译(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.drop(player, '#gkr')
+        Sniffer.clear(player, '#gkr')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))
@@ -365,7 +365,7 @@ def 百度翻译(ent: CoreEntity):
     player = ent.player
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
-        Sniffer.drop(player, '#bkr')
+        Sniffer.clear(player, '#bkr')
         return [Plain('我住嘴了')]
     if '-q' in ent.meta or '-quick' in ent.meta:
         tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh'))

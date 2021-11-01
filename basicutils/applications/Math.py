@@ -375,7 +375,7 @@ def 计算器(ent: CoreEntity):
         )
         return [Plain('遇到可运算表达式直接输出结果')]
     elif attrs[0] in GLOBAL.unsubscribes:
-        Sniffer.drop(player, '#计算器')
+        Sniffer.clear(player, '#计算器')
         return [Plain('禁用快速计算')]
     exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
     return [Plain(f"{exp} = {res}")]
