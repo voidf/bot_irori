@@ -21,14 +21,14 @@ def 随机中文名生成器(ent: CoreEntity):
 	（可能会生成笑死人的名字
 	"""
 	firstname = []
-	b = xlrd.open_workbook(r'../../Assets/first.xlsx')
+	b = xlrd.open_workbook(r'Assets/first.xlsx')
 	s = b.sheet_by_index(0)
 
 	for r in s.col(0):
 		firstname.append(r.value)
 
 	lastname = []
-	b = xlrd.open_workbook(r'../../Assets/last.xlsx')
+	b = xlrd.open_workbook(r'Assets/last.xlsx')
 	s = b.sheet_by_index(0)
 	for r in s.col(0):
 		lastname.append(r.value)
