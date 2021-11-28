@@ -13,6 +13,32 @@ from basicutils.network import *
 from basicutils.task import *
 from basicutils.media import *
 
+import xlrd
+
+def 随机中文名生成器(ent: CoreEntity):
+	"""#起名 [#name, #名字]
+	根据数据库老师给的不靠谱的百家姓和常用名字生成随机中文名
+	（可能会生成笑死人的名字
+	"""
+	firstname = []
+	b = xlrd.open_workbook(r'../../Assets/first.xlsx')
+	s = b.sheet_by_index(0)
+
+	for r in s.col(0):
+		firstname.append(r.value)
+
+	lastname = []
+	b = xlrd.open_workbook(r'../../Assets/last.xlsx')
+	s = b.sheet_by_index(0)
+	for r in s.col(0):
+		lastname.append(r.value)
+
+	ret = random.choice(lastname) + random.choice(firstname)
+	if random.randint(0,1):
+		return ret + random.choice(firstname)
+	return ret
+		
+
 def 不会吧(ent: CoreEntity):
 	"""#不会吧 []
 	不会吧生成器，例：#不会吧 在会谈时脱出来"""
