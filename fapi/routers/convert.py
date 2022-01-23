@@ -1,23 +1,16 @@
 import datetime
-import hashlib
-import json
 import traceback
 import aiohttp
 import os
 from fastapi.param_functions import Form
 import magic
 from fapi.models.FileStorage import *
-import fapi.G
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, File, UploadFile
 from typing import Optional
-from pydantic import BaseModel
 from cfg import *
-
-from passlib.context import CryptContext
+from loguru import logger
 from fapi.models.Auth import *
-from fapi import encrypt, trueReturn, falseReturn
-import time
 
 import asyncio
 convert_route = APIRouter(
@@ -25,13 +18,9 @@ convert_route = APIRouter(
     tags=["convert - 公用媒体转换器"],
 )
 
-import platform
 
 from basicutils.media import *
 
-manager = Adapter.objects(
-    username='file_manager'
-).first()
 
 def nolimitAudioSize(src, extension) -> str:
     dst = generateTmpFileName(ext='.amr')
@@ -114,7 +103,6 @@ async def to_amr(mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), ln
             ][mode](fname, ext)
         with open(ret, 'rb') as fi:
             t = TempFile(
-                adapter=manager,
                 filename=ret,
                 content_type='audio/AMR',
                 expires=datetime.datetime.now()+datetime.timedelta(seconds=30)

@@ -2,28 +2,67 @@ from mongoengine import *
 from mongoengine.queryset.base import *
 from fapi.models.Base import *
 
-class Role(Base, Document):
-    allow = ListField(StringField())
-    name = StringField(primary_key=True)
-    @classmethod
-    def chk(cls, pk):
-        return super().chk(pk)
-    @classmethod
-    def trychk(cls, pk):
-        return super().trychk(pk)
+# from enum import Enum
 
-class Adapter(Base, Document):
-    username = StringField(primary_key=True)
-    password = StringField()
-    role = ReferenceField(Role, reverse_delete_rule=DO_NOTHING)
-    items = DictField()
+# class Scope(Enum):
+#     """权限集"""
+#     FILE_MANAGER = "file_manager"
+#     SYS = "sys"
+#     OSS_ADMIN = "oss_A"
+
+# class Role(Base, Document):
+#     allow = ListField(StringField())
+#     name = StringField(primary_key=True)
+#     @classmethod
+#     def chk(cls, pk):
+#         return super().chk(pk)
+#     @classmethod
+#     def trychk(cls, pk):
+#         return super().trychk(pk)
+
+# class Profile(Base, Document):
+    # master = ReferenceField("Player")
+    # name = StringField(primary_key=True)
+
+import uuid
+class IroriUUID(Document):
+    """单例令牌"""
+    uuid = StringField()
+
     @classmethod
-    def chk(cls, pk):
-        return super().chk(pk)
+    def get(cls) -> "IroriUUID":
+        return cls.objects().first()
+
     @classmethod
-    def trychk(cls, pk):
-        return super().trychk(pk)
-    # def __int__(self):
-    #     return int(self.username)
-    def __str__(self):
-        return str(self.username)
+    def regen(cls):
+        cls.objects().modify(uuid=uuid.uuid4())
+
+class IroriConfig(Document):
+    """首选项单例文件，塞数据库为了热更"""
+    auth_masters = ListField(StringField(), default=[]) # 狗管理名单，可以执行系统调用
+
+    player_whitelist = DictField(default={}) # 白名单，player只能执行给定的指令 {pid: ["#A", "#C"] ...}
+    player_blacklist = DictField(default={}) # 黑名单，player不能执行指定的指令 {pid: ["#A", "#C"] ...}
+    player_ignorelist = ListField(default=[]) # 屏蔽player号名单，注意要当成一个set来维护
+
+    @classmethod
+    def get(cls) -> "IroriConfig":
+        return cls.objects().first()
+
+# class Adapter(Base, Document):
+#     username = StringField(primary_key=True)
+#     password = StringField()
+#     role = ReferenceField(Role, reverse_delete_rule=DO_NOTHING)
+#     items = DictField()
+#     tokens = ListField(StringField())
+#     profile = ReferenceField(Profile)
+#     @classmethod
+#     def chk(cls, pk):
+#         return super().chk(pk)
+#     @classmethod
+#     def trychk(cls, pk):
+#         return super().trychk(pk)
+#     # def __int__(self):
+#     #     return int(self.username)
+#     def __str__(self):
+#         return str(self.username)

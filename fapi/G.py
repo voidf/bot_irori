@@ -1,2 +1,2 @@
-adapters = {}
-initialized = False
+# adapters = {}
+# initialized = False

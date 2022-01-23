@@ -1,6 +1,6 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
 from basicutils.database import TriggerRule
-from fapi.models.Auth import Adapter
+from fapi.models.Auth import IroriConfig
 from basicutils.task import server_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
@@ -176,10 +176,16 @@ def import_applications():
 
 def sub_task(task: CoreEntity) -> MessageChain:
     from basicutils.database import Sniffer 
+
     # 应该对每个fork进程开一个pymongo实例，否则容易产生死锁
     # https://pymongo.readthedocs.io/en/stable/faq.html#is-pymongo-fork-safe
     # task.meta['player'] = task.player
     # task.meta['source'] = task.source
+
+    icfg = IroriConfig.get()
+    if task.member in icfg.player_ignorelist:
+        logger.debug('ignored due to ignore list')
+        return []
     
     try:
         app_fun, app_doc, tot_funcs, tot_alias = import_applications()
@@ -199,19 +205,16 @@ def sub_task(task: CoreEntity) -> MessageChain:
         logger.debug(f'command: {cmd}')
         # print(task.player)
         if cmd in tot_funcs:
-            adapter = Adapter.trychk(task.source)
-            if not adapter:
-                return []
-            if 'white_list' in adapter.items:
-                if task.pid in adapter.items['white_list']:
-                    if cmd not in adapter.items['white_list'][task.pid]:
-                        logger.debug('ignored due to white list')
-                        return []
-            if 'black_list' in adapter.items:
-                if task.pid in adapter.items['black_list']:
-                    if cmd in adapter.items['black_list'][task.pid]:
-                        logger.debug('ignored due to black list')
-                        return []
+
+            if task.pid in icfg.player_whitelist:
+                if cmd not in icfg.player_whitelist[task.pid]:
+                    logger.debug('ignored due to white list')
+                    return []
+
+            if task.pid in icfg.player_blacklist:
+                if cmd in icfg.player_blacklist[task.pid]:
+                    logger.debug('ignored due to black list')
+                    return []
                 
             logger.debug('hit function: {}', tot_funcs[cmd])
             reply = tot_funcs[cmd](task)

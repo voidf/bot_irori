@@ -1,185 +1,91 @@
 import asyncio
-import base64
-
-import fastapi
-from basicutils.task import server_api
 import traceback
 import aiohttp
 from loguru import logger
-import json
 from basicutils.network import *
 from basicutils.chain import *
-from fapi import generate_jwt, verify_jwt
-from Worker import task
-from typing import Union
-from fapi.models.Auth import *
-from fapi.models.Player import *
-from io import BytesIO
-from fapi.routers.convert import manager, to_amr
+from fapi import *
+
 from fapi.models.FileStorage import *
 # def search_player(pid, aid):
 #     return Player.chk(pid, aid)
-import markdown
-class MiraiSession():
-    def __init__(self, adapter_id: Union[str, Adapter]):
+# import ctypes
+from abc import ABC
+
+class Session(ABC):
+    """收发消息的实体"""
+    def __init__(self) -> None:
+        self._ases = aiohttp.ClientSession()
         self._alive = True
-        self._ases  = aiohttp.ClientSession()
-        # self.syncid = adapter_id
-        # self.jwt = generate_jwt(adapter_id)
-        self.aid = adapter_id
-        # self.dbobj = Adapter.trychk(self.aid)
-        
-    async def receive_loop(self, wsurl: str):
-        async for msg in self.ws:
-            # if not self._alive:
-                # logger.warning('manually closed')
-                # break
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                logger.debug(msg.data)
-                j = json.loads(msg.data)
-                # logger.warning(j)
-                if 'data' in j and 'type' in j['data']:
-                    if j['data']['type'] == 'GroupMessage':
-                        pid = str(j['data']['sender']['group']['id'] + (1<<39))
-                        ent = CoreEntity(
-                            player=str(Player.chk(pid, self.aid)),
-                            jwt=generate_jwt(self.aid),
-                            pid=pid,
-                            source=self.aid,
-                            member=str(j['data']['sender']['id']),
-                            meta={},
-                            chain=MessageChain.auto_make(j['data']['messageChain'])
-                        )
-                        await self.preprocess(ent)
-
-                    elif j['data']['type'] == 'FriendMessage':
-                        pid = str(j['data']['sender']['id'])
-                        ent = CoreEntity(
-                            player=str(Player.chk(pid, self.aid)),
-                            jwt=generate_jwt(self.aid),
-                            pid=pid,
-                            source=self.aid,
-                            member=str(j['data']['sender']['id']),
-                            meta={},
-                            chain=MessageChain.auto_make(j['data']['messageChain'])
-                        )
-                        await self.preprocess(ent)
-
-                        # continue # debug
-                    # TODO: 临时消息，系统命令
-
-                    # logger.warning(ent)
-                    try:
-                        task.delay(ent.json())
-                    except UnboundLocalError as e:
-                        logger.debug('非可处理消息事件:{}', str(e))
-                        pass
-                    except:
-                        logger.critical(traceback.format_exc())
-
-            else:
-                logger.critical(msg.type)
-                logger.critical(f'connection closed {wsurl}')
-            # elif msg.type == aiohttp.WSMsgType.ERROR:
-                break
-
-    async def enter_loop(self, wsurl: str):
-        """仅用于将消息从mirai拉下来执行处理，不用于回传消息"""
-        self.ws = await self._ases.ws_connect(wsurl, headers={})
-        self.receiver = asyncio.ensure_future(self.receive_loop(wsurl))
-        
+    def _init_sid(self, sid):
+        self.sid = sid
+    # def _lateinit(self, *args):
+        # pass
+    @abstractmethod
+    async def enter_loop(self, *args):
+        pass
     async def close(self):
-        self.receiver.cancel()
-        await self.ws.close()
         await self._ases.close()
-    
-    async def preprocess(self, ent: CoreEntity):
-        for elem in ent.chain:
-            if isinstance(elem, Plain):
-                data = elem.tostr()
-                att = data.split(' ') 
-
-                # Adapter参数预解析
-                ato = []
-                for i in att:
-                    if i[:2] == "--":
-                        arg,*val = i[2:].split("=")
-                        ent.meta["-"+arg] = "".join(val)
-                    else: ato.append(i)
-                elem.text = ' '.join(ato)
-
-    async def auto_deliver(self, ent: CoreEntity):
-        # pi = int(ent.player)
-        pi = int(Player.chk(ent.player).pid)
-        output = []
-        if '-md' in ent.meta:
-            for i in ent.chain:
-                if isinstance(i, Image):
-                    if i.url:
-                        output.append(f'![]({i.url})')
-                    elif i.base64:
-                        if i.base64[:3] == 'iVB':
-                            output.append(f'![](data:image/png;base64,{i.base64})')
-                        else:
-                            output.append(f'![](data:image/jpeg;base64,{i.base64})')
-                elif isinstance(i, Voice):
-                    output.append(f'<p><audio src="{i.url}""></p>')
-                else:
-                    output.append(f'{i.tostr()}')
-            html = markdown.markdown(''.join(output).replace('\n', '<br>'))
-            t = TempFile(
-                adapter=manager,
-                filename='TempHtmlFile.htm',
-                content_type='text/html',
-                expires=datetime.datetime.now()+datetime.timedelta(seconds=3600)
-            )
-            t.content.put(BytesIO(bytes(html, 'utf-8')))
-            t.save()
-            asyncio.ensure_future(t.deleter())
-            ent.chain.__root__ = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
-        payload = {
-            "syncId": -1,
-            "content": {
-                "messageChain": ent.chain.dict()["__root__"]
-            },
-        }
-        if pi > (1<<32):
-            pi -= 1<<39
-            payload['command'] = "sendGroupMessage"
-            payload['content']['target'] = pi
-            logger.warning(json.dumps(payload))
-            await self.ws.send_json(payload)
-        else:
-            payload['command'] = "sendFriendMessage"
-            payload['content']['target'] = pi
-            logger.warning(json.dumps(payload))
-            await self.ws.send_json(payload)
-
-
+    @abstractmethod    
     async def upload(self, ent: CoreEntity):
-        """将消息链往mirai发送，实际上只取用了player和chain，后继应该支持meta特殊处理"""
-        logger.debug('upload triggered')
+        pass
+
+class SessionManager():
+    s = {}      # 活动Session表
+    # a2p = {}    # adapter: {session: [(player, playername)]}表 内部通信用
+    p2s = {}    # player: [session]表 日程器用
+
+    
+    @staticmethod
+    def get(k: int) -> Session: # 顶多抛异常
+        return SessionManager.s[k]
+
+    @staticmethod
+    async def autoupload(ent: CoreEntity):
+        """根据ent.source选择session进行上传"""
+        await SessionManager.s[ent.source].upload(ent)
+
+    # @staticmethod
+    # def get(k: int): # 不安全，可能段错误而直接被OS杀死
+        # return ctypes.cast(k, ctypes.py_object).value
+
+    # @staticmethod
+    # def hangout_adapter(aid: str):
+    #     """清理所有属于给定adapter的会话"""
+    #     for ses, (pid, pname) in SessionManager.a2p.get(aid, {}).items():
+    #         asyncio.ensure_future(ses.close())
+    #         SessionManager
+    
+    @staticmethod
+    def new(sestyp, *args):
+        """算是个工厂？sestyp提供需要造的Session是哪种，args为传入enter_loop的参数，返回Session的id"""
+        ses: Session = sestyp()
+        sid = id(ses)
+        SessionManager.s[sid] = ses
+        ses._init_sid(sid)
+        # ses._lateinit(*args)
+        asyncio.ensure_future(ses.enter_loop(*args))
+        return sid
+
+    @staticmethod
+    def close(k: int):
+        """关掉一个会话"""
         try:
-            chain = ent.chain
-            logger.debug(chain)
-            ent.chain = MessageChain.get_empty()
-            for i in chain:
-                if i.meta and 'delay' in i.meta:
-                    if ent.chain.__root__:
-                        await self.auto_deliver(ent)
-                    await asyncio.sleep(float(i.meta['delay']))
-                    ent.chain.__root__.clear()
-                elif isinstance(i, Voice):
-                    i = Voice(url=server_api('/worker/oss/' + (await to_amr(
-                        ent.meta.get('-vmode', 0),
-                        lnk=i.url if i.url else '',
-                        b64=i.base64 if i.base64 else ''
-                    ))['url']))
-                    if ent.chain.__root__:
-                        await self.auto_deliver(ent)
-                    ent.chain.__root__.clear()
-                ent.chain.__root__.append(i)
-            if ent.chain.__root__:
-                await self.auto_deliver(ent)
-        except ValueError:
-            return "not mirai"
+            asyncio.ensure_future(SessionManager.s.pop(k).close())
+            # for _, v in SessionManager.a2p.items():
+                # v.pop(k)
+            for _, v in SessionManager.p2s.items():
+                try:
+                    v.remove(k)
+                except ValueError:
+                    pass
+            return True
+        except:
+            logger.error(traceback.format_exc())
+            return False
+    # @staticmethod
+    # def get_contactable_list(aid: str):
+        # return [(sid, pid, pname) for sid, (pid, pname) in SessionManager.a2p.get(aid, {}).items()]
+    @staticmethod
+    def get_routiner_list(pid: str):
+        return SessionManager.p2s.get(pid, [])

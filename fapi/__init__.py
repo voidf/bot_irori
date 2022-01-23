@@ -1,10 +1,10 @@
+from fapi.Sessions import SessionManager
 import hashlib
 from fapi.webcfg import salt, jwt_key
 from fapi.models.Auth import *
-from jose import JWTError, jwt
+from jose import jwt
 from basicutils.chain import *
 from basicutils.network import *
-import fapi.G
 import os
 from typing import Union
 from loguru import logger
@@ -32,7 +32,6 @@ async def sys_exec(ent: CoreEntity, args: list): return f"""{exec(' '.join(args)
 async def sys_eval(ent: CoreEntity, args: list): return f"""{eval(' '.join(args))}"""
 async def sys_run(ent: CoreEntity, args: list): return f"""{os.popen(' '.join(args)).read()}"""
 async def sys_help(ent: CoreEntity, args: list): return '目前仅支持exec, eval, run, send四个命令'
-async def sys_adapters(ent: CoreEntity, args: list): return f'{fapi.G.adapters}'
 async def sys_unauthorized(ent: CoreEntity, args: list): return "您没有权限执行此调用"
 # async def sys_announcement(ent: CoreEntity, args: list): 
     # announcement(' '.join(args), [ent.source])
@@ -73,10 +72,26 @@ async def sys_unauthorized(ent: CoreEntity, args: list): return "您没有权限
 def encrypt(s: str) -> str:
     return hashlib.sha256((s + salt).encode('utf-8')).hexdigest()
 
+def generate_login_jwt(expires: float=86400):
+    return jwt.encode(
+        {
+            'ts': str(datetime.datetime.now().timestamp())
+        },  # payload, 有效载体
+        jwt_key,  # 进行加密签名的密钥
+    )
 
-def generate_jwt(adapter: Union[Adapter, str], expire_seconds: float = 120.0):
+def generate_player_jwt(pid: str):
+    return jwt.encode(
+        {
+            'pid': pid,
+            'ts': str(datetime.datetime.now().timestamp())
+        },  # payload, 有效载体
+        jwt_key,  # 进行加密签名的密钥
+    )
+
+def generate_session_jwt(sid: int, expire_seconds: float = 120.0):
     token_dict = {
-        'id': str(adapter.pk) if isinstance(adapter, Adapter) else adapter,
+        'sid': sid,
         'ts': str((datetime.datetime.now()+ datetime.timedelta(seconds=expire_seconds)).timestamp())
     }
     return jwt.encode(
@@ -84,20 +99,57 @@ def generate_jwt(adapter: Union[Adapter, str], expire_seconds: float = 120.0):
         jwt_key,  # 进行加密签名的密钥
     )
 
-def verify_jwt(token):
+# def generate_adapter_jwt(adapter: Union[Adapter, str], expire_seconds: float = 120.0):
+#     token_dict = {
+#         'aid': str(adapter.pk) if isinstance(adapter, Adapter) else adapter,
+#         'ts': str((datetime.datetime.now()+ datetime.timedelta(seconds=expire_seconds)).timestamp())
+#     }
+#     return jwt.encode(
+#         token_dict,  # payload, 有效载体
+#         jwt_key,  # 进行加密签名的密钥
+#     )
+
+# def verify_adapter_jwt(token):
+#     try:
+#         payload = jwt.decode(token, jwt_key)
+#         if datetime.datetime.now().timestamp() > float(payload['ts']):
+#             return None, "令牌过期"
+#         adapter = Adapter.objects(pk=payload['aid']).first()
+#         if not adapter:
+#             return None, "无此用户"
+#         return adapter, ""
+#     except:
+#         traceback.print_exc()
+#         return None, "数据错误"
+
+def verify_session_jwt(token):
     try:
         payload = jwt.decode(token, jwt_key)
         if datetime.datetime.now().timestamp() > float(payload['ts']):
             return None, "令牌过期"
-        adapter = Adapter.objects(pk=payload['id']).first()
-        if not adapter:
-            return None, "无此用户"
-        return adapter, ""
+        session = payload['sid']
+        if session not in SessionManager.s:
+            return None, "无此会话"
+        return session, ""
     except:
-        traceback.print_exc()
-        return None, "数据错误"
+        logger.critical(traceback.format_exc())
+        return None, "非预期错误"
 
-def trueReturn(data=None, msg="", code=0):
+def verify_login_jwt(token):
+    try:
+        payload = jwt.decode(token, jwt_key)
+        if datetime.datetime.now().timestamp() > float(payload['ts']):
+            return None, "令牌过期"
+        return True, ""
+    except:
+        logger.critical(traceback.format_exc())
+        return None, "非预期错误"
+
+
+
+
+# def verify_jwt():pass
+def trueReturn(data=None, msg=""):
     return {
         'data': data,
         'msg': msg,

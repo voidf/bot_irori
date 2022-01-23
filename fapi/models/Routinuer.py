@@ -1,13 +1,11 @@
-from mongoengine.errors import DoesNotExist
+from fapi.Sessions import SessionManager
 from basicutils.task import *
 from basicutils.media import *
-from time import sleep
 from typing import Union
 from loguru import logger
 
 from mongoengine.fields import DateTimeField, IntField, ListField, StringField
 from basicutils import chain
-import fapi.G
 from basicutils import make_banner
 from fapi.models.Base import *
 from mongoengine import *
@@ -22,33 +20,46 @@ from fapi.models.Player import *
 routiner_namemap = {} # 根据名字查找Routinuer用
 retries = 20 # 比赛订阅爬虫超时重试次数
 
+def imaseconds(cycle: float=86400, timezoneoffset: float=8*3600):
+    """现在是东八区每天的第几秒"""
+    return (datetime.datetime.now().timestamp() + timezoneoffset) % cycle
+
+def sleep2ashita(offset: float):
+    """算睡到明天第几秒所需要延迟的时间秒数"""
+    return (86400 - imaseconds()) % 86400 + offset % 86400
+
+def sleep2(timepoint: float=0, cycle: float=86400):
+    return (cycle - imaseconds(cycle) + timepoint) % cycle
+
 class Routiner(Base, Document):
     meta = {'allow_inheritance': True}
     # adapter = ReferenceField(Adapter)
     player = ReferenceField(Player)
 
     @classmethod
-    async def recover_routiners(cls, aid: str):
+    async def recover_routiners(cls):
         """总恢复入口，不能被重载"""
         for sc in cls.__subclasses__():
             logger.info(f'{sc} is initializing...')
-            await sc.resume(aid)
+            await sc.resume()
             routiner_namemap[sc.__name__] = sc
 
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         """启动入口，可以放点静态的东西，最好得包括一个future_map"""
         raise NotImplementedError
     
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        """取消订阅接口"""
-        raise NotImplementedError
+        cls.objects(player=Player.chk(ent.player)).delete()
     
     @classmethod
     async def add(cls, ent: CoreEntity):
-        """添加订阅接口"""
-        raise NotImplementedError
+        plr = Player.chk(ent.player)
+        if not cls.objects(player=plr):
+            cls(
+                player=plr
+            ).save()
 
     # @classmethod
     # async def mainloop(cls, aid: str):
@@ -93,8 +104,6 @@ class CodeforcesRoutinuer(Routiner):
 
     @classmethod
     async def notify(cls, contest: dict):
-        # if isinstance(player, Player):
-        #     player = str(player.pid)
         ofs = 3600
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
@@ -107,19 +116,11 @@ class CodeforcesRoutinuer(Routiner):
         logger.critical(q)
         try:
             for subs in q:
-                try:
-                    logger.critical(fapi.G.adapters)
-                    logger.critical(str(subs.player.aid))
-                except DoesNotExist:
-                    subs.delete()
-                    logger.critical('delete illegal file {}', subs.pk)
-                except:
-                    logger.error(traceback.format_exc())
-                if str(subs.player.aid) in fapi.G.adapters:
-
-                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                pid = str(subs.player)
+                for s in SessionManager.get_routiner_list(pid):
+                    await s.upload(
                         CoreEntity(
-                            player=str(subs.player),
+                            player=pid,
                             chain=chain.MessageChain.auto_make(
                                 f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
                                 f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
@@ -133,11 +134,7 @@ class CodeforcesRoutinuer(Routiner):
             logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
-        # q = cls.objects(adapter=Adapter.trychk(aid))
-        # if q:
         li = await CodeforcesRoutinuer.spider()
-            # for subscribers in q:
-                # mp = cls.contest_futures.setdefault(str(aid), {}).setdefault(str(subscribers.player), {})
         mp =  cls.contest_futures
         for contest in li:
             if contest['id'] in mp:
@@ -147,40 +144,23 @@ class CodeforcesRoutinuer(Routiner):
             )
 
     @classmethod
-    async def resume(cls, aid: str):
-        if not fapi.G.initialized:
-            cls.contest_futures = {}
-            await cls.update_futures()
-            asyncio.ensure_future(cls.mainloop())
+    async def resume(cls):
+        cls.contest_futures = {}
+        await cls.update_futures()
+        asyncio.ensure_future(cls.mainloop())
 
 
     @classmethod
     async def mainloop(cls):
-        cycle = 86400
-        offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
+            await asyncio.sleep(sleep2(0))
             logger.debug('updating codeforces routiner...')
-            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
-            await asyncio.sleep(tosleep)
             await cls.update_futures()
 
-    @classmethod
-    async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
-
-    @classmethod
-    async def add(cls, ent: CoreEntity):
-        plr = Player.chk(ent.player, ent.source)
-        if not cls.objects(player=plr):
-            cls(
-                player=plr
-            ).save()
 
 import basicutils.CONST as C
 from bs4 import BeautifulSoup
 class AtcoderRoutinuer(Routiner):
-    # mode = StringField(default='Y')
-
     @staticmethod
     async def spider() -> list:
         ses: aiohttp.ClientSession
@@ -236,27 +216,19 @@ class AtcoderRoutinuer(Routiner):
 
     @classmethod
     async def notify(cls, contest: dict):
-        # if isinstance(player, Player):
-        #     player = str(player.pid)
         contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
         if contest['relativeTimeSeconds'] < 3600:
             return
         await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
         q = cls.objects()
+        
         try:
             for subs in q:
-                try:
-                    logger.critical(fapi.G.adapters)
-                    logger.critical(str(subs.player.aid))
-                except DoesNotExist:
-                    subs.delete()
-                    logger.critical('delete illegal file {}', subs.pk)
-                except:
-                    logger.error(traceback.format_exc())
-                if str(subs.player.aid) in fapi.G.adapters:
-                    await fapi.G.adapters[str(subs.player.aid)].upload(
+                pid = str(subs.player)
+                for s in SessionManager.get_routiner_list(pid):
+                    await s.upload(
                         CoreEntity(
-                            player=str(subs.player),
+                            player=pid,
                             chain=chain.MessageChain.auto_make(
                                 f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
                                 f"注册链接：https://atcoder.jp{contest['id']}"
@@ -270,12 +242,8 @@ class AtcoderRoutinuer(Routiner):
 
     @classmethod
     async def update_futures(cls):
-        # q = cls.objects(adapter=Adapter.trychk(aid))
-        # if q:
         li = await AtcoderRoutinuer.spider()
-            # for subscribers in q:
-                # mp = cls.contest_futures.setdefault(str(aid), {}).setdefault(str(subscribers.player), {})
-        mp =  cls.contest_futures
+        mp = cls.contest_futures
         for contest in li:
             if contest['id'] in mp:
                 mp[contest['id']].cancel()
@@ -284,34 +252,19 @@ class AtcoderRoutinuer(Routiner):
             )
 
     @classmethod
-    async def resume(cls, aid: str):
-        if not fapi.G.initialized:
-            cls.contest_futures = {}
-            await cls.update_futures()
-            asyncio.ensure_future(cls.mainloop())
+    async def resume(cls):
+        cls.contest_futures = {}
+        await cls.update_futures()
+        asyncio.ensure_future(cls.mainloop())
 
 
     @classmethod
     async def mainloop(cls):
-        cycle = 86400
-        offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
+            await asyncio.sleep(sleep2(0))
             logger.debug('updating atcoder routiner...')
-            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
-            await asyncio.sleep(tosleep)
             await cls.update_futures()
 
-    @classmethod
-    async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
-
-    @classmethod
-    async def add(cls, ent: CoreEntity):
-        plr = Player.chk(ent.player, ent.source)
-        if not cls.objects(player=plr):
-            cls(
-                player=plr
-            ).save()
 
 import random
 import basicutils.CONST as CONST
@@ -321,29 +274,26 @@ class CreditInfoRoutinuer(Routiner):
     async def info(cls, ent: CoreEntity):
         return ','.join(list(cls.credit_cmds.keys()))
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         logger.debug(f'{cls} resume called')
         # cls.future_map = {}
-        if not fapi.G.initialized:
-            cls.call_map = {
-                'info': cls.info
-            }
-            cls.credit_cmds = {}
-            # print(cls)
-            # print(cls.call_map)
+        # if not fapi.G.initialized:
+        cls.call_map = {
+            'info': cls.info
+        }
+        cls.credit_cmds = {}
+        # print(cls)
+        # print(cls.call_map)
 
-            await cls.update_futures()
-            asyncio.ensure_future(cls.mainloop())
-            logger.info(f'{cls} initialized')
+        await cls.update_futures()
+        asyncio.ensure_future(cls.mainloop())
+        logger.info(f'{cls} initialized')
 
 
     @classmethod
     async def mainloop(cls):
-        cycle = 86400
-        offset = 3600 * 8 # UTC+8, 24 - 8 = 16
         while 1:
-            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
-            await asyncio.sleep(tosleep)
+            await asyncio.sleep(sleep2(0))
             await cls.update_futures()
 
     @classmethod
@@ -359,26 +309,17 @@ class CreditInfoRoutinuer(Routiner):
         q = cls.objects()
         # if q:
         for subs in q:
-            await fapi.G.adapters[str(subs.player.aid)].upload(
-                CoreEntity(
-                    player=str(subs.player),
-                    chain=chain.MessageChain.auto_make(
-                        f'今天使用{await cls.info()}这些命令会有惊喜哦（'
-                    ),
-                    source='',
-                    meta={}
+            for s in SessionManager.get_routiner_list(str(subs.player)):
+                await s.upload(
+                    CoreEntity(
+                        player=str(subs.player),
+                        chain=chain.MessageChain.auto_make(
+                            f'今天使用{await cls.info()}这些命令会有惊喜哦（'
+                        ),
+                        source='',
+                        meta={}
+                    )
                 )
-            )
-
-    @classmethod
-    async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
-
-    @classmethod
-    async def add(cls, ent: CoreEntity):
-        cls(
-            player=Player.chk(ent.player, ent.source),
-        ).save()
 
 
 from basicutils.chain import *
@@ -389,37 +330,38 @@ class DDLNoticeRoutiner(Routiner):
     @classmethod
     async def info(cls, ent: CoreEntity):
         li = []
-        for subs in cls.objects(player=Player.chk(ent.player, ent.source)):
+        for subs in cls.objects(player=Player.chk(ent.pid)):
             li.append(f"{str(subs.ddl)}    {subs.title}")
         return '\n'.join(li)
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         logger.debug(f'{cls} resume called')
         cls.call_map = {
             'info': cls.info
         }
         cls.future_map = {}
-        aid = Adapter.trychk(aid)
         for subs in cls.objects():
-            await cls.routine(aid, subs)
+            await cls.routine(subs)
         # asyncio.ensure_future(cls.mainloop())
         logger.info(f'{cls} initialized')
 
 
     @classmethod
-    async def noticer(cls, aid: Union[Adapter, str], player: Union[Player, str], mem: int, message: str, delay: float):
+    async def noticer(cls, player: Union[Player, str], mem: int, message: str, delay: float):
         if delay <= 0:
             return
+        pid = str(player)
         logger.debug('delay for {}', delay)
         await asyncio.sleep(delay)
-        await fapi.G.adapters[str(aid)].upload(
-            CoreEntity(
-                player=str(player),
-                chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if player.pid!=mem else message),
-                source='',
-                meta={}
+        for s in SessionManager.get_routiner_list(pid):
+            await s.upload(
+                CoreEntity(
+                    player=pid,
+                    chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if player.pid!=mem else message),
+                    source='',
+                    meta={}
+                )
             )
-        )
     
     @classmethod
     async def deleter(cls, obj: "DDLNoticeRoutiner", delay: float, nkey: tuple):
@@ -430,14 +372,12 @@ class DDLNoticeRoutiner(Routiner):
     @classmethod
     async def routine(cls, subs: "DDLNoticeRoutiner"):
         ETA = subs.ddl.timestamp() - datetime.datetime.now().timestamp()
-        aid = subs.player.aid
-        nkey = (str(aid), str(subs.player), subs.title) # 优化考虑化为前两个键做一个map，title做子map键
+        nkey = (str(subs.player), subs.title) # 优化考虑化为前两个键做一个map，title做子map键
         cls.future_map[
             nkey
         ] = [
             asyncio.ensure_future(
                 cls.noticer(
-                    str(aid), 
                     subs.player, 
                     subs.mem,
                     f"{subs.title}还有约1天迎来ddl...",
@@ -446,7 +386,6 @@ class DDLNoticeRoutiner(Routiner):
             ),
             asyncio.ensure_future(
                 cls.noticer(
-                    str(aid), 
                     subs.player, 
                     subs.mem,
                     f"{subs.title}将在1h后ddl...",
@@ -455,19 +394,17 @@ class DDLNoticeRoutiner(Routiner):
             ),
             asyncio.ensure_future(
                 cls.noticer(
-                    str(aid), 
                     subs.player, 
                     subs.mem,
-                    f"10分钟后，{subs.title}即会触碰万劫不复的ddl",
+                    f"10分钟后，{subs.title}有ddl",
                     ETA - 600
                 )
             ),
             asyncio.ensure_future(
                 cls.noticer(
-                    str(aid), 
                     subs.player, 
                     subs.mem,
-                    f"{subs.title}已经终结。",
+                    f"{subs.title}寄了。",
                     ETA - 0
                 )
             )
@@ -479,14 +416,15 @@ class DDLNoticeRoutiner(Routiner):
 
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        q = cls.objects(player=Player.chk(ent.player, ent.source))
+        q = cls.objects(player=Player.chk(ent.pid), title=ent.meta['title'])
         if q:
             q.delete()
             for i in cls.future_map[
-                    (str(ent.source), str(ent.player), ent.meta['title'])
+                    (str(ent.pid), ent.meta['title'])
                 ]:
                 logger.warning(i.cancel())
             logger.warning(cls.future_map)
+            cls.future_map.pop((str(ent.pid), ent.meta['title']))
             return True
         else:
             logger.debug('No such routine')
@@ -495,14 +433,12 @@ class DDLNoticeRoutiner(Routiner):
     @classmethod
     async def add(cls, ent: CoreEntity):
         if cls.objects(
-            player=Player.chk(ent.player, ent.source),
-            # adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.pid),
             title=ent.meta['title']
         ):
             return False
         subs = cls(
-            player=Player.chk(ent.player, ent.source),
-            # adapter=Adapter.trychk(ent.source),
+            player=Player.chk(ent.pid),
             ddl=datetime.datetime.fromtimestamp(float(ent.meta['ts'])),
             title=ent.meta['title'],
             mem=int(ent.member)
@@ -515,7 +451,7 @@ import traceback
 class WeatherReportRoutinuer(Routiner):
     city = ListField(StringField())
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         cls.youbi = {
             1:'月曜日',
             2:'火曜日',
@@ -525,22 +461,16 @@ class WeatherReportRoutinuer(Routiner):
             6:'土曜日',
             7:'日曜日',
         }
-
         logger.debug(f'{cls} resume called')
-        # cls.future_map = {}
-        if not fapi.G.initialized:
-            asyncio.ensure_future(cls.mainloop())
-            logger.info(f'{cls} initialized')
+        asyncio.ensure_future(cls.mainloop())
+        logger.info(f'{cls} initialized')
 
 
     @classmethod
     async def mainloop(cls):
-        cycle = 86400
-        offset = 3600 * 8 - 5 # 0点过5秒
         ses = aiohttp.ClientSession()
         while 1:
-            tosleep = cycle - (datetime.datetime.now().timestamp() + offset) % cycle
-            await asyncio.sleep(tosleep)
+            await asyncio.sleep(sleep2(5))
             await cls.update_futures(ses)
 
     @classmethod
@@ -550,7 +480,7 @@ class WeatherReportRoutinuer(Routiner):
         dt = datetime.datetime.now()
         ans = [f'今天是{dt.year}年{dt.month}月{dt.day}日，{cls.youbi[dt.isoweekday()]}']
         try:
-            async with ses.get('https://wannianrili.51240.com/') as resp:
+            async with ses.get('https://wannianrili.51240.com/', timeout=30) as resp:
                 bs = BeautifulSoup(await resp.text(), 'html.parser')
             res = bs('div',attrs={'id':'jie_guo'})
             ans.append('农历'+res[0].contents[0].contents[dt.day]('div',attrs={'class':"wnrl_k_you_id_wnrl_nongli"})[0].string)
@@ -566,18 +496,19 @@ class WeatherReportRoutinuer(Routiner):
 
         for subs in q:
             output = list(ans)
+            pid = str(subs.player)
 
-            # output = [] if subs.player.pk in done else list(ans)
-            # done.add(subs.player.pk)
             for city in subs.city:
-                async with ses.get('http://toy1.weather.com.cn/search?cityname=' + city) as resp:
-                    j = json.loads((await resp.text())[1:-1])[0]['ref'].split('~')
+                try:
+                    async with ses.get('http://toy1.weather.com.cn/search?cityname=' + city, timeout=30) as resp:
+                        j = json.loads((await resp.text())[1:-1])[0]['ref'].split('~')
 
-
-
-                output.append(f'{j[2]}的天气数据:')
-                async with ses.get(f'http://www.weather.com.cn/weather/{j[0]}.shtml') as resp:
-                    b = BeautifulSoup(await resp.content.read(), 'html.parser')
+                    output.append(f'{j[2]}的天气数据:')
+                    async with ses.get(f'http://www.weather.com.cn/weather/{j[0]}.shtml', timeout=30) as resp:
+                        b = BeautifulSoup(await resp.content.read(), 'html.parser')
+                except:
+                    logger.critical(traceback.format_exc())
+                    output.append('网络连接错误，请检查日志')
                 ctr = 0
                 pos = 10
                 for p, i in enumerate(b('li')):
@@ -590,89 +521,87 @@ class WeatherReportRoutinuer(Routiner):
                     t = i('p')
                     output.append(
                         f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
-            await fapi.G.adapters[str(subs.player.aid)].upload(
-                CoreEntity(
-                    player=str(subs.player),
-                    chain=chain.MessageChain.auto_make(
-                        '\n'.join(output)
-                    ),
-                    source='',
-                    meta={}
+            for s in SessionManager.get_routiner_list(pid):
+                s.upload(
+                    CoreEntity(
+                        player=pid,
+                        chain=chain.MessageChain.auto_make(
+                            '\n'.join(output)
+                        ),
+                        source='',
+                        meta={}
+                    )
                 )
-            )
 
-    @classmethod
-    async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
 
     @classmethod
     async def add(cls, ent: CoreEntity):
         c = cls.objects(
-            player=Player.chk(ent.player, ent.source)
+            player=Player.chk(ent.player)
         ).first()
         if not c:
             c = cls(
-            player=Player.chk(ent.player, ent.source),
+            player=Player.chk(ent.player),
             city=[]
         )
-        c.city.append(ent.meta['city'])
-        c.save()
+        if ent.meta['city'] not in c.city:
+            c.city.append(ent.meta['city'])
+            c.save()
 
 class DailySentenceRoutinuer(Routiner):
     @classmethod
-    async def resume(cls, aid: str):
+    async def resume(cls):
         logger.debug(f'{cls} resume called')
-        # cls.future_map = {}
-        if not fapi.G.initialized:
-            asyncio.ensure_future(cls.mainloop())
-            logger.info(f'{cls} initialized')
+        asyncio.ensure_future(cls.mainloop())
+        logger.info(f'{cls} initialized')
 
     @classmethod
     async def update_futures(cls, ses: aiohttp.ClientSession):
-        async with ses.get(
-            f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}'
-        ) as resp:
-            j = await resp.json()
-        # amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
-        amr = j['tts']
-        ent = CoreEntity(
-            player='',
-            chain=MessageChain.auto_make(
-                [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
-            ),
-            source='',
-            meta={}
-        )
-        for subs in cls.objects():
-            ent.player=str(subs.player)
-            await fapi.G.adapters[str(subs.player.aid)].upload(
-                ent
+        try:
+            async with ses.get(
+                f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}',
+                timeout=30
+            ) as resp:
+                j = await resp.json()
+            # amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
+            amr = j['tts']
+            ent = CoreEntity(
+                player='',
+                chain=MessageChain.auto_make(
+                    [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
+                ),
+                source='',
+                meta={}
             )
+            for subs in cls.objects():
+                pid = str(subs.player)
+                ent.player = pid
+                for s in SessionManager.get_routiner_list(pid):
+                    await s.upload(
+                        ent
+                    )
+        except:
+            logger.critical(traceback.format_exc())
+            ent = CoreEntity(
+                player='',
+                chain=MessageChain.auto_make(
+                    [Plain('【每日一句】网络连接错误，请检查日志')]
+                ),
+                source='',
+                meta={}
+            )
+            for subs in cls.objects():
+                pid = str(subs.player)
+                ent.player = pid
+                for s in SessionManager.get_routiner_list(pid):
+                    await s.upload(
+                        ent
+                    )
 
 
     @classmethod
     async def mainloop(cls):
-        cycle = 86400
-        offset = 3600 * 17 # 0点过5秒
         ses = aiohttp.ClientSession()
         while 1:
-            tosleep = cycle - (datetime.datetime.now().timestamp() + 8*3600 - offset) % cycle
-            await asyncio.sleep(tosleep)
+            await asyncio.sleep(sleep2(3600*17))
             await cls.update_futures(ses)
-
-    
-
-    @classmethod
-    async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player, ent.source)).delete()
-
-    @classmethod
-    async def add(cls, ent: CoreEntity):
-        c = cls.objects(
-            player=Player.chk(ent.player, ent.source)
-        ).first()
-        if not c:
-            c = cls(
-            player=Player.chk(ent.player, ent.source)
-        )
-        c.save()
