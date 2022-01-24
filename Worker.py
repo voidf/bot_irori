@@ -232,7 +232,7 @@ def sub_task(task: CoreEntity) -> MessageChain:
                 # reply = MessageChain(__root__=[str(reply)])
             return reply
         else:
-            S: Sniffer = Sniffer.chk(task.player)
+            S: Sniffer = Sniffer.chk(task.pid)
             q = task.copy(deep=True)
             q.meta['sniffer_invoke'] = True
             replies = []
