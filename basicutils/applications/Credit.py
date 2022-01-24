@@ -338,7 +338,7 @@ def 成分查询(ent: CoreEntity):
     """
     attrs = ent.chain.tostr().split(' ')
     user = attrs[0]
-    crd = Player.chk(user, ent.source).items.get('credit', 500)
+    crd = Player.chk(user).items.get('credit', 500)
     ret = [f'用户{user}现在拥有信用点{crd}点，评价：']
     ret.extend(评价(crd))
     return [Plain('\n'.join(ret))]
@@ -348,7 +348,7 @@ def 信用点查询(ent: CoreEntity):
     查询你的信用点情况
     """
     user = ent.member
-    player = Player.chk(user, ent.source)
+    player = Player.chk(user)
     # CreditLog.sync()
     # crd = CreditLog.get(player)
     crd = player.items.setdefault('credit', 500)
@@ -381,7 +381,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
     # print(kwargs['mem'])
     # print(dir(kwargs['mem']))
     mem = ent.member
-    player = Player.chk(mem, ent.source)
+    player = Player.chk(mem)
     entity = DailySignLog.chk(player)
     
 
@@ -508,7 +508,7 @@ def 炒币模拟器(ent: CoreEntity):
         elif cmd == 'buy':
             typ, qty, *ato = args
             typ = typ.upper()
-            player = Player.chk(ent.member, ent.source)
+            player = Player.chk(ent.member)
             rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
             if '$' in qty:
                 qty = float(qty.replace('$', ''))
@@ -528,7 +528,7 @@ def 炒币模拟器(ent: CoreEntity):
         elif cmd == 'sell':
             typ, qty, *ato = args
             typ = typ.upper()
-            player = Player.chk(ent.member, ent.source)
+            player = Player.chk(ent.member)
             rate = float(fetch_cryptocurrency_info(typ)[1]['data']['primaryData']['lastSalePrice'][1:])
 
             if '$' in qty:
@@ -550,7 +550,7 @@ def 炒币模拟器(ent: CoreEntity):
             player.save()
             return f"卖出成功：卖出{typ}共{cnt}单位，获得{qty}信用点，系统收取手续费{tax}(1%)。"
         elif cmd == 'my':
-            player = Player.chk(ent.member, ent.source)
+            player = Player.chk(ent.member)
             player.items.setdefault('credit', 500)
             ret = []
             # player.

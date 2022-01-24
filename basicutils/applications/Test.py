@@ -1,4 +1,5 @@
 """测试类（开发用"""
+from basicutils.database import Sniffer
 from basicutils.task import server_api
 import os
 import sys
@@ -33,14 +34,12 @@ def 乒乓球(ent: CoreEntity):
 
 async def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
-async def 重设渲染图片阈值(*attrs,kwargs={}):
-    player = getPlayer(**kwargs)
-    tc = chkcfg(player)
-    tc.compress_threshold = int(attrs[0])
-    return [Plain(f'消息长度大于等于{attrs[0]}时转为图片发送')]
-    
 
-async def 清空嗅探器(*attrs,kwargs={}): return [Plain(clearSniffer(getPlayer(**kwargs)))]
+async def 清空嗅探器(ent: CoreEntity):
+    """%clear []
+    清空所有本会话Sniffer
+    """
+    return [Plain(Sniffer.drop(ent.pid))]
 
 import requests
 def 音乐测试(ent: CoreEntity):
@@ -63,8 +62,6 @@ functionMap = {
     '#ping':乒乓球,
     '#废话':废话生成器,
     '#echo':表情符号查询姬,
-    '#lim':重设渲染图片阈值,
-    r'%clear':清空嗅探器,
 }
 
 shortMap = {
@@ -82,6 +79,4 @@ functionDescript = {
     '#echo':'查询当前字符串的unicode码',
     '#ping':'',
     '#废话':'【测试用】复读某个字符串，一开始是为测量消息最大长度而设计，目前已知私聊字符串最大长度876，群聊32767.用法#废话 <复读字符串> <复读次数>',
-    r'%clear':'【嗅探器】清空本群的所有嗅探器',
-    r'%sync':'【嗅探器】从文件同步本群的嗅探器'
 }

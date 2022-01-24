@@ -281,7 +281,7 @@ def deepl(ent: CoreEntity):
         "RU" - Russian
         "ZH" - Chinese
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#deepl')
@@ -328,7 +328,7 @@ def 咕狗翻译(ent: CoreEntity):
     一般用例：
         #gkr ja zh-CN やりますね
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#gkr')
@@ -364,7 +364,7 @@ def 百度翻译(ent: CoreEntity):
     一般用例：
         #bkr jp zh 自分で百度しろ
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#bkr')

@@ -363,7 +363,7 @@ def 计算器(ent: CoreEntity):
 
     attrs = ent.chain.tostr().split(' ')
 
-    player = ent.player
+    player = ent.pid
     if attrs[0] in GLOBAL.subscribes:
         sni: Sniffer = Sniffer.overwrite(player, '#计算器')
         sni.add(

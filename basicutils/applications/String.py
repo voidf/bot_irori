@@ -716,7 +716,7 @@ def 答案之书(ent: CoreEntity):
     '''#答案之书 [#why, #wsm, #ans]
     向答案之书提问（答非所问（问就是自己解决（不会真的有人认为答案之书有用吧？不会吧不会吧？
     '''
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if attrs:
         if attrs[-1] in CONST.subscribes:
