@@ -51,11 +51,11 @@ class Routiner(Base, Document):
     
     @classmethod
     async def cancel(cls, ent: CoreEntity):
-        cls.objects(player=Player.chk(ent.player)).delete()
+        cls.objects(player=Player.chk(ent.pid)).delete()
     
     @classmethod
     async def add(cls, ent: CoreEntity):
-        plr = Player.chk(ent.player)
+        plr = Player.chk(ent.pid)
         if not cls.objects(player=plr):
             cls(
                 player=plr
@@ -120,7 +120,7 @@ class CodeforcesRoutiner(Routiner):
                 for s in SessionManager.get_routiner_list(pid):
                     await s.upload(
                         CoreEntity(
-                            player=pid,
+                            pid=pid,
                             chain=chain.MessageChain.auto_make(
                                 f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
                                 f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
@@ -228,7 +228,7 @@ class AtcoderRoutiner(Routiner):
                 for s in SessionManager.get_routiner_list(pid):
                     await s.upload(
                         CoreEntity(
-                            player=pid,
+                            pid=pid,
                             chain=chain.MessageChain.auto_make(
                                 f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
                                 f"注册链接：https://atcoder.jp{contest['id']}"
@@ -312,7 +312,7 @@ class CreditInfoRoutiner(Routiner):
             for s in SessionManager.get_routiner_list(str(subs.player)):
                 await s.upload(
                     CoreEntity(
-                        player=str(subs.player),
+                        pid=str(subs.player),
                         chain=chain.MessageChain.auto_make(
                             f'今天使用{await cls.info()}这些命令会有惊喜哦（'
                         ),
@@ -356,8 +356,8 @@ class DDLNoticeRoutiner(Routiner):
         for s in SessionManager.get_routiner_list(pid):
             await s.upload(
                 CoreEntity(
-                    player=pid,
-                    chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if player.pid!=mem else message),
+                    pid=pid,
+                    chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if int(pid)!=mem else message),
                     source='',
                     meta={}
                 )
@@ -524,7 +524,7 @@ class WeatherReportRoutiner(Routiner):
             for s in SessionManager.get_routiner_list(pid):
                 s.upload(
                     CoreEntity(
-                        player=pid,
+                        pid=pid,
                         chain=chain.MessageChain.auto_make(
                             '\n'.join(output)
                         ),
@@ -537,11 +537,11 @@ class WeatherReportRoutiner(Routiner):
     @classmethod
     async def add(cls, ent: CoreEntity):
         c = cls.objects(
-            player=Player.chk(ent.player)
+            player=Player.chk(ent.pid)
         ).first()
         if not c:
             c = cls(
-            player=Player.chk(ent.player),
+            player=Player.chk(ent.pid),
             city=[]
         )
         if ent.meta['city'] not in c.city:
@@ -566,7 +566,7 @@ class DailySentenceRoutiner(Routiner):
             # amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
             amr = j['tts']
             ent = CoreEntity(
-                player='',
+                pid='',
                 chain=MessageChain.auto_make(
                     [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
                 ),
@@ -575,7 +575,7 @@ class DailySentenceRoutiner(Routiner):
             )
             for subs in cls.objects():
                 pid = str(subs.player)
-                ent.player = pid
+                ent.pid = pid
                 for s in SessionManager.get_routiner_list(pid):
                     await s.upload(
                         ent
@@ -583,7 +583,7 @@ class DailySentenceRoutiner(Routiner):
         except:
             logger.critical(traceback.format_exc())
             ent = CoreEntity(
-                player='',
+                pid='',
                 chain=MessageChain.auto_make(
                     [Plain('【每日一句】网络连接错误，请检查日志')]
                 ),
@@ -592,7 +592,7 @@ class DailySentenceRoutiner(Routiner):
             )
             for subs in cls.objects():
                 pid = str(subs.player)
-                ent.player = pid
+                ent.pid = pid
                 for s in SessionManager.get_routiner_list(pid):
                     await s.upload(
                         ent
