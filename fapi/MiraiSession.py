@@ -63,8 +63,8 @@ class MiraiSession(Session):
                         ent.chain = MessageChain.auto_make(ret)
                         await self.__auto_deliver(ent)
                         return
-                    # logger.warning(ent)
                     try:
+                        logger.warning(f'conn2wk{ent}')
                         task.delay(ent.json()) # 向Worker发布任务
                     except UnboundLocalError as e:
                         logger.debug('非可处理消息事件:{}', str(e))
