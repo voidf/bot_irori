@@ -75,7 +75,7 @@ def encrypt(s: str) -> str:
 def generate_login_jwt(expires: float=86400):
     return jwt.encode(
         {
-            'ts': str(datetime.datetime.now().timestamp())
+            'ts': str((datetime.datetime.now()+ datetime.timedelta(seconds=expires)).timestamp())
         },  # payload, 有效载体
         jwt_key,  # 进行加密签名的密钥
     )
