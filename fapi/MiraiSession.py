@@ -56,12 +56,15 @@ class MiraiSession(Session):
                         # TODO: 临时消息，系统命令
                         if len(ato)>=2 and ato[0] == 'sudo' and ent.member in IroriConfig.get().auth_masters:
                             # TODO: 迁移python3.10 改match语法
-                            ret = await {
-                                'eval': sys_eval,
-                                'exec': sys_exec,
-                                'run': sys_run,
-                            }.get(ato[1], sys_help)(ent, ato[2:])
-                            ent.chain = MessageChain.auto_make(ret)
+                            try:
+                                ret = await {
+                                    'eval': sys_eval,
+                                    'exec': sys_exec,
+                                    'run': sys_run,
+                                }.get(ato[1], sys_help)(ent, ato[2:])
+                                ent.chain = MessageChain.auto_make(ret)
+                            except:
+                                ent.chain = MessageChain.auto_make(traceback.format_exc())
                             await self.__auto_deliver(ent)
                             continue
                         try:
