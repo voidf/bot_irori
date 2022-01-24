@@ -17,3 +17,4 @@ xlrd==1.2.0
 mongoengine
 pyzipper
 websockets
+# python-magic-bin==0.4.14

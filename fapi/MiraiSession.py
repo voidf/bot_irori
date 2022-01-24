@@ -52,7 +52,7 @@ class MiraiSession(Session):
 
                         # continue # debug
                     # TODO: 临时消息，系统命令
-                    if len(ato)>=2 and ato[0] == 'sudo' and ent.pid in IroriConfig.get().auth_masters:
+                    if len(ato)>=2 and ato[0] == 'sudo' and ent.member in IroriConfig.get().auth_masters:
                         # TODO: 迁移python3.10 改match语法
                         ret = await {
                             'eval': sys_eval,
