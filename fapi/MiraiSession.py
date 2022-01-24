@@ -60,8 +60,7 @@ class MiraiSession(Session):
                                 'eval': sys_eval,
                                 'exec': sys_exec,
                                 'run': sys_run,
-                                'help': sys_help,
-                            }[ato[1]](ato[2:])
+                            }.get(ato[1], sys_help)(ent, ato[2:])
                             ent.chain = MessageChain.auto_make(ret)
                             await self.__auto_deliver(ent)
                             return
