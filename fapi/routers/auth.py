@@ -117,7 +117,7 @@ async def mirai_login(tk: str = Depends(o2_scheme), miraiwsurl: str = Form(...))
     a, msg = verify_login_jwt(tk)
     if not a:
         return falseReturn(401, msg)
-    await connect_mirai(a, miraiwsurl)
+    await connect_mirai(miraiwsurl)
     return trueReturn()
     # await Routiner.recover_routiners(a)
     # if not fapi.G.initialized:
