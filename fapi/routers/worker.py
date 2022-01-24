@@ -17,7 +17,7 @@ from fapi import trueReturn, falseReturn
 
 from basicutils.network import *
 from basicutils.chain import *
-from fapi.models.Routinuer import *
+from fapi.models.Routiner import *
 
 worker_route = APIRouter(
     prefix="/worker",
@@ -107,7 +107,7 @@ routiner_route = APIRouter(
 
 
 async def resolve_routiner(ent: CoreEntity = Depends(parse_session_jwt)) -> Tuple[CoreEntity, Routiner]:
-    return ent, fapi.models.Routinuer.routiner_namemap[ent.meta.get('routiner')]
+    return ent, fapi.models.Routiner.routiner_namemap[ent.meta.get('routiner')]
 
 
 @routiner_route.post('')

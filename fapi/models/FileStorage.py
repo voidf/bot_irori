@@ -6,7 +6,7 @@ from mongoengine import *
 from mongoengine.fields import (DateTimeField, FileField, IntField, ListField,
                                 ReferenceField, StringField)
 
-routiner_namemap = {} # 根据名字查找Routinuer用
+routiner_namemap = {} # 根据名字查找Routiner用
 
 class FileStorage(Base, Document):
     meta = {'allow_inheritance': True}

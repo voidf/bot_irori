@@ -189,7 +189,7 @@ def 爬CF(ent: CoreEntity):
         sub （订阅提醒）"""
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'CodeforcesRoutinuer'
+    ent.meta['routiner'] = 'CodeforcesRoutiner'
     li = []
     if len(attrs):
         if attrs[0] in GLOBAL.unsubscribes:
@@ -235,7 +235,7 @@ def 爬AtCoder(ent: CoreEntity):
         reset（取消提醒）
     """
     attrs = ent.chain.tostr().split(' ')
-    ent.meta['routiner'] = 'AtcoderRoutinuer'
+    ent.meta['routiner'] = 'AtcoderRoutiner'
     li = []
 
     if attrs:
@@ -434,7 +434,7 @@ def 爬天气(ent: CoreEntity):
     if not attrs:
         return [Plain('你想问哪个城市的天气？\n')]
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'WeatherReportRoutinuer'
+    ent.meta['routiner'] = 'WeatherReportRoutiner'
     if attrs[0] in GLOBAL.unsubscribes:
 
         resp = requests.delete(
@@ -467,7 +467,7 @@ def 爬每日一句(ent: CoreEntity):
         #每日一句 cancel"""
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'DailySentenceRoutinuer'
+    ent.meta['routiner'] = 'DailySentenceRoutiner'
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
             requests.delete(

@@ -17,7 +17,7 @@ from mongoengine import *
 from fapi.models.Auth import *
 from fapi.models.Player import *
 
-routiner_namemap = {} # 根据名字查找Routinuer用
+routiner_namemap = {} # 根据名字查找Routiner用
 retries = 20 # 比赛订阅爬虫超时重试次数
 
 def imaseconds(cycle: float=86400, timezoneoffset: float=8*3600):
@@ -67,7 +67,7 @@ class Routiner(Base, Document):
 
 # (现在的时间戳 + 8*3600) % 86400 才能获得东八区现在是一天的第几秒
 
-class CodeforcesRoutinuer(Routiner):
+class CodeforcesRoutiner(Routiner):
     # mode = StringField(default='Y')
 
     @staticmethod
@@ -134,7 +134,7 @@ class CodeforcesRoutinuer(Routiner):
             logger.error(traceback.format_exc())
     @classmethod
     async def update_futures(cls):
-        li = await CodeforcesRoutinuer.spider()
+        li = await CodeforcesRoutiner.spider()
         mp =  cls.contest_futures
         for contest in li:
             if contest['id'] in mp:
@@ -160,7 +160,7 @@ class CodeforcesRoutinuer(Routiner):
 
 import basicutils.CONST as C
 from bs4 import BeautifulSoup
-class AtcoderRoutinuer(Routiner):
+class AtcoderRoutiner(Routiner):
     @staticmethod
     async def spider() -> list:
         ses: aiohttp.ClientSession
@@ -242,7 +242,7 @@ class AtcoderRoutinuer(Routiner):
 
     @classmethod
     async def update_futures(cls):
-        li = await AtcoderRoutinuer.spider()
+        li = await AtcoderRoutiner.spider()
         mp = cls.contest_futures
         for contest in li:
             if contest['id'] in mp:
@@ -269,7 +269,7 @@ class AtcoderRoutinuer(Routiner):
 import random
 import basicutils.CONST as CONST
 from Worker import import_applications
-class CreditInfoRoutinuer(Routiner):
+class CreditInfoRoutiner(Routiner):
     @classmethod
     async def info(cls, ent: CoreEntity):
         return ','.join(list(cls.credit_cmds.keys()))
@@ -448,7 +448,7 @@ class DDLNoticeRoutiner(Routiner):
 
 from bs4 import BeautifulSoup
 import traceback
-class WeatherReportRoutinuer(Routiner):
+class WeatherReportRoutiner(Routiner):
     city = ListField(StringField())
     @classmethod
     async def resume(cls):
@@ -548,7 +548,7 @@ class WeatherReportRoutinuer(Routiner):
             c.city.append(ent.meta['city'])
             c.save()
 
-class DailySentenceRoutinuer(Routiner):
+class DailySentenceRoutiner(Routiner):
     @classmethod
     async def resume(cls):
         logger.debug(f'{cls} resume called')

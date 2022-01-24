@@ -258,7 +258,7 @@ def 信用点命令更新订阅姬(ent: CoreEntity):
             return traceback.format_exc()
         return [Plain('取消信用点命令更新订阅')]
     ent.meta['call'] = 'info'
-    ent.meta['routiner'] = 'CreditInfoRoutinuer'
+    ent.meta['routiner'] = 'CreditInfoRoutiner'
     resp = requests.options(
         server_api('/worker/routiner'),
         json={"ents": ent.json()}

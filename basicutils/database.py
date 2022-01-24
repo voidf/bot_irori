@@ -127,7 +127,7 @@ connect(**cfg.db)
 #     async def resume(cls):
 #         raise NotImplementedError
 
-# class CodeforcesRoutinuer(Routiner):
+# class CodeforcesRoutiner(Routiner):
 #     mode = StringField(default='Y')
 #     @classmethod
 #     def resume(cls):
