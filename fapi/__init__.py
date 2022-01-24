@@ -12,7 +12,6 @@ from basicutils.task import ArgumentParser
 from typing import Union
 import asyncio
 import traceback
-from fapi.models.Routiner import *
 
 # @logger.catch
 # def announcement(msg: Union[str, CoreEntity], ignored=[]):
