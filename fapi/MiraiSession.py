@@ -63,7 +63,7 @@ class MiraiSession(Session):
                             }.get(ato[1], sys_help)(ent, ato[2:])
                             ent.chain = MessageChain.auto_make(ret)
                             await self.__auto_deliver(ent)
-                            return
+                            continue
                         try:
                             logger.warning(f'conn2wk{ent}')
                             task.delay(ent.json()) # 向Worker发布任务
