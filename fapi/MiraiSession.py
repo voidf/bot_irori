@@ -21,62 +21,65 @@ class MiraiSession(Session):
             # if not self._alive:
                 # logger.warning('manually closed')
                 # break
-            if msg.type == aiohttp.WSMsgType.TEXT:
-                logger.debug(msg.data)
-                j = json.loads(msg.data)
-                # logger.warning(j)
-                if 'data' in j and 'type' in j['data']:
-                    if j['data']['type'] == 'GroupMessage':
-                        pid = str(j['data']['sender']['group']['id'] + (1<<39))
-                        ent = CoreEntity(
-                            jwt=generate_session_jwt(self.sid),
-                            pid=pid,
-                            source=self.sid,
-                            member=str(j['data']['sender']['id']),
-                            meta={},
-                            chain=MessageChain.auto_make(j['data']['messageChain'])
-                        )
-                        ato = await self.__preprocess(ent)
+            try:
+                if msg.type == aiohttp.WSMsgType.TEXT:
+                    logger.debug(msg.data)
+                    j = json.loads(msg.data)
+                    # logger.warning(j)
+                    if 'data' in j and 'type' in j['data']:
+                        if j['data']['type'] == 'GroupMessage':
+                            pid = str(j['data']['sender']['group']['id'] + (1<<39))
+                            ent = CoreEntity(
+                                jwt=generate_session_jwt(self.sid),
+                                pid=pid,
+                                source=self.sid,
+                                member=str(j['data']['sender']['id']),
+                                meta={},
+                                chain=MessageChain.auto_make(j['data']['messageChain'])
+                            )
+                            ato = await self.__preprocess(ent)
 
-                    elif j['data']['type'] == 'FriendMessage':
-                        pid = str(j['data']['sender']['id'])
-                        ent = CoreEntity(
-                            jwt=generate_session_jwt(self.sid),
-                            pid=pid,
-                            source=self.sid,
-                            member=str(j['data']['sender']['id']),
-                            meta={},
-                            chain=MessageChain.auto_make(j['data']['messageChain'])
-                        )
-                        ato = await self.__preprocess(ent)
+                        elif j['data']['type'] == 'FriendMessage':
+                            pid = str(j['data']['sender']['id'])
+                            ent = CoreEntity(
+                                jwt=generate_session_jwt(self.sid),
+                                pid=pid,
+                                source=self.sid,
+                                member=str(j['data']['sender']['id']),
+                                meta={},
+                                chain=MessageChain.auto_make(j['data']['messageChain'])
+                            )
+                            ato = await self.__preprocess(ent)
 
-                        # continue # debug
-                    # TODO: 临时消息，系统命令
-                    if len(ato)>=2 and ato[0] == 'sudo' and ent.member in IroriConfig.get().auth_masters:
-                        # TODO: 迁移python3.10 改match语法
-                        ret = await {
-                            'eval': sys_eval,
-                            'exec': sys_exec,
-                            'run': sys_run,
-                            'help': sys_help,
-                        }[ato[1]](ato[2:])
-                        ent.chain = MessageChain.auto_make(ret)
-                        await self.__auto_deliver(ent)
-                        return
-                    try:
-                        logger.warning(f'conn2wk{ent}')
-                        task.delay(ent.json()) # 向Worker发布任务
-                    except UnboundLocalError as e:
-                        logger.debug('非可处理消息事件:{}', str(e))
-                        pass
-                    except:
-                        logger.critical(traceback.format_exc())
+                            # continue # debug
+                        # TODO: 临时消息，系统命令
+                        if len(ato)>=2 and ato[0] == 'sudo' and ent.member in IroriConfig.get().auth_masters:
+                            # TODO: 迁移python3.10 改match语法
+                            ret = await {
+                                'eval': sys_eval,
+                                'exec': sys_exec,
+                                'run': sys_run,
+                                'help': sys_help,
+                            }[ato[1]](ato[2:])
+                            ent.chain = MessageChain.auto_make(ret)
+                            await self.__auto_deliver(ent)
+                            return
+                        try:
+                            logger.warning(f'conn2wk{ent}')
+                            task.delay(ent.json()) # 向Worker发布任务
+                        except UnboundLocalError as e:
+                            logger.debug('非可处理消息事件:{}', str(e))
+                            pass
+                        except:
+                            logger.critical(traceback.format_exc())
 
-            else:
-                logger.critical(msg.type)
-                logger.critical(f'connection closed {wsurl}')
-            # elif msg.type == aiohttp.WSMsgType.ERROR:
-                break
+                else:
+                    logger.critical(msg.type)
+                    logger.critical(f'connection closed {wsurl}')
+                # elif msg.type == aiohttp.WSMsgType.ERROR:
+                    break
+            except:
+                logger.critical(traceback.format_exc())
     
     async def enter_loop(self, wsurl: str):
         """预处理好友表、群表"""
