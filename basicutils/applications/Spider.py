@@ -344,7 +344,7 @@ def 爬牛客(ent: CoreEntity):
             )
         return l
     for c in fetchNowCoderContests():
-        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
+        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
     return li
         
 def 爬歌(ent: CoreEntity):
