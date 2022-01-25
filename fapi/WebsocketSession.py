@@ -19,7 +19,8 @@ class WebsocketSessionBase(Session):
                     task.delay(ent.json()) # 向Worker发布任务
                 except:
                     logger.critical(traceback.format_exc())
-
+            except RuntimeError:
+                break
             except:
                 logger.critical(traceback.format_exc())
         self._alive = False

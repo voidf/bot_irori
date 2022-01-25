@@ -175,6 +175,13 @@ class SessionManager():
         return sid
 
     @staticmethod
+    async def hangon(k: int):
+        s = SessionManager.get(k)
+        if s:
+            return await s.receiver()
+        return
+
+    @staticmethod
     def close(k: int):
         """关掉一个会话"""
         try:

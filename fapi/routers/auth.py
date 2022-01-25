@@ -107,9 +107,9 @@ async def ws_connectin(websocket: WebSocket, token: str = Query(''), typ: str=Qu
     if not p:
         await websocket.close(status.WS_1008_POLICY_VIOLATION)
     if typ == 'json':
-        await SessionManager.new(WebsocketSessionJson, websocket, p.pid)
+        await SessionManager.hangon(SessionManager.new(WebsocketSessionJson, websocket, p.pid))
     elif typ == 'plain':
-        await SessionManager.new(WebsocketSessionPlain, websocket, p.pid)
+        await SessionManager.hangon(SessionManager.new(WebsocketSessionPlain, websocket, p.pid))
     else:
         await websocket.close(status.WS_1008_POLICY_VIOLATION)
 
