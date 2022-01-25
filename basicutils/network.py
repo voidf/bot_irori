@@ -9,6 +9,7 @@ from basicutils.chain import *
 
 # Core内部传输用
 class CoreEntity(BaseModel):
+    """irori系统内部的消息传输形式"""
     chain: MessageChain
     # player: str  = '' # 发送来源player ObjectId
     pid: str  = ''    # 发送来源player id

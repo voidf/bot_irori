@@ -36,7 +36,7 @@ def contesttime2str(t: float) -> str:
 
 
 def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
-    """退订回-1，订阅回1，没命中回0"""
+    """退订回-1，订阅回1，更新回2，没命中回0"""
     ent.meta['routiner'] = routiner
     if keyword in GLOBAL.unsubscribes:
         resp = requests.delete(
@@ -54,6 +54,15 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
         if resp.status_code!=200:
             return resp.text
         return 1
+    elif keyword == 'upd':
+        ent.meta['call'] = 'upd'
+        resp = requests.options(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return 2
     return 0
 
 # async def 没救了(*attrs,kwargs={}):
@@ -225,7 +234,7 @@ def 爬CF(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = [None, '已订阅Codeforces比赛提醒推送', '取消本群的CodeForces比赛提醒服务'][
+        ret = [None, '已订阅Codeforces比赛提醒推送', '成功更新CF比赛推送', '取消本群的CodeForces比赛提醒服务'][
             subscriber(attrs[0],'CodeforcesRoutiner',ent)
         ]
         if ret: return ret
@@ -259,7 +268,7 @@ def 爬AtCoder(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = ['', '已订阅AtCoder比赛提醒推送', '取消本群的AtCoder比赛提醒服务'][
+        ret = ['', '已订阅AtCoder比赛提醒推送', '成功更新AtCoder比赛推送', '取消本群的AtCoder比赛提醒服务'][
             subscriber(attrs[0],'AtcoderRoutiner',ent)
         ]
         if ret: return ret
@@ -323,7 +332,7 @@ def 爬牛客(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = ['', '已订阅牛客比赛提醒推送', '取消本群的牛客比赛提醒服务'][
+        ret = ['', '已订阅牛客比赛提醒推送', '成功更新牛客比赛推送', '取消本群的牛客比赛提醒服务'][
             subscriber(attrs[0],'NowcoderRoutiner',ent)
         ]
         if ret: return ret
@@ -465,7 +474,7 @@ def 爬天气(ent: CoreEntity):
                 server_api('/worker/routiner'),
                 json = {'ents': ent.json()}
             )
-            output.append(f'从现在开始每天0点i宝会告诉你{attrs[0]}的天气情况哦！')
+            output.append(f'{attrs[0]}的天气推送已订阅')
     except:
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]

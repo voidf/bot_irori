@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from fapi.Sessions import SessionManager
 from basicutils.task import *
 from basicutils.media import *
@@ -67,53 +68,35 @@ class Routiner(Base, Document):
 
 # (现在的时间戳 + 8*3600) % 86400 才能获得东八区现在是一天的第几秒
 
-class CodeforcesRoutiner(Routiner):
-    # mode = StringField(default='Y')
+@dataclass
+class Contest():
+    id: str
+    name: str
+    countdown: float
 
-    @staticmethod
-    async def spider()-> list:
-        ses: aiohttp.ClientSession
-        retry_time = retries
-        async with aiohttp.ClientSession() as ses:
-            while retry_time:
-                retry_time -= 1
-                try:
-                        resp: aiohttp.ClientResponse
-                        li = []
-                        async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
-                            j = (await resp.json())['result']
-                            for i in j:
-                                if i['phase'] == 'FINISHED':
-                                    break
-                                li.append(i)
-                                """
-                                可用属性：
-                                id                  比赛id
-                                name                比赛名
-                                startTimeSeconds    开始时间戳
-                                relativeTimeSeconds 为负数时表示还差多少秒开始
-                                durationSeconds     时长
-
-                                """
-                        return li
-                except:
-                    logger.warning(make_banner('Error occured when fetching codeforces'))
-                    logger.warning(traceback.format_exc())
-            logger.critical(make_banner('Error occured when fetching codeforces, max retries exceed.', '!'))
-            return []
+class ContestRoutiner(Routiner):
+    meta = {'allow_inheritance': True}
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        """从网络爬取比赛信息"""
+        raise NotImplementedError
 
     @classmethod
-    async def notify(cls, contest: dict):
-        ofs = 3600
-        contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
-        logger.critical('{}在{}s后开始', contest['name'], contest['relativeTimeSeconds'] - ofs)
-        if contest['relativeTimeSeconds'] < ofs:
-            logger.critical('returned')
+    async def regmsg(cls, contest: Contest) -> str:
+        """生成比赛注册信息"""
+        raise NotImplementedError
+
+    @classmethod
+    async def notify(cls, contest: Contest):
+        """通知一项比赛的开始，是一个future任务，以便中断取消"""
+        ofs = 3600 # 提前量
+        logger.critical('{}在{}s后开始', contest.name, contest.countdown)
+        if contest.countdown < ofs:
+            logger.debug('{}已经错过提醒时机', contest.name)
             return
-        await asyncio.sleep(contest['relativeTimeSeconds'] - ofs)
+        await asyncio.sleep(contest.countdown - ofs)
         q = cls.objects()
-        # if q:
-        logger.critical(q)
+        logger.debug(f"订阅对象：{q}")
         try:
             for subs in q:
                 pid = str(subs.player)
@@ -122,30 +105,55 @@ class CodeforcesRoutiner(Routiner):
                         CoreEntity(
                             pid=pid,
                             chain=chain.MessageChain.auto_make(
-                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                                f"注册链接：https://codeforces.com/contestRegistration/{contest['id']}"
+                                f"比赛【{contest.name}】还有不到1小时就要开始了...\n" + cls.regmsg(contest)
                             ),
                             source='',
                             meta={}
                         )
                     )
-                    logger.critical('upload done')
+                    logger.debug('{}向{}通知完毕', contest.name, pid)
         except:
             logger.error(traceback.format_exc())
+
     @classmethod
-    async def update_futures(cls):
-        li = await CodeforcesRoutiner.spider()
-        mp =  cls.contest_futures
-        for contest in li:
-            if contest['id'] in mp:
-                mp[contest['id']].cancel()
-            mp[contest['id']] = asyncio.ensure_future(
-                cls.notify(contest)
+    async def update_futures(cls, *args):
+        """用官网的新信息更新pending中的提醒任务，尝试20次"""
+
+        retry_time = retries
+        li = []
+        async with aiohttp.ClientSession() as ses:
+            while retry_time:
+                retry_time -= 1
+                try:
+                    li = await cls.spider(ses)
+                    break
+                except:
+                    logger.warning(make_banner(f'Error occured when fetching with {cls}'))
+                    logger.warning(traceback.format_exc())
+            if not retry_time:
+                logger.critical(make_banner(f'Error occured when fetching with {cls}, max retries exceed.', '!'))
+            
+
+
+        mp = cls.contest_futures
+        for c in li:
+            if c.id in mp:
+                mp[c.id].cancel()
+            mp[c.id] = asyncio.ensure_future(
+                cls.notify(c)
             )
 
     @classmethod
     async def resume(cls):
+        """
+        启动入口，每个比赛日程器都需要一个contest_futures维护即将提醒的比赛。
+        要按比赛推送，而不是按订阅者去请求比赛。
+        比赛日程器应该要能执行手动更新命令
+        """
         cls.contest_futures = {}
+        cls.call_map = {
+            'upd': cls.update_futures
+        }
         await cls.update_futures()
         asyncio.ensure_future(cls.mainloop())
 
@@ -153,117 +161,107 @@ class CodeforcesRoutiner(Routiner):
     @classmethod
     async def mainloop(cls):
         while 1:
-            await asyncio.sleep(sleep2(0))
-            logger.debug('updating codeforces routiner...')
+            await asyncio.sleep(sleep2(0)) # 每日0点重新请求
+            logger.debug(f'updating {cls}...')
             await cls.update_futures()
+
+
+class CodeforcesRoutiner(ContestRoutiner):
+
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        li = []
+        async with ses.get('https://codeforces.com/api/contest.list', timeout=30) as resp:
+            j = (await resp.json())['result']
+            for i in j:
+                """
+                可用属性：
+                id                  比赛id
+                name                比赛名
+                startTimeSeconds    开始时间戳
+                relativeTimeSeconds 为负数时表示还差多少秒开始
+                durationSeconds     时长
+
+                """
+                if i['phase'] == 'FINISHED':
+                    break
+                li.append(
+                    Contest(
+                        i['id'],
+                        i['name'],
+                        -i['relativeTimeSeconds']
+                    )
+                )
+        return li
+
+
+    @classmethod
+    async def regmsg(cls, contest: Contest):
+        return f"注册链接：https://codeforces.com/contestRegistration/{contest.id}"
 
 
 import basicutils.CONST as C
 from bs4 import BeautifulSoup
-class AtcoderRoutiner(Routiner):
-    @staticmethod
-    async def spider() -> list:
-        ses: aiohttp.ClientSession
-        async with aiohttp.ClientSession() as ses:
-            resp: aiohttp.ClientResponse
-            retry_time = retries
-            while retry_time:
-                retry_time -= 1
-                try:
-                    li = []
-                    async with ses.get(
-                        'https://atcoder.jp/contests/',
-                        headers=C.AtCoderHeaders,
-                        timeout=30
-                    ) as resp:
-                        s = BeautifulSoup(await resp.text(), 'html.parser')
-                        try:
-                            for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
-                                if p:
-                                    begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                                    li.append({
-                                        'id': i('a')[1]['href'],
-                                        'name': i('a')[1].text,
-                                        'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
-                                    })
-                        except:
-                            pass
-                        for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
-                            if p:
-                                begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                                li.append({
-                                    'id': i('a')[1]['href'],
-                                    'name': i('a')[1].text,
-                                    'relativeTimeSeconds': (datetime.datetime.now() - begintime).total_seconds()
-                                })
-                    # for i in j:
-                    #     if i['phase'] == 'FINISHED':
-                    #         break
-                    #     li.append(i)
-                    #     """
-                    #     可用属性：
-                    #     id                  比赛id
-                    #     name                比赛名
-                    #     relativeTimeSeconds 为负数时表示还差多少秒开始
-                    #     """
-                        
-                        return li
-                except:
-                    logger.warning(make_banner('Error occured when fetching atcoder'))
-                    logger.warning(traceback.format_exc())
-            logger.critical(make_banner('Error occured when fetching atcoder, max retries exceed.', '!'))
-            return []
+class AtcoderRoutiner(ContestRoutiner):
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        li = []
+        async with ses.get(
+            'https://atcoder.jp/contests/',
+            headers=C.AtCoderHeaders,
+            timeout=30
+        ) as resp:
+            s = BeautifulSoup(await resp.text(), 'html.parser')
+            try:
+                for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
+                    if p:
+                        begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                        li.append(Contest(
+                            i('a')[1]['href'],
+                            i('a')[1].text,
+                            (datetime.datetime.now() - begintime).total_seconds()
+                        ))
+            except:
+                pass
+            for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
+                if p:
+                    begintime = datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
+                    li.append(Contest(
+                        i('a')[1]['href'],
+                        i('a')[1].text,
+                        (datetime.datetime.now() - begintime).total_seconds()
+                    ))
+        return li
 
     @classmethod
-    async def notify(cls, contest: dict):
-        contest['relativeTimeSeconds'] = abs(contest['relativeTimeSeconds'])
-        if contest['relativeTimeSeconds'] < 3600:
-            return
-        await asyncio.sleep(contest['relativeTimeSeconds'] - 3600)
-        q = cls.objects()
-        
-        try:
-            for subs in q:
-                pid = str(subs.player)
-                for s in SessionManager.get_routiner_list(pid):
-                    await s.upload(
-                        CoreEntity(
-                            pid=pid,
-                            chain=chain.MessageChain.auto_make(
-                                f"比赛【{contest['name']}】还有不到1小时就要开始了...\n" + 
-                                f"注册链接：https://atcoder.jp{contest['id']}"
-                            ),
-                            source='',
-                            meta={}
-                        )
+    async def regmsg(cls, contest: Contest) -> str:
+        """生成比赛注册信息"""
+        return f"注册链接：https://atcoder.jp{contest.id}"
+import html
+class NowcoderRoutiner(ContestRoutiner):
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        li = []
+        async with ses.get(
+            'https://ac.nowcoder.com/acm/contest/vip-index', timeout=30
+        ) as resp:
+            sp = BeautifulSoup(await resp.text(), 'html.parser')
+            for item in sp.find_all('div',class_='platform-item js-item'):
+                j = json.loads(html.unescape(html.unescape(item['data-json'])))
+                li.append(
+                    Contest(
+                        j['contestId'],
+                        j['contestName'],
+                        j['contestStartTime']/1e3,
+                        j['contestDuration']/1e3,
                     )
-        except:
-            logger.error(traceback.format_exc())
+                )
+        return li
 
     @classmethod
-    async def update_futures(cls):
-        li = await AtcoderRoutiner.spider()
-        mp = cls.contest_futures
-        for contest in li:
-            if contest['id'] in mp:
-                mp[contest['id']].cancel()
-            mp[contest['id']] = asyncio.ensure_future(
-                cls.notify(contest)
-            )
-
-    @classmethod
-    async def resume(cls):
-        cls.contest_futures = {}
-        await cls.update_futures()
-        asyncio.ensure_future(cls.mainloop())
-
-
-    @classmethod
-    async def mainloop(cls):
-        while 1:
-            await asyncio.sleep(sleep2(0))
-            logger.debug('updating atcoder routiner...')
-            await cls.update_futures()
+    async def regmsg(cls, contest: Contest) -> str:
+        """生成比赛注册信息"""
+        return f"直达链接：https://ac.nowcoder.com/acm/contest/{contest.id}"
 
 
 import random
