@@ -46,6 +46,6 @@ def 外部令牌(ent: CoreEntity):
         player.save()
         buf.append('【提示】口令已重新生成，注意先前的jwt令牌会全部失效')
     if args and args[0] == 'jwt':
-        buf.append('【重要】请妥善保管您的新jwt令牌: '+generate_player_jwt(ent.member))
+        buf.append('【重要】请妥善保管您的新jwt令牌:\n'+generate_player_jwt(ent.member))
 
-    return buf
+    return '\n'.join(buf)

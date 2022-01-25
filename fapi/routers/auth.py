@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, File, UploadFile, Form
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, Response, File, UploadFile, Form
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -97,7 +97,7 @@ from fapi.WebsocketSession import *
 from fastapi import WebSocket
 from fastapi import status
 @auth_route.websocket('/ws')
-async def ws_connectin(websocket: WebSocket, player_token: str, typ: str='json'):
+async def ws_connectin(websocket: WebSocket, player_token: str = Query(''), typ: str=Query('json')):
     """
     player_token: player对应的口令，可以通过bot申请
     typ: 欲创建的ws连接种类，仅提供json和plain两种
