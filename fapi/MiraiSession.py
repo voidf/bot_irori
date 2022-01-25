@@ -71,6 +71,8 @@ class MiraiSession(Session):
         self._alive = False
     
     async def enter_loop(self, wsurl: str):
+        self._ases = aiohttp.ClientSession()
+
         """回环入口，对于mirai的对接，向提供的wsurl发起websocket连接"""
         self.ws = await self._ases.ws_connect(wsurl, headers={})
         await self.ws.receive_json() # 捕获连接消息

@@ -18,7 +18,6 @@ from fapi.utils.syscall import *
 class Session(ABC):
     """收发消息的实体"""
     def __init__(self) -> None:
-        self._ases = aiohttp.ClientSession()
         self._alive = True
     def _init_sid(self, sid):
         self.sid = sid

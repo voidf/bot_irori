@@ -1,3 +1,4 @@
+import starlette
 from fapi.Sessions import *
 from fapi import *
 from Worker import task
@@ -21,10 +22,11 @@ class WebsocketSessionBase(Session):
                     logger.critical(traceback.format_exc())
             except RuntimeError:
                 break
+            except starlette.websockets.WebSocketDisconnect:
+                break
             except:
                 logger.critical(traceback.format_exc())
-        self._alive = False
-        await self.ws.close()
+        await self.close()
     
     async def enter_loop(self, ws: fastapi.WebSocket,  pid: str):
         self.pid = pid
@@ -35,10 +37,10 @@ class WebsocketSessionBase(Session):
         return [self.pid]
         
     async def close(self):
-        self.receiver.cancel()
         await self.ws.close()
         await self._ases.close()
         self._alive = False
+        self.receiver.cancel()
 
     @abstractmethod
     async def _deliver(self, ent: CoreEntity):
