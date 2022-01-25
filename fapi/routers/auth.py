@@ -29,7 +29,7 @@ class login_form(BaseModel):
 #     else:
 #         return False
 
-
+import fapi.MiraiSession
 from fapi.MiraiSession import MiraiSession
 async def connect_mirai(miraiwsurl: str) -> int:
     return (await SessionManager.new(MiraiSession, miraiwsurl))
