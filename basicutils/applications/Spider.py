@@ -312,7 +312,7 @@ def 爬LaTeX(ent: CoreEntity):
     lnk = 'https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base))
     return Image(url=lnk)
 import html
-async def 爬牛客(ent: CoreEntity):
+def 爬牛客(ent: CoreEntity):
     """#牛客 [#NC]
     爬取牛客将要开始的比赛的时间表
     可用参数:

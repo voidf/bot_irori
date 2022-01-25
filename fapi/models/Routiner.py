@@ -522,7 +522,7 @@ class WeatherReportRoutiner(Routiner):
                     output.append(
                         f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
             for s in SessionManager.get_routiner_list(pid):
-                s.upload(
+                await s.upload(
                     CoreEntity(
                         pid=pid,
                         chain=chain.MessageChain.auto_make(
