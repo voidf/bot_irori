@@ -158,8 +158,9 @@ class ContestRoutiner(Routiner):
             await cls.update_futures()
             asyncio.ensure_future(cls.mainloop())
         else:
-            for s in cls.__subclasses__():
-                await s.resume()
+            for sc in cls.__subclasses__():
+                routiner_namemap[sc.__name__] = sc
+                await sc.resume()
 
 
     @classmethod
