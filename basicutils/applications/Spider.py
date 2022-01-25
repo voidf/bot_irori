@@ -1,4 +1,5 @@
 """爬虫类"""
+from dataclasses import dataclass
 import enum
 import os
 import sys
@@ -22,6 +23,38 @@ import urllib
 from basicutils.chain import *
 from basicutils.network import *
 from basicutils.task import *
+
+@dataclass
+class Contest():
+    id: str
+    title: str
+    begintime: float
+    length: float
+
+def contesttime2str(t: float) -> str:
+    datetime.datetime.strptime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
+
+
+def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
+    """退订回-1，订阅回1，没命中回0"""
+    ent.meta['routiner'] = routiner
+    if keyword in GLOBAL.unsubscribes:
+        resp = requests.delete(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return -1
+    elif keyword in GLOBAL.subscribes:
+        resp = requests.post(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return 1
+    return 0
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
@@ -185,40 +218,27 @@ def 爬CF(ent: CoreEntity):
     """#CF []
     爬取CodeForces将要开始的比赛的时间表
     可用参数:
-        TD  （取消提醒）
-        sub （订阅提醒）"""
+        TD  取消提醒
+        sub 订阅提醒"""
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'CodeforcesRoutiner'
     li = []
-    if len(attrs):
-        if attrs[0] in GLOBAL.unsubscribes:
-            resp = requests.delete(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            return [Plain('取消本群的CodeForces比赛提醒服务')]
-        elif attrs[0] in GLOBAL.subscribes:
-            resp = requests.post(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            li.append(Plain('已订阅Codeforces比赛提醒推送\n'))
-    
-    li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
+
+    if attrs:
+        ret = [None, '已订阅Codeforces比赛提醒推送', '取消本群的CodeForces比赛提醒服务'][
+            subscriber(attrs[0],'CodeforcesRoutiner',ent)
+        ]
+        if ret: return ret
+    # li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
     resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
     for i in resp:
         if i['phase'] == 'FINISHED':
             break
         li.append(
             Plain(
-                '{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format(
+                '{:<10}\n{:<10}开始，持续{:<10}\n离开始还剩{:<15}\n\n'.format(
                     i['name'], 
-                    str(datetime.datetime.fromtimestamp(i['startTimeSeconds'])), 
+                    contesttime2str(i['startTimeSeconds']),
                     f"{i['durationSeconds'] / 60}min" , 
                     str(datetime.timedelta(seconds=-i['relativeTimeSeconds']))
                 )
@@ -232,29 +252,17 @@ def 爬AtCoder(ent: CoreEntity):
     """#AT []
     爬取AtCoder将要开始的比赛的时间表
     可用参数:
-        reset（取消提醒）
+        TD  取消提醒
+        sub 订阅提醒
     """
     attrs = ent.chain.tostr().split(' ')
-    ent.meta['routiner'] = 'AtcoderRoutiner'
     li = []
 
     if attrs:
-        if attrs[0] in GLOBAL.unsubscribes:
-            resp = requests.delete(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            return [Plain('取消本群的AtCoder比赛提醒服务')]
-        elif attrs[0] in GLOBAL.subscribes:
-            resp = requests.post(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            li.append(Plain('已订阅AtCoder比赛提醒推送\n'))
+        ret = ['', '已订阅AtCoder比赛提醒推送', '取消本群的AtCoder比赛提醒服务'][
+            subscriber(attrs[0],'AtcoderRoutiner',ent)
+        ]
+        if ret: return ret
     def fetchAtCoderContests() -> dict:
         j = {}
         l = []
@@ -303,35 +311,40 @@ def 爬LaTeX(ent: CoreEntity):
     base = r'\dpi{150} \bg_white \large ' + ent.chain.tostr().replace('+','&plus;')
     lnk = 'https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base))
     return Image(url=lnk)
-
-async def 爬牛客(*attrs,kwargs={}):
-    try:
-        gp = kwargs['gp'].id
-    except:
-        gp = kwargs['gp']
-    player = getPlayer(**kwargs)
-    
-    NCNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
-            
-    if len(attrs):
-        if attrs[0] in GLOBAL.unsubscribes:
-            NowCoderSubscribe.chk(player).delete()
-            return [Plain('取消本群的牛客比赛提醒服务')]
-    else:
-        NowCoderSubscribe.chk(player)
+import html
+async def 爬牛客(ent: CoreEntity):
+    """#牛客 [#NC]
+    爬取牛客将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
+    """
+    attrs = ent.chain.tostr().split(' ')
     li = []
-    if NowCoderSubscribe.objects(pk=Player.chk(player)):
-        NCData = fetchNowCoderContests()
-        for i in NCData:
-            li.append(Plain(i['title']+'\n'))
-            li.append(Plain(f"{i['begin']}"+'\t'))
-            li.append(Plain(i['length']+'\n\n'))
-            i['title'] = '【牛客】' + i['title']
 
-        OTNoticeManager(NCData,**kwargs)
-        
-        li.append(Plain('已自动订阅牛客的比赛提醒服务，取消请使用#NC reset'))
-
+    if attrs:
+        ret = ['', '已订阅牛客比赛提醒推送', '取消本群的牛客比赛提醒服务'][
+            subscriber(attrs[0],'NowcoderRoutiner',ent)
+        ]
+        if ret: return ret
+    def fetchNowCoderContests() -> List[Contest]:
+        l: List[Contest] = []
+        res = requests.get(
+            'https://ac.nowcoder.com/acm/contest/vip-index', timeout=30)
+        sp = BeautifulSoup(res.text, 'html.parser')
+        for item in sp.find_all('div',class_='platform-item js-item'):
+            j = json.loads(html.unescape(html.unescape(item['data-json'])))
+            l.append(
+                Contest(
+                    j['contestId'],
+                    j['contestName'],
+                    j['contestStartTime']/1e3,
+                    j['contestDuration']/1e3,
+                )
+            )
+        return l
+    for c in fetchNowCoderContests():
+        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
     return li
         
 def 爬歌(ent: CoreEntity):
@@ -670,10 +683,7 @@ functionDescript = {
 
     '#牛客':
 """
-爬取牛客将要开始的比赛的时间表
-感谢@Kevin010304提供的爬虫
-可用参数:
-    reset（取消提醒）
+
 """,
     '#什么值得听':'',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
