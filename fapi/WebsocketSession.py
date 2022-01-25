@@ -10,7 +10,6 @@ class WebsocketSessionBase(Session):
         raise NotImplementedError
     async def _receive_loop(self):
         """仅用于将消息从ws拉下来执行处理，不用于回传消息"""
-        await self.ws.accept()
         while self._alive and self.ws.application_state == WebSocketState.CONNECTED:
             try:
                 ent = await self._recv_ent()
@@ -29,6 +28,8 @@ class WebsocketSessionBase(Session):
     async def enter_loop(self, ws: fastapi.WebSocket,  pid: str):
         self.pid = pid
         self.ws = ws
+        await self.ws.accept()
+
         self.receiver = asyncio.ensure_future(self._receive_loop())
         return [self.pid]
         

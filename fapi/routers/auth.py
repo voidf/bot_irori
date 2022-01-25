@@ -97,7 +97,7 @@ from fapi.WebsocketSession import *
 from fastapi import WebSocket
 from fastapi import status
 @auth_route.websocket('/ws')
-async def ws_connectin(websocket: WebSocket, token: str = Query(''), typ: str=Query('json')):
+async def ws_connectin(websocket: WebSocket, token: str = Query(''), typ: str=Query('plain')):
     """
     token: player对应的jwt口令，可以通过bot申请
     typ: 欲创建的ws连接种类，仅提供json和plain两种
