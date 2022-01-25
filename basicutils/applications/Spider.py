@@ -32,7 +32,7 @@ class Contest():
     length: float
 
 def contesttime2str(t: float) -> str:
-    datetime.datetime.strptime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
+    datetime.datetime.strftime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
 
 
 def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
