@@ -150,7 +150,7 @@ class SessionManager():
         ses = SessionManager.s.get(k, None)
         if ses and ses.alive():
             return ses
-        SessionManager.pop(k)
+        SessionManager.s.pop(k)
         return None
 
     @staticmethod
