@@ -10,7 +10,6 @@ from fapi.Sessions import SessionManager
 
 from fapi.utils.jwt import *
 
-from fapi.MiraiSession import MiraiSession
 import asyncio
 auth_route = APIRouter(
     prefix="/auth",
@@ -31,8 +30,9 @@ class login_form(BaseModel):
 #         return False
 
 
+from fapi.MiraiSession import MiraiSession
 async def connect_mirai(miraiwsurl: str) -> int:
-    return await SessionManager.new(MiraiSession, miraiwsurl)
+    return (await SessionManager.new(MiraiSession, miraiwsurl))
 
 
 # @auth_route.post('/legacy')
