@@ -612,8 +612,9 @@ class LoginNoticeRoutiner(Routiner):
     @classmethod
     async def resume(cls):
         logger.debug(f'{cls} resume called')
-        cls.chk('550455545448')
-        cls.chk('2595247078')
+        if not cls.objects():
+            cls(player=Player.chk('550455545448')).save()
+            cls(player=Player.chk('2595247078')).save()
         asyncio.ensure_future(cls.mainloop())
         logger.info(f'{cls} initialized')
 
