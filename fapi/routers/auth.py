@@ -30,9 +30,9 @@ class login_form(BaseModel):
 #         return False
 
 import fapi.MiraiSession
-from fapi.MiraiSession import MiraiSession
+#from fapi.MiraiSession import *
 async def connect_mirai(miraiwsurl: str) -> int:
-    return (await SessionManager.new(MiraiSession, miraiwsurl))
+    return (await SessionManager.new(fapi.MiraiSession.MiraiSession, miraiwsurl))
 
 
 # @auth_route.post('/legacy')

@@ -2,6 +2,7 @@ from fapi.Sessions import *
 from fapi.utils.jwt import *
 import json
 from Worker import task
+from loguru import logger
 
 class MiraiSession(Session):
     # def __init__(self, adapter_id: Union[str, Adapter]):
@@ -72,13 +73,15 @@ class MiraiSession(Session):
     async def enter_loop(self, wsurl: str):
         """回环入口，对于mirai的对接，向提供的wsurl发起websocket连接"""
         self.ws = await self._ases.ws_connect(wsurl, headers={})
+        await self.ws.receive_json() # 捕获连接消息
         myplayers = []
         await self.ws.send_json({
             "syncId": -1,
             "command": "friendList"
         })
-        
-        for i in await self.ws.receive_json()['data']:
+        ret=(await self.ws.receive_json())
+        logger.debug(ret)
+        for i in ret['data']['data']:
             pid = i['id']
             myplayers.append(str(pid))
 
@@ -86,8 +89,9 @@ class MiraiSession(Session):
             "syncId": -1,
             "command": "groupList"
         })
-
-        for i in await self.ws.receive_json()['data']:
+        ret=(await self.ws.receive_json())
+        logger.debug(ret)
+        for i in ret['data']['data']:
             pid = i['id'] + (1 << 39)
             myplayers.append(str(pid))
         

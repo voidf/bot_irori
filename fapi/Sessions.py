@@ -147,7 +147,7 @@ class SessionManager():
     @staticmethod
     def get(k: int) -> Union[None, Session]: # 顶多抛异常
         """根据session号找session，不存在或者寄了就是None"""
-        ses = SessionManager.get(k, None)
+        ses = SessionManager.s.get(k, None)
         if ses and ses.alive():
             return ses
         SessionManager.pop(k)
