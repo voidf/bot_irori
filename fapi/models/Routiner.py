@@ -150,12 +150,16 @@ class ContestRoutiner(Routiner):
         要按比赛推送，而不是按订阅者去请求比赛。
         比赛日程器应该要能执行手动更新命令
         """
-        cls.contest_futures = {}
-        cls.call_map = {
-            'upd': cls.update_futures
-        }
-        await cls.update_futures()
-        asyncio.ensure_future(cls.mainloop())
+        if not cls.__subclasses__():
+            cls.contest_futures = {}
+            cls.call_map = {
+                'upd': cls.update_futures
+            }
+            await cls.update_futures()
+            asyncio.ensure_future(cls.mainloop())
+        else:
+            for s in cls.__subclasses__():
+                await s.resume()
 
 
     @classmethod
@@ -219,7 +223,7 @@ class AtcoderRoutiner(ContestRoutiner):
                         li.append(Contest(
                             i('a')[1]['href'],
                             i('a')[1].text,
-                            (datetime.datetime.now() - begintime).total_seconds()
+                            (begintime-datetime.datetime.now()).total_seconds()
                         ))
             except:
                 pass
@@ -229,7 +233,7 @@ class AtcoderRoutiner(ContestRoutiner):
                     li.append(Contest(
                         i('a')[1]['href'],
                         i('a')[1].text,
-                        (datetime.datetime.now() - begintime).total_seconds()
+                        (begintime-datetime.datetime.now()).total_seconds()
                     ))
         return li
 
@@ -252,8 +256,7 @@ class NowcoderRoutiner(ContestRoutiner):
                     Contest(
                         j['contestId'],
                         j['contestName'],
-                        j['contestStartTime']/1e3,
-                        j['contestDuration']/1e3,
+                        j['contestStartTime']/1e3-datetime.datetime.now().timestamp(),
                     )
                 )
         return li
