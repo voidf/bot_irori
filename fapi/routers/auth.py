@@ -1,6 +1,4 @@
-import fapi.G
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, File, UploadFile, Form
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, File, UploadFile, Form
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -9,13 +7,14 @@ from cfg import *
 
 from fapi.models.Auth import *
 from fapi.Sessions import SessionManager
-from fapi import generate_login_jwt, trueReturn, falseReturn, verify_login_jwt
+
+from fapi.utils.jwt import *
 
 from fapi.MiraiSession import MiraiSession
 import asyncio
 auth_route = APIRouter(
     prefix="/auth",
-    tags=["auth"],
+    tags=["auth - 网页后台接口"],
 )
 
 
@@ -33,12 +32,7 @@ class login_form(BaseModel):
 
 
 async def connect_mirai(miraiwsurl: str) -> int:
-    # await try_close_session(a)
-    # await Routiner.recover_routiners()
-    # if not fapi.G.initialized:
-        # await TempFile.resume()
-        # fapi.G.initialized = True
-    return SessionManager.new(MiraiSession, miraiwsurl)
+    return await SessionManager.new(MiraiSession, miraiwsurl)
 
 
 # @auth_route.post('/legacy')
@@ -63,22 +57,14 @@ async def connect_mirai(miraiwsurl: str) -> int:
 
 
 @auth_route.post('/login')
-async def login_auth(f: OAuth2PasswordRequestForm = Depends()):
+async def login_auth(rsp: Response, f: OAuth2PasswordRequestForm = Depends(),):
+    """使用uuid口令连入，获取令牌，用户名和密码都贴上令牌即可"""
     tk = f.username if f.username else f.password
     if tk != IroriUUID.get().uuid:
         return falseReturn(401, '口令错误')
 
-    # await Routiner.recover_routiners(a)
-
-    # if not fapi.G.initialized:
-        # await TempFile.resume()
-        # fapi.G.initialized = True
-        # 一次启动上下文
-
-    # ml = MiraiSession(f.username)
-    # fapi.G.adapters[f.username] = ml
-    # asyncio.ensure_future(ml.enter_loop(f.miraiwsurl))
     tk = generate_login_jwt(86400)
+    rsp.set_cookie("Authorization", tk, 86400)
     return {"access_token": tk, "token_type": "bearer"}
 
 
@@ -86,25 +72,12 @@ class register_form(BaseModel):
     username: str
     password: str
 
-# @auth_route.post('/register')
-# async def register_auth(f: register_form):
-#     if Adapter.objects(username=f.username):
-#         return falseReturn(401, '用户名已被占用')
-#     else:
-#         a=Adapter(
-#             username=f.username,
-#             password=encrypt(f.password),
-#             role=Role.objects(name='guest').first()
-#         ).save()
-#         tk = generate_adapter_jwt(a, 86400)
-#         return {"access_token": tk, "token_type": "bearer"}
-
-
 o2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
 
 @auth_route.delete('/logout')
 async def logout_session(tk: str = Depends(o2_scheme), session_id: int = Form(...)):
+    """注销一个session"""
     a, msg = verify_login_jwt(tk)
     if not a:
         return falseReturn(401, msg)
@@ -119,7 +92,24 @@ async def mirai_login(tk: str = Depends(o2_scheme), miraiwsurl: str = Form(...))
         return falseReturn(401, msg)
     await connect_mirai(miraiwsurl)
     return trueReturn()
-    # await Routiner.recover_routiners(a)
-    # if not fapi.G.initialized:
-    #     await TempFile.resume()
-    #     fapi.G.initialized = True
+
+from fapi.WebsocketSession import *
+from fastapi import WebSocket
+from fastapi import status
+@auth_route.websocket('/ws')
+async def ws_connectin(websocket: WebSocket, player_token: str, typ: str='json'):
+    """
+    player_token: player对应的口令，可以通过bot申请
+    typ: 欲创建的ws连接种类，仅提供json和plain两种
+    """
+    p, msg = verify_player_jwt(player_token)
+    if not p:
+        await websocket.close(status.WS_1008_POLICY_VIOLATION)
+    if typ == 'json':
+        await SessionManager.new(WebsocketSessionJson, websocket, p.pid)
+    elif typ == 'plain':
+        await SessionManager.new(WebsocketSessionPlain, websocket, p.pid)
+    else:
+        await websocket.close(status.WS_1008_POLICY_VIOLATION)
+
+    

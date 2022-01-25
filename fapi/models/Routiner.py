@@ -605,3 +605,34 @@ class DailySentenceRoutiner(Routiner):
         while 1:
             await asyncio.sleep(sleep2(3600*17))
             await cls.update_futures(ses)
+
+
+class LoginNoticeRoutiner(Routiner):
+    login_msg = StringField(default='Routiner testcase')
+    @classmethod
+    async def resume(cls):
+        logger.debug(f'{cls} resume called')
+        cls.chk('550455545448')
+        cls.chk('2595247078')
+        asyncio.ensure_future(cls.mainloop())
+        logger.info(f'{cls} initialized')
+
+
+    @classmethod
+    async def mainloop(cls):
+        await asyncio.sleep(60)
+        for subs in cls.objects():
+            pid = str(subs.player)
+            ent = CoreEntity(
+                pid=pid,
+                chain=MessageChain.auto_make(
+                    subs.login_msg
+                ),
+                source='',
+                meta={}
+            )
+            for s in SessionManager.get_routiner_list(pid):
+                await s.upload(
+                    ent
+                )
+

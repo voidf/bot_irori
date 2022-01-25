@@ -2,7 +2,7 @@ import magic
 from fapi.models.FileStorage import FileStorage, TempFile
 from typing import Tuple
 from loguru import logger
-from fapi import verify_session_jwt
+from fapi.utils.jwt import verify_session_jwt
 import datetime
 import fapi.G
 import fastapi
@@ -43,7 +43,9 @@ async def parse_session_jwt(f: CoreEntityJson) -> CoreEntity:
 
 @worker_route.post('/submit')
 async def submit_worker(ent: CoreEntity = Depends(parse_session_jwt)):
-    await SessionManager.get(ent.source).upload(ent)
+    ses = SessionManager.get(ent.source)
+    if ses:
+        await ses.upload(ent)
     return trueReturn()
 
 oss_route = APIRouter(

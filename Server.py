@@ -1,4 +1,3 @@
-from fapi.models.FileStorage import *
 from fapi.models.Routiner import *
 from fastapi import FastAPI, Depends
 from loguru import logger
@@ -41,6 +40,7 @@ app = create_fastapi()
 @app.on_event('startup')
 async def startup_coroutines():
     await Routiner.recover_routiners()
+    from fapi.models.FileStorage import TempFile
     await TempFile.resume()
 
 

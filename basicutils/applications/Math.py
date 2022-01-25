@@ -261,17 +261,17 @@ def QM化简器(ent: CoreEntity):
     v = ent.chain.tostr().split(' ')
     if v[0].count(',') >= 1: # 最小项输入
 
-        return [Plain(quine_mccluskey.qmccluskey.maid(
+        return [Plain(qmccluskey.maid(
             minterms=v[0].split(','), 
-            argsdont_cares=meta.get('-dc', ''),
-            argsvariables=meta.get('-var', '')
+            argsdont_cares=ent.meta.get('-dc', ''),
+            argsvariables=ent.meta.get('-var', '')
         ))]
 
     else:
-        return [Plain(quine_mccluskey.qmccluskey.maid(
+        return [Plain(qmccluskey.maid(
             argssop=v[0], 
-            argsdont_cares=meta.get('-dc', ''),
-            argsvariables=meta.get('-var', '')
+            argsdont_cares=ent.meta.get('-dc', ''),
+            argsvariables=ent.meta.get('-var', '')
         ))]
 
 def 打印真值表(ent: CoreEntity):
@@ -636,7 +636,7 @@ def 划分数个数(ent: CoreEntity):
     计算给定集合的划分的方案数，可以用-m选项提供求模数。用例#B 233 -m=10086s
     """
     attrs = ent.chain.tostr().split(' ')
-    return [Plain(A000110_list(int(attrs[0]), meta.get('-m', 0)))]
+    return [Plain(A000110_list(int(attrs[0]), ent.meta.get('-m', 0)))]
 
 def 素数前缀和(ent: CoreEntity):
     """#min25 []

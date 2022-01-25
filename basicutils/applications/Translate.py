@@ -101,7 +101,7 @@ def BDtranslate(req):
         res = result['trans_result'][0]['dst']
 
     except:
-        res = f"{result}"
+        res = f"网络连接错误"
 
     finally:
         if trans:
