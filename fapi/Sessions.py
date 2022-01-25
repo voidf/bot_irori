@@ -178,7 +178,7 @@ class SessionManager():
     async def hangon(k: int):
         s = SessionManager.get(k)
         if s:
-            return await s.receiver()
+            return await s.receiver
         return
 
     @staticmethod
