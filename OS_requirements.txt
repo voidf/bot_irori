@@ -3,11 +3,12 @@
 
 
 # adapters
-prompt_toolkit
+# prompt_toolkit
 
 # worker
 pillow
 pydantic
+brotli
 requests[socks]
 bs4
 numpy
