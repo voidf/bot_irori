@@ -290,6 +290,31 @@ class LeetcodeRoutiner(ContestRoutiner):
     def regmsg(cls, contest: Contest) -> str:
         """生成比赛链接"""
         return f"直达链接：https://leetcode-cn.com/contest/{contest.id}"
+import re
+from urllib.parse import unquote
+class LuoguRoutiner(ContestRoutiner):
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        l: List[Contest] = []
+        res: aiohttp.ClientResponse
+        async with ses.get('https://www.luogu.com.cn/contest/list', headers={
+            "accept-encoding":"gzip, deflate, br", # br压缩要额外装brotli这个库才能有requests支持
+            "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+        }, timeout=30) as res:
+            for item in json.loads(unquote(re.findall(r"""JSON.parse\(decodeURIComponent\("(.*?)"\)\);""", res.text)[0]))['currentData']['contests']['result']:
+                l.append(
+                    Contest(
+                        item['id'],
+                        item['name'],
+                        item['startTime']-datetime.datetime.now().timestamp(),
+                    )
+                )
+        return l
+    @classmethod
+    def regmsg(cls, contest: Contest) -> str:
+        """生成比赛链接"""
+        return f"直达链接：https://www.luogu.com.cn/contest/{contest.id}"
+
 
 import random
 import basicutils.CONST as CONST

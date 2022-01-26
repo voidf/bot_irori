@@ -73,13 +73,19 @@ def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, sp
 
     if attrs:
         ret = subscriber(attrs[0],routiner,ent,contest_type)
-        if ret: return [ret]
+        if ret: return ret
 
     for c in spider():
-        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
+        hint = [c.title, f"{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}"]
+        if c.begintime > datetime.datetime.now():
+            hint.append(f"倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}")
+        else:
+            hint.append(f"已经开始{datetime.datetime.now()-datetime.datetime.fromtimestamp(c.begintime)!s}")
+
+        li.append("\n".join(hint))
     if not li:
-        li = ['没有即将开始的比赛']
-    return li
+        li = '没有即将开始的比赛'
+    return '\n'.join(li)
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
