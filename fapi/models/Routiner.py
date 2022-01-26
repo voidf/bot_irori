@@ -82,14 +82,14 @@ class ContestRoutiner(Routiner):
         raise NotImplementedError
 
     @classmethod
-    async def regmsg(cls, contest: Contest) -> str:
+    def regmsg(cls, contest: Contest) -> str:
         """生成比赛注册信息"""
         raise NotImplementedError
 
     @classmethod
     async def notify(cls, contest: Contest):
         """通知一项比赛的开始，是一个future任务，以便中断取消"""
-        ofs = 3600 # 提前量
+        ofs = 1960 # 提前量
         logger.critical('{}在{}s后开始', contest.name, contest.countdown)
         if contest.countdown < ofs:
             logger.debug('{}已经错过提醒时机', contest.name)
@@ -201,7 +201,7 @@ class CodeforcesRoutiner(ContestRoutiner):
 
 
     @classmethod
-    async def regmsg(cls, contest: Contest):
+    def regmsg(cls, contest: Contest):
         return f"注册链接：https://codeforces.com/contestRegistration/{contest.id}"
 
 
@@ -239,7 +239,7 @@ class AtcoderRoutiner(ContestRoutiner):
         return li
 
     @classmethod
-    async def regmsg(cls, contest: Contest) -> str:
+    def regmsg(cls, contest: Contest) -> str:
         """生成比赛注册信息"""
         return f"注册链接：https://atcoder.jp{contest.id}"
 import html
@@ -263,7 +263,7 @@ class NowcoderRoutiner(ContestRoutiner):
         return li
 
     @classmethod
-    async def regmsg(cls, contest: Contest) -> str:
+    def regmsg(cls, contest: Contest) -> str:
         """生成比赛注册信息"""
         return f"直达链接：https://ac.nowcoder.com/acm/contest/{contest.id}"
 

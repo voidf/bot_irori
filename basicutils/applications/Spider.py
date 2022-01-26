@@ -355,7 +355,14 @@ def 爬牛客(ent: CoreEntity):
     for c in fetchNowCoderContests():
         li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
     return li
-        
+
+def 爬力扣(ent: CoreEntity):
+    """#力扣 [#lc]
+    https://leetcode-cn.com/graphql
+    {"operationName":null,"variables":{},"query":"{\n  contestUpcomingContests {\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    isLightCardFontColor\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n"}
+    
+    """
+
 def 爬歌(ent: CoreEntity):
     """#什么值得听 [#uta, #music]
     根据给定关键词从几个平台爬歌（以后大概不会更新更多平台的咕（危
