@@ -11,7 +11,7 @@ from fapi.models.FileStorage import *
 #     return Player.chk(pid, aid)
 # import ctypes
 from fapi.utils.media import to_amr
-from abc import ABC
+from abc import ABC, abstractmethod
 import markdown
 from fapi.utils.syscall import *
 
