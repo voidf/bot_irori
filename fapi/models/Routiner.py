@@ -267,6 +267,29 @@ class NowcoderRoutiner(ContestRoutiner):
         """生成比赛注册信息"""
         return f"直达链接：https://ac.nowcoder.com/acm/contest/{contest.id}"
 
+class LeetcodeRoutiner(ContestRoutiner):
+    @classmethod
+    async def spider(cls, ses: aiohttp.ClientSession) -> List[Contest]:
+        l: List[Contest] = []
+        res: aiohttp.ClientResponse
+        async with ses.post('https://leetcode-cn.com/graphql', json={
+            'operationName': None, 
+            'variables': {}, 
+            'query': '{\n  contestUpcomingContests {\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    isLightCardFontColor\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n'
+        }, timeout=30) as res:
+            for item in (await res.json())['data']['contestUpcomingContests']:
+                l.append(
+                    Contest(
+                        item['titleSlug'],
+                        item['title'],
+                        item['startTime']-datetime.datetime.now().timestamp(),
+                    )
+                )
+        return l
+    @classmethod
+    def regmsg(cls, contest: Contest) -> str:
+        """生成比赛链接"""
+        return f"直达链接：https://leetcode-cn.com/contest/{contest.id}"
 
 import random
 import basicutils.CONST as CONST
