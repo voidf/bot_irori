@@ -35,8 +35,8 @@ def contesttime2str(t: float) -> str:
     return datetime.datetime.strftime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
 
 
-def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
-    """退订回-1，订阅回1，更新回2，没命中回0"""
+def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) -> int:
+    """没命中回空字符串"""
     ent.meta['routiner'] = routiner
     if keyword in GLOBAL.unsubscribes:
         resp = requests.delete(
@@ -45,7 +45,7 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
         )
         if resp.status_code!=200:
             return resp.text
-        return -1
+        return f"已取消{contest_type}比赛提醒推送"
     elif keyword in GLOBAL.subscribes:
         resp = requests.post(
             server_api('/worker/routiner'),
@@ -53,7 +53,7 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
         )
         if resp.status_code!=200:
             return resp.text
-        return 1
+        return f"已订阅{contest_type}比赛提醒推送"
     elif keyword == 'upd':
         ent.meta['call'] = 'upd'
         resp = requests.options(
@@ -62,8 +62,8 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity) -> int:
         )
         if resp.status_code!=200:
             return resp.text
-        return 2
-    return 0
+        return f"成功更新{contest_type}比赛推送"
+    return ""
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
@@ -234,9 +234,7 @@ def 爬CF(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = [None, '已订阅Codeforces比赛提醒推送', '成功更新CF比赛推送', '取消本群的CodeForces比赛提醒服务'][
-            subscriber(attrs[0],'CodeforcesRoutiner',ent)
-        ]
+        ret = subscriber(attrs[0],'CodeforcesRoutiner',ent,'Codeforces')
         if ret: return ret
     # li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
     resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
@@ -268,9 +266,7 @@ def 爬AtCoder(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = ['', '已订阅AtCoder比赛提醒推送', '成功更新AtCoder比赛推送', '取消本群的AtCoder比赛提醒服务'][
-            subscriber(attrs[0],'AtcoderRoutiner',ent)
-        ]
+        ret = subscriber(attrs[0],'AtcoderRoutiner',ent,'atcoder')
         if ret: return ret
     def fetchAtCoderContests() -> dict:
         j = {}
@@ -332,9 +328,7 @@ def 爬牛客(ent: CoreEntity):
     li = []
 
     if attrs:
-        ret = ['', '已订阅牛客比赛提醒推送', '成功更新牛客比赛推送', '取消本群的牛客比赛提醒服务'][
-            subscriber(attrs[0],'NowcoderRoutiner',ent)
-        ]
+        ret = subscriber(attrs[0],'NowcoderRoutiner',ent,'牛客')
         if ret: return ret
     def fetchNowCoderContests() -> List[Contest]:
         l: List[Contest] = []
@@ -357,11 +351,38 @@ def 爬牛客(ent: CoreEntity):
     return li
 
 def 爬力扣(ent: CoreEntity):
-    """#力扣 [#lc]
-    https://leetcode-cn.com/graphql
-    {"operationName":null,"variables":{},"query":"{\n  contestUpcomingContests {\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    isLightCardFontColor\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n"}
-    
+    """#力扣 [#LC]
+    爬取力扣将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
     """
+    attrs = ent.chain.tostr().split(' ')
+    li = []
+
+    if attrs:
+        ret = subscriber(attrs[0],'LeetcodeRoutiner',ent,'力扣')
+        if ret: return ret
+    def spider() -> List[Contest]:
+        l: List[Contest] = []
+        res = requests.post('https://leetcode-cn.com/graphql', json={
+            'operationName': None, 
+            'variables': {}, 
+            'query': '{\n  contestUpcomingContests {\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    isLightCardFontColor\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n'
+        }, timeout=30)
+        for item in res.json()['data']['contestUpcomingContests']:
+            l.append(
+                Contest(
+                    item['titleSlug'],
+                    item['title'],
+                    item['startTime'],
+                    item['duration'],
+                )
+            )
+        return l
+    for c in spider():
+        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
+    return li
 
 def 爬歌(ent: CoreEntity):
     """#什么值得听 [#uta, #music]
