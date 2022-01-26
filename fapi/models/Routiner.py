@@ -89,7 +89,7 @@ class ContestRoutiner(Routiner):
     @classmethod
     async def notify(cls, contest: Contest):
         """通知一项比赛的开始，是一个future任务，以便中断取消"""
-        ofs = 1960 # 提前量
+        ofs = 1700 # 提前量
         logger.critical('{}在{}s后开始', contest.name, contest.countdown)
         if contest.countdown < ofs:
             logger.debug('{}已经错过提醒时机', contest.name)
