@@ -42,7 +42,7 @@ class CoreEntity(BaseModel):
             chain=MessageChain.get_empty(),
             meta=d
         )
-
+'''
 from abc import ABC, abstractmethod
 import asyncio
 import cfg
@@ -137,3 +137,4 @@ class QUICSessionBase(ABC):
         payload = data.encode('utf-8')
         contentlen = bytes(str(len(payload)), 'utf-8')
         self._writer.write(contentlen + payload)
+'''

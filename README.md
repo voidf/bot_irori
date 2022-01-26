@@ -1,177 +1,101 @@
 # 人懒，问就是女生自用
 
+由于本项目重构后部署过于复杂，如果你真的想部署一个irori，建议直接开Issue问，而不是看这个我半年才更新一次的Readme。
+
 ![头像](Assets/E2.png)
 
 # bot-irori 
 
-irori是一个比较扭曲的，偏面向过程的，支持二次开发的QQ机器人
+一个命令式，主要支援文字形式信息处理的服务接口。
 
-底层协议依赖mirai，并使用graia框架
-
-release里可以找到即拆即用的mirai环境包
+同时提供mirai-http-api接口和websocket外部应用接口。
 
 ## features
 
-+ git更新即时重载
-+ 允许多重存在，并支持多实例管理
-+ 聊天窗口进行系统命令调用或开shell
-+ 插件化的消息处理业务代码管理
-+ 三种模式处理消息：命令，监听器，定时订阅
-+ 返回消息多态化：可以选择粘贴至ubuntu pastebin，渲染为图片，或者合成为语音
+### 面向用户
 
-## 比较受欢迎的功能
-
-+ [x] 每日求签~~算命~~
-+ [x] 答案之书（不知道为什么群友总能玩出新花样
-+ [x] 谷歌翻译，百度翻译（fufu提供的爬虫
-+ [x] ddl事件安排及提醒
-+ [x] 表达式即时求值的计算器
-+ [x] LaTeX公式渲染（其实是爬虫
-+ [x] CodeForces、AtCoder、牛客的比赛提醒推送
+- [x] 每日求签~~算命~~
+- [x] 答案之书（不知道为什么群友总能玩出新花样
+- [x] 谷歌翻译，百度翻译（fufu提供的爬虫
+- [x] ddl事件安排及提醒
+- [x] 搜歌
+- [x] 表达式即时求值的计算器
+- [x] LaTeX公式渲染（其实是爬虫
+- [x] CodeForces、AtCoder、牛客、力扣、洛谷的比赛提醒推送
+- [x] 搜番
+- [x] 每日天气预报
 
 完整功能请部署后使用#h查看
 
-## 前置知识
+### 面向开发
 
-本篇README不是写给0基础的用户看的（
+- [x] 调试友好的远程系统命令调用(eval, exec, os.popen)
+- [x] 代码热重载
+- [x] 方便、可扩展的命令编写
+- [x] 保留消息链实现，支援多媒体信息
+- [x] 中心Server，多Worker，消息队列部署任务架构，可胜任计算密集任务并发处理，任务超时自动杀死
 
-在阅读前，您至少需要：
+## requirements
 
-+ 有台PC
-+ 知道怎么开机
-+ 知道怎么用鼠标键盘，知道win键是哪个
-+ 知道如何用电脑浏览器下载文件
-+ 具有一定的英文基础
+### MongoDB
 
-## docker一句话部署
+安装运行服务启动即可，如需网络访问建议弄个数据库级别的登录认证。
 
-> 没有docker的可以根据自己的linux发行版复制然后运行本仓库的安装脚本
->  + [install_docker_debian.sh](install_docker_debian.sh)
->  + [install_docker_centos.sh](install_docker_centos.sh)
-> 里面的命令
+### RabbitMQ
 
-`docker run -it voidf/irori:v4`
+由Celery依赖，部署完毕启动即可。
 
-或者如果你嫌国外镜像下载不够快的话：
+### Python3.8+
 
-`docker run -it voidf/irori:v4 --registry-mirror=https://docker.mirrors.ustc.edu.cn`
+以后可能会引入match语法而需要3.10+
 
-## 快速部署（精简版）
+依赖包参见[OS_requirements.txt](OS_requirements.txt)
 
-1. 克隆本仓库
-2. 本目录下新建`authdata`,第一行写QQ号，第二行写authKey，第三行写上`[http或https]://[mirai-http-api实例host]:[端口]/`
-3. 安装python3，然后`pip3 install -r requirements.txt`
-4. 安装java，记得配好环境变量
-5. 将[release里的env](http://d0.ananas.chaoxing.com/download/aad7ee20c57d3b402b7f254b4f3373de)文件解压
-6. 在解压目录里面`./run.sh`
-7. `python3 irori.py`
+配置最麻烦的模块是[celery](https://github.com/celery/celery)，还请参见其仓库的指南。
 
-## 安装使用（啰嗦版）
+### Mirai 2.0+（QQbot必须）
 
-先装[python](https://www.python.org/downloads/)最好是3.8左右这样的版本,最好是64位，即安装包上写有AMD64字样的exe包
+别忘了装上配套的mirai-http-api插件
 
-安装时一路往下，记得勾上**加入环境变量**即 **add to PATH** 或者**add to environment variable**什么的，和**pip**。
+## deployment
 
-然后win+R打开cmd或者powershell随你（
+服务器节点的入口是[Server.py](Server.py), 直接使用`python3 Server.py`即可运行
 
-用d:,e:这类命令换当前所在的盘，然后一路 `cd 文件夹名` 来达到你想要放压缩包或者将要拷的git仓库的路径（文件夹）里。如果走过了，试试用 `cd ..` 回到上级文件夹。
+执行模块节点的入口是[Worker.py](Worker.py), 使用`celery -A Worker worker`运行
 
-拷下本仓库，有git最好
-
-`git clone https://github.com/voidf/bot_irori.git`
-
-没有git的话压缩包下载然后解压大概也行？就右上角绿色按钮Clone and download，选择zip下载，然后解压。~~没试过~~
-
-那么我们的cmd也到了这个zip解压的目录
-
-现在先装依赖库
-
-`pip install -r requirements.txt`
-
-解压release里的环境包
-
-双击`run.bat`或者终端敲入`run.sh`就动起来了
-
-然后用你需要当bot的QQ号和密码来登录。
-
-### 配置api
-
-现在来改一下`plugins/MiraiAPIHTTP/setting.yml`
-
-主要改一下你需要的端口`port`和秘钥`authKey` authKey自主选择可能有时候会出锅 那么用它默认的也可以 （稳定性第一 安全性其次~~其实不暴露到外网基本上没必要设置~~
-
-然后现在来告诉irori怎么认证：
-
-在本项目下建一个文件，叫`authdata`,没有后缀，如果win下建不了请打开cmd切到这个目录然后输入
-
-`echo 1 > authdata`
-
-用记事本打开这个文件，（如果没有更好的编辑器的话）在文件第一行写你bot的QQ号，第二行写前面说到的authKey，第三行写上`http://localhost:`+你的port 之后要加上很重要的斜杠/
-
-然后回到本项目目录
-
-`python irori.py`
-
-然后把bot所在qq和你自己拉一个群或者私聊你的bot
-
-输入#h查看帮助
-
-魔改随意，虽然我主要是自己用
-
-~~不会吧不会吧，不会真的有除了我以外的人用这么难用的bot吧~~
-
-## 进阶：cfg.json配置模板
+### cfg.py配置模板
 
 ```python
-{
-    "banGroup": {
-        "114514":["#CF"]
-    }, # 不允许114514群用#CF命令
-    "allowGroup": {
-        "1919810": ["#CF","#AT"]
-    }, # 仅允许1919810群用#CF，#AT两个命令
-    "botList": [
-        1926,
-        817
-    ], # 每个群内忽略QQ号为1926和817的两个群员的发言
-    "onlineMsg": {
-        "998244353": ["雷真殿に迷惑をかけているのではあるまいな？","ありませんか？"]
-    }, # 向群998244353从后面的列表中抽一个字符串发送登录提醒
-    "proxy": {
-        "http": "socks5://11.4.51.4:810",
-        "https": "socks5://11.4.51.4:810"
-    }, # 设置代理（目前只有#看看病 用到
-    "masters": [233, 666], # 设置系统级命令的管理员（player号
-    "enables": [0], # 默认使能状态，0为默认处理任何对象的消息，否则只处理提供的player号
-    "appid": "2020123456789", # 设置百度翻译的appid
-    "secretKey": "ajusdhgiudhfgiohsdkil", # 百度翻译的密钥
-    "echoMsg": false, # 是否打印收到的消息链
-    "lengthLim":1919, # 文字转图片的字符串长度阈值
-    "AVGHost": "http://127.0.0.1:1919", # AVG主机地址（没有或不需要可留空
-    "OJHost": "http://127.0.0.1:14569" # OJ主机地址（没有或不需要可留空
-}
+# 数据库连接认证一条龙串
+db = {"host": "mongodb://user:password@localhost:27017/irori_data?authSource=yourauthsource"}
+# 百度翻译用的api接口
+baidu_appid = "114514"
+baidu_secretKey = "1919810"
+
+web_host = '0.0.0.0' # Server监听网卡
+web_port = 41919 # Server监听端口
+dist_host = 'http://127.0.0.1' # Worker访问Server的地址，注意不要加上尾随/
 ```
 
-可以从仓库给定的`cfg.json.template`直接修改，将后缀`.template`和文件里的所有井号注释删去，改为自己合适的设置然后保存即可。
+Server和Worker都启动成功后，浏览器访问Server监听的网口，转到/docs路径，用屏幕打印的uuid进行身份验证（用户名和密码都填uuid）
+
+然后若要对接mirai-http-api，在/auth/mirai接口处填入其ws链接
+
+若要使用ws连接，请向/ws发送请求。
+
+（没更完，写累了）
 
 ## 系统命令手册
 
-sudo 系列命令只有在消息的发送来源包括在masters内的时候会执行。
+sudo 系列命令只有在消息的发送来源包括在auth_masters内的时候会执行。
+
+有关auth_masters的配置，请在数据库中的irori_config的collection下直接配置。
 
 | 命令 | 描述 |
 | ------ | ----- |
-| sudo su | 进入su模式，每条消息都会先判断是否命中系统调用命令 |
-| sudo exit | 退出su模式 |
-| sudo pull | 从git仓库拉取代码，但新的代码只在reload后生效 |
-| sudo reload | 热重载代码，但irori.py, GLOBAL.py, Sniffer.py, Routiner.py这些不会被重载 |
-| sudo exec | 执行一条python语句 |
+| sudo exec | 执行一条python exec语句，获取其stdout |
 | sudo eval | 执行一条python语句，并返回结果（由于不支持赋值等无返回值操作，故提供exec） |
-| sudo pexc | 如果运行时出现异常，则在QQ消息中返回这个异常 |
-| sudo cexc | 禁用QQ消息中返回异常 |
-| sudo run | 在宿主机上运行一条命令 |
-| sudo terminal | 在宿主机上打开一个交互终端 |
-| sudo instances | 展示目前在线的所有irori实例 |
-| sudo use | `use *` 代表所有实例都会响应消息, `use <uuid>` 可设置仅指定uuid的实例会响应 |
+| sudo run | 在宿主机上运行一条shell命令 |
 
 
 ## 参与开发

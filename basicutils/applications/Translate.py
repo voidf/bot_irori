@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 
 res = ''
 
-from cfg import proxy, baidu_appid, baidu_secretKey
+from cfg import baidu_appid, baidu_secretKey
 
 
 def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
