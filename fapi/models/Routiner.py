@@ -301,7 +301,7 @@ class LuoguRoutiner(ContestRoutiner):
             "accept-encoding":"gzip, deflate, br", # br压缩要额外装brotli这个库才能有requests支持
             "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
         }, timeout=30) as res:
-            for item in json.loads(unquote(re.findall(r"""JSON.parse\(decodeURIComponent\("(.*?)"\)\);""", res.text)[0]))['currentData']['contests']['result']:
+            for item in json.loads(unquote(re.findall(r"""JSON.parse\(decodeURIComponent\("(.*?)"\)\);""", await res.text())[0]))['currentData']['contests']['result']:
                 l.append(
                     Contest(
                         item['id'],
