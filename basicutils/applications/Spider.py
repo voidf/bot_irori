@@ -4,6 +4,8 @@ import enum
 import os
 import sys
 
+from async_timeout import timeout
+
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
@@ -35,7 +37,7 @@ def contesttime2str(t: float) -> str:
     return datetime.datetime.strftime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
 
 
-def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) -> int:
+def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) -> str:
     """没命中回空字符串"""
     ent.meta['routiner'] = routiner
     if keyword in GLOBAL.unsubscribes:
@@ -64,6 +66,20 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) 
             return resp.text
         return f"成功更新{contest_type}比赛推送"
     return ""
+
+def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, spider: Callable[[None], List[Contest]]):
+    attrs = ent.chain.tostr().split(' ')
+    li = []
+
+    if attrs:
+        ret = subscriber(attrs[0],routiner,ent,contest_type)
+        if ret: return [ret]
+
+    for c in spider():
+        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
+    if not li:
+        li = ['没有即将开始的比赛']
+    return li
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
@@ -229,31 +245,21 @@ def 爬CF(ent: CoreEntity):
     可用参数:
         TD  取消提醒
         sub 订阅提醒"""
-    attrs = ent.chain.tostr().split(' ')
-    ent.chain.__root__.clear()
-    li = []
-
-    if attrs:
-        ret = subscriber(attrs[0],'CodeforcesRoutiner',ent,'Codeforces')
-        if ret: return ret
-    # li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
-    resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
-    for i in resp:
-        if i['phase'] == 'FINISHED':
-            break
-        li.append(
-            Plain(
-                '{:<10}\n{:<10}开始，持续{:<10}\n离开始还剩{:<15}\n\n'.format(
-                    i['name'], 
-                    contesttime2str(i['startTimeSeconds']),
-                    f"{i['durationSeconds'] / 60}min" , 
-                    str(datetime.timedelta(seconds=-i['relativeTimeSeconds']))
+    def spider() -> List[Contest]:
+        li = []
+        for i in requests.get('https://codeforces.com/api/contest.list', timeout=30).json()['result']:
+            if i['phase'] == 'FINISHED':
+                break
+            li.append(
+                Contest(
+                    i['id'],
+                    i['name'],
+                    i['startTimeSeconds'],
+                    i['durationSeconds']
                 )
             )
-        )
-    if not li:
-        li = '没有即将开始的比赛'
-    return li
+        return li
+    return contest_fetcher_common('CodeforcesRoutiner', ent, 'Codeforces', spider)
 
 def 爬AtCoder(ent: CoreEntity):
     """#AT []
@@ -262,14 +268,7 @@ def 爬AtCoder(ent: CoreEntity):
         TD  取消提醒
         sub 订阅提醒
     """
-    attrs = ent.chain.tostr().split(' ')
-    li = []
-
-    if attrs:
-        ret = subscriber(attrs[0],'AtcoderRoutiner',ent,'atcoder')
-        if ret: return ret
-    def fetchAtCoderContests() -> dict:
-        j = {}
+    def spider() -> List[Contest]:
         l = []
         r = requests.get('https://atcoder.jp/contests/',
                         headers=GLOBAL.AtCoderHeaders, timeout=30)
@@ -277,37 +276,31 @@ def 爬AtCoder(ent: CoreEntity):
         try:
             for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
                 if p:
-                    l.append({
-                        'length': i('td')[2].text,
-                        'ranking_range': i('td')[3].text,
-                        'title': i('a')[1].text,
-                        'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                    })
+                    hours, mins = i('td')[2].text.split(':')
+                    l.append(
+                        Contest(
+                            i('a')[1]['href'],
+                            i('a')[1].text, 
+                            (datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)).timestamp(),
+                            int(hours) * 3600 + int(mins) * 60
+                        )
+                    )
         except:
             pass
-        j['running'] = l
-        l = []
         # 持续时间 排名区间 比赛名 比赛时间
         for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
             if p:
-                l.append({
-                    'length': i('td')[2].text,
-                    'ranking_range': i('td')[3].text,
-                    'title': i('a')[1].text,
-                    'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                })
-        j['upcoming'] = l
-        print(j)
-        return j
-    ATData = fetchAtCoderContests()
-    if ATData['running']:
-        li.append(Plain('正在运行的比赛：\n'))
-        for cont in ATData['running']:
-            li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-    li.append(Plain('将来的比赛：\n'))
-    for cont in ATData['upcoming']:
-        li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-    return li
+                hours, mins = i('td')[2].text.split(':')
+                l.append(
+                    Contest(
+                        i('a')[1]['href'],
+                        i('a')[1].text, 
+                        (datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)).timestamp(),
+                        int(hours) * 3600 + int(mins) * 60
+                    )
+                )
+        return l
+    return contest_fetcher_common('AtcoderRoutiner', ent, 'atcoder', spider)
 
 def 爬LaTeX(ent: CoreEntity):
     """#LaTeX [#tex, #latex]
@@ -324,13 +317,7 @@ def 爬牛客(ent: CoreEntity):
         TD  取消提醒
         sub 订阅提醒
     """
-    attrs = ent.chain.tostr().split(' ')
-    li = []
-
-    if attrs:
-        ret = subscriber(attrs[0],'NowcoderRoutiner',ent,'牛客')
-        if ret: return ret
-    def fetchNowCoderContests() -> List[Contest]:
+    def spider() -> List[Contest]:
         l: List[Contest] = []
         res = requests.get(
             'https://ac.nowcoder.com/acm/contest/vip-index', timeout=30)
@@ -346,9 +333,7 @@ def 爬牛客(ent: CoreEntity):
                 )
             )
         return l
-    for c in fetchNowCoderContests():
-        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
-    return li
+    return contest_fetcher_common('NowcoderRoutiner', ent, '牛客', spider)
 
 def 爬力扣(ent: CoreEntity):
     """#力扣 [#LC]
@@ -357,12 +342,6 @@ def 爬力扣(ent: CoreEntity):
         TD  取消提醒
         sub 订阅提醒
     """
-    attrs = ent.chain.tostr().split(' ')
-    li = []
-
-    if attrs:
-        ret = subscriber(attrs[0],'LeetcodeRoutiner',ent,'力扣')
-        if ret: return ret
     def spider() -> List[Contest]:
         l: List[Contest] = []
         res = requests.post('https://leetcode-cn.com/graphql', json={
@@ -380,9 +359,38 @@ def 爬力扣(ent: CoreEntity):
                 )
             )
         return l
-    for c in spider():
-        li.append(f"{c.title}\n{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}\n倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}\n\n")
-    return li
+    return contest_fetcher_common('LeetcodeRoutiner', ent, '力扣', spider)
+from urllib.parse import unquote
+def 爬洛谷(ent: CoreEntity):
+    """#洛谷 [#luogu]
+    爬取洛谷将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
+    """
+    def spider() -> List[Contest]: # 洛谷爬虫需要至少带UA，encoding启用压缩，可选
+        l: List[Contest] = []
+        res = requests.get(
+            'https://www.luogu.com.cn/contest/list',
+            headers={
+                "accept-encoding":"gzip, deflate, br",
+                "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+            },
+            timeout=30)
+        
+        for item in json.loads(unquote(re.findall(r"""JSON.parse\(decodeURIComponent\("(.*?)"\)\);""", res.text)[0]))['currentData']['contests']['result']:
+            if item['endTime'] < datetime.datetime.now().timestamp():
+                break
+            l.append(
+                Contest(
+                    item['id'],
+                    item['name'],
+                    item['startTime'],
+                    item['endTime']-item['startTime'],
+                )
+            )
+        return l
+    return contest_fetcher_common('LuoguRoutiner', ent, '洛谷', spider)
 
 def 爬歌(ent: CoreEntity):
     """#什么值得听 [#uta, #music]
