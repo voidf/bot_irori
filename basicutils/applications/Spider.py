@@ -85,7 +85,7 @@ def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, sp
         li.append("\n".join(hint))
     if not li:
         li = '没有即将开始的比赛'
-    return '\n'.join(li)
+    return '\n\n'.join(li)
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
