@@ -5,6 +5,10 @@
 # adapters
 # prompt_toolkit
 
+# server
+brotlipy
+aiohttp
+
 # worker
 pillow
 pydantic
