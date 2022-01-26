@@ -77,7 +77,7 @@ def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, sp
 
     for c in spider():
         hint = [c.title, f"{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}"]
-        if c.begintime > datetime.datetime.now():
+        if c.begintime > datetime.datetime.now().timestamp():
             hint.append(f"倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}")
         else:
             hint.append(f"已经开始{datetime.datetime.now()-datetime.datetime.fromtimestamp(c.begintime)!s}")
