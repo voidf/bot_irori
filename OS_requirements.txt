@@ -10,6 +10,7 @@ brotlipy
 aiohttp
 
 # worker
+jieba
 pillow
 pydantic
 brotli

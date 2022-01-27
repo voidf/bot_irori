@@ -24,6 +24,35 @@ res = ''
 
 from cfg import baidu_appid, baidu_secretKey
 
+import jieba
+import jieba.posseg as pseg
+
+def _RM_convert(x, y, _volumn):
+    if random.random() > _volumn:
+        return x
+    if x in {'，', '。'}:
+        return '……'
+    if x in {'!', '！'}:
+        return '❤'
+    if len(x) > 1 and random.random() < 0.5:
+        return f'{x[0]}……{x}'
+    else:
+        if y == 'n' and random.random() < 0.5:
+            x = '〇' * len(x)
+        return f'……{x}'
+
+
+def chs2yin(ent: CoreEntity):
+    """#yinglish []
+    抄自RimoChan/yinglish
+    哼，不告诉你怎么用！
+    """
+    try:
+        _volumn = float(ent.meta.get('-v', 0.5))
+    except:
+        _volumn = 0.5
+    s = ent.chain.tostr()
+    return ''.join([_RM_convert(x, y, _volumn) for x, y in pseg.cut(s)])
 
 def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
 
