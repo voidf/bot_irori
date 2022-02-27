@@ -8,6 +8,7 @@ from fapi.models.Auth import *
 import os
 import sys
 
+sys.dont_write_bytecode = True
 
 def create_fastapi() -> FastAPI:
     from mongoengine import connect

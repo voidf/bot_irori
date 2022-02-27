@@ -20,6 +20,7 @@ class TempFile(FileStorage):
         await asyncio.sleep(
             (self.expires-datetime.datetime.now()).total_seconds()
         )
+        self.content.delete()
         self.delete()
     @classmethod
     async def resume(cls):
