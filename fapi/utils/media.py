@@ -9,6 +9,9 @@ from fapi.models.FileStorage import *
 import os
 import traceback
 from loguru import logger
+import datetime
+import asyncio
+from typing import *
 def nolimitAudioSize(src, extension) -> str:
     dst = generateTmpFileName(ext='.amr')
     if extension in ("mid", "midi"):
@@ -48,8 +51,11 @@ async def to_amr(mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), ln
     with open(fname, 'wb') as fi:
         if lnk:
             ses = aiohttp.ClientSession()
-            async with ses.get(lnk) as resp:
-                fi.write(await resp.content.read())
+            try:
+                async with ses.get(lnk) as resp:
+                    fi.write(await resp.content.read())
+            except:
+                raise
         elif b64:
             fi.write(base64.b64decode(b64))
         else:
@@ -92,4 +98,4 @@ async def to_amr(mode: int = 0, f: Optional[UploadFile] = fastapi.File(None), ln
             os.remove(ret)
         except:
             pass
-        return traceback.format_exc()
+        raise
