@@ -46,7 +46,7 @@ async def startup_coroutines():
         import json
         with open('startup_actions.json', 'r') as f:
             j = json.load(f)
-        from fapi.routers import connect_mirai
+        from fapi.routers.auth import connect_mirai
         await connect_mirai(j['miraiwsurl'])
 
 
