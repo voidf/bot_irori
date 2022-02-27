@@ -42,6 +42,12 @@ async def startup_coroutines():
     await Routiner.recover_routiners()
     from fapi.models.FileStorage import TempFile
     await TempFile.resume()
+    if os.path.exists('startup_actions.json'):
+        import json
+        with open('startup_actions.json', 'r') as f:
+            j = json.load(f)
+        from fapi.routers import connect_mirai
+        await connect_mirai(j['miraiwsurl'])
 
 
 if __name__ == '__main__':

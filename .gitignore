@@ -19,3 +19,5 @@ cfg.py
 celeryconfig.py
 
 fapi/webcfg.py
+
+startup_actions.json
