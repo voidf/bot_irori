@@ -107,8 +107,9 @@ class Session(ABC):
             ent.chain.__root__ = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
         elif '-tts' in ent.meta:
             from basicutils.media import BaiduTTS
-            ent.chain.__root__ = [Voice(url=
-                (await to_amr(lnk=BaiduTTS(ent.chain.tostr())))['url']
+            ent.chain.__root__ = [Voice(
+                url=server_api('/worker/oss/' + 
+                (await to_amr(lnk=BaiduTTS(ent.chain.tostr())))['url'])
             )]
         await self._deliver(ent)
 
