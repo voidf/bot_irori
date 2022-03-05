@@ -11,8 +11,11 @@ from basicutils.network import *
 from basicutils.chain import *
 
 
-async def 表情符号查询姬(*attrs,kwargs={}):
-    return [Plain(' '.join( [str(ord(i)) for i in ' '.join(attrs)] ))]
+def 表情符号查询姬(ent: CoreEntity):
+    """#unicode []
+    查询给定字符串的unicode码
+    """
+    return [Plain(' '.join([str(ord(i)) for i in ent.chain.tostr()] ))]
 
 async def Unicode测试姬(*attrs,kwargs={}):
     s = int(attrs[0])
@@ -32,41 +35,21 @@ def 乒乓球(ent: CoreEntity):
     GLOBAL.pingCtr+=1
     return [Plain(s)]
 
+def 复读(ent: CoreEntity):
+    """#echo []
+    原样返回给定字符串
+    """
+    return ent.chain.tostr()
+
 async def 废话生成器(*attrs,kwargs={}): return [Plain(' '.join(attrs[:-1])*int(attrs[-1]))]
 
 
-async def 清空嗅探器(ent: CoreEntity):
+def 清空嗅探器(ent: CoreEntity):
     """%clear []
     清空所有本会话Sniffer
     """
     return [Plain(Sniffer.drop(ent.pid))]
 
-import requests
-def 音乐测试(ent: CoreEntity):
-    """#mu []
-    测试Voice或者转码工不工作
-    """
-    # loop = asyncio.get_running_loop()
-    # voi = loop.run_until_complete(GLOBAL.app.uploadVoice(getFileBytes('Assets/wf.amr')))
-    # voi = getFileBytes('Assets/wf.amr')
-    # return [voi]
-    ret = requests.post(
-        server_api('/convert/amr?format=mp3&mode=0'),
-        data={'lnk': 'http://127.0.0.1:8000/download/6145599b94aa42fdbe423c93'}
-    ).json()['url']
-    return [Voice(url=server_api('/worker/oss/'+ret))]
-
-
-functionMap = {
-    '#fuzz':Unicode测试姬,
-    '#ping':乒乓球,
-    '#废话':废话生成器,
-    '#echo':表情符号查询姬,
-}
-
-shortMap = {
-
-}
 
 functionDescript = {
     '#fuzz':

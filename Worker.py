@@ -81,8 +81,7 @@ def import_applications():
     使用#h #abb可以查询缩写表
 
     通用选项：
-        --fi --force-image 强制把文本消息转换成图片发送
-        --paste 强制把文本消息粘贴至ubuntu pastebin
+        --md 强制把文本消息视为markdown形式然后输出为html，以超链接发送
         --tts 【试验阶段】强制把消息转换成语音发送
         --voice 【试验阶段】如果命令支持的话，发送语音消息''')
         else:

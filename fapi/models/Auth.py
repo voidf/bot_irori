@@ -48,6 +48,12 @@ class IroriConfig(Document):
 
     startup_connect_actions = ListField(default=[]) # 启动时连接动作，目前只实现了miraiwsurl
 
+    api_keys = DictField(default={})
+    """放爬虫需要的api keys，现含的值有:
+    - baidu.fanyi.appid
+    - baidu.fanyi.secret
+    - saucenao.key
+    """
     @classmethod
     def get(cls) -> "IroriConfig":
         return cls.objects().first()

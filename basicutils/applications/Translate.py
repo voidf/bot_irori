@@ -23,7 +23,7 @@ sys.dont_write_bytecode = True
 res = ''
 
 from cfg import baidu_appid, baidu_secretKey
-
+from fapi.models.Auth import IroriConfig
 import jieba
 import jieba.posseg as pseg
 
@@ -116,6 +116,9 @@ def BDtranslate(req):
     toLang = req[1]
     salt = random.randint(32768, 65536)
     q = req[2]
+    cfg = IroriConfig.objects().first()
+    baidu_appid, baidu_secretKey = cfg.api_keys['baidu.fanyi.appid'], cfg.api_keys['baidu.fanyi.secret']
+
     sign = baidu_appid + q + str(salt) + baidu_secretKey
     sign = hashlib.md5(sign.encode()).hexdigest()
     myurl = myurl + '?appid=' + baidu_appid + '&q=' + urllib.parse.quote(
