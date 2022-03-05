@@ -106,8 +106,9 @@ class Session(ABC):
             asyncio.ensure_future(t.deleter())
             ent.chain.__root__ = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
         elif '-tts' in ent.meta:
+            from basicutils.media import BaiduTTS
             ent.chain.__root__ = [Voice(url=
-                (await to_amr(lnk=f"http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text={ent.chain.tostr()}"))['url']
+                (await to_amr(lnk=BaiduTTS(ent.chain.tostr())))['url']
             )]
         await self._deliver(ent)
 
