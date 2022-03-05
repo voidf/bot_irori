@@ -38,12 +38,15 @@ class IroriUUID(Document):
         cls.objects().modify(uuid=uuid.uuid4())
 
 class IroriConfig(Document):
-    """首选项单例文件，塞数据库为了热更"""
+    """首选项单例文件，塞数据库为了热更
+    放Server端需要读的数据"""
     auth_masters = ListField(StringField(), default=[]) # 狗管理名单，可以执行系统调用
 
     player_whitelist = DictField(default={}) # 白名单，player只能执行给定的指令 {pid: ["#A", "#C"] ...}
     player_blacklist = DictField(default={}) # 黑名单，player不能执行指定的指令 {pid: ["#A", "#C"] ...}
     player_ignorelist = ListField(default=[]) # 屏蔽player号名单，注意要当成一个set来维护
+
+    startup_connect_actions = ListField(default=[]) # 启动时连接动作，目前只实现了miraiwsurl
 
     @classmethod
     def get(cls) -> "IroriConfig":
