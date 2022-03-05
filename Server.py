@@ -44,12 +44,12 @@ async def startup_coroutines():
     from fapi.models.FileStorage import TempFile
     await TempFile.resume()
     for i in IroriConfig.objects().first().startup_connect_actions:
+        from fapi.routers.auth import connect_mirai
         await connect_mirai(i['miraiwsurl'])
     # if os.path.exists('startup_actions.json'):
     #     import json
     #     with open('startup_actions.json', 'r') as f:
     #         j = json.load(f)
-    #     from fapi.routers.auth import connect_mirai
     #     await connect_mirai(j['miraiwsurl'])
 
 
