@@ -667,6 +667,8 @@ def 搜图(ent: CoreEntity):
             'numres':1,
             'db':999,
             'api_key':config.api_keys['saucenao.key']
+        },files={
+            'file':("image.png", imgio.getvalue())
         })
         if r.status_code!=200:
             ret.append(f'搜到一半，十有八九是寄了：{r.status_code}\n{r.text}')
