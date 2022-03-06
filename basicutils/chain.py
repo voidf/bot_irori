@@ -108,7 +108,7 @@ class MessageChain(BaseModel):
                 if not ato:
                     self.__root__.pop(p)
                 i.text = ' '.join(ato)
-                return cmd
+                return cmd.strip()
         return ''
 
 class Plain(Element):

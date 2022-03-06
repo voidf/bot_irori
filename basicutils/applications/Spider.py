@@ -657,13 +657,12 @@ def 搜图(ent: CoreEntity):
     config = IroriConfig.objects().first()
     authorized = ent.member in config.auth_masters
     for pic in filter(lambda x:isinstance(x, Image), ent.chain):
-        lnk = 'http://saucenao.com/search.php'
         imgio = BytesIO(requests.get(pic.url).content)
         img = Pimg.open(imgio).convert('RGB')
         imgio.truncate(0)
         imgio.seek(0)
         img.save(imgio, format='PNG') # 转png
-        r = requests.post(url,params={
+        r = requests.post('http://saucenao.com/search.php',params={
             'output_type':2,
             'numres':1,
             'db':999,
