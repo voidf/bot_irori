@@ -656,6 +656,7 @@ def 搜图(ent: CoreEntity):
     ret = []
     config = IroriConfig.objects().first()
     authorized = ent.member in config.auth_masters
+    logger.info(f"admin:{authorized}")
     for pic in filter(lambda x:isinstance(x, Image), ent.chain):
         imgio = BytesIO(requests.get(pic.url).content)
         img = Pimg.open(imgio).convert('RGB')
@@ -690,7 +691,38 @@ def 搜图(ent: CoreEntity):
                 ret.append('无结果')
     return '\n\n'.join((f"#{p+1} {i}" for p,i in enumerate(ret)))
 
-
+def 开车(ent: CoreEntity):
+    """#开车 [#car]
+    fufu不在线，那交给i宝了vol.2
+    格式:
+        #开车 <typ>
+        typ可选字段:
+            nice   开好车
+            ero    开痛车
+            kusa   开灵车
+            kawaii 开校车
+            r18    开坦克 （没造好
+    
+    """
+    from cfg import setu_api
+    typ = ent.chain.pop_first_cmd()
+    allow = [
+        'ero', 
+        'kawaii', 
+        'nice', 
+    #    'r18', 我想到解决方案再开放
+        'kusa'
+    ]
+    if not typ:
+        typ = 'nice'
+    if typ not in allow:
+        return f'交警提示：您的车型{typ}不能上路'
+    j = requests.get(setu_api + 'random').json()
+    return [
+        Image(url=setu_api + f'bin/{j["id"]}'),
+        Plain(
+f"""标题:{j['title']}
+https://www.pixiv.net/artworks/{j['id']}""")]
 
 
 

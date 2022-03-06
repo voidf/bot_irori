@@ -91,11 +91,13 @@ class MessageChain(BaseModel):
     def __str__(self) -> str:
         return self.tostr()
     def tostr(self) -> str:
+        """调用所有消息元素的tostr方法然后不分隔的拼成一个字符串返回"""
         output = []
         for i in self.__root__:
             output.append(i.tostr())
         return ''.join(output)
     def onlyplain(self) -> str:
+        """只将Plain文本元素空格隔开拼成一个字符串返回"""
         output = []
         for i in self.__root__:
             if i.type == "Plain":
