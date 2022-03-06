@@ -721,7 +721,7 @@ def 开车(ent: CoreEntity):
     return [
         Image(url=setu_api + f'bin/{j["id"]}'),
         Plain(
-f"""标题:{j['title']}
+f"""{j['title']}
 https://www.pixiv.net/artworks/{j['id']}""")]
 
 
