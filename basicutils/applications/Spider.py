@@ -655,7 +655,7 @@ def 搜图(ent: CoreEntity):
     from PIL import Image as Pimg
     ret = []
     config = IroriConfig.objects().first()
-    authorized = ent.member in config.masters
+    authorized = ent.member in config.auth_masters
     for pic in filter(lambda x:isinstance(x, Image), ent.chain):
         lnk = 'http://saucenao.com/search.php'
         imgio = BytesIO(requests.get(pic).content)
