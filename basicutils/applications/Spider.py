@@ -642,6 +642,60 @@ def 爬what_anime(ent: CoreEntity):
         return [Plain('您没发图哥哥！')]
     return ret
 
+def 搜图(ent: CoreEntity):
+    """#搜图 []
+    fufu不在线，那交给i宝了
+    格式：
+        #搜图 [图片1] [图片2] ...
+    参数：
+        --save=typ 存入图片api，仅管理员能用
+        --rec 存入待审库，给管理员过目后可以加入图片api
+    """
+    from fapi.models.Auth import IroriConfig
+    from PIL import Image as Pimg
+    ret = []
+    config = IroriConfig.objects().first()
+    authorized = ent.member in config.masters
+    for pic in ent.chain if isinstance(pic, Image):
+        lnk = 'http://saucenao.com/search.php'
+        imgio = BytesIO(requests.get(pic).content)
+        img = Pimg.open(imgio).convert('RGB')
+        imgio.truncate(0)
+        imgio.seek(0)
+        img.save(imgio, format='PNG') # 转png
+        r = requests.post(url,params={
+            'output_type':2,
+            'numres':1,
+            'db':999,
+            'api_key':config.api_keys['saucenao.key']
+        })
+        if r.status_code!=200:
+            ret.append(f'搜到一半，十有八九是寄了：{r.status_code}\n{r.text}')
+        else:
+            j = ret.json()
+            logger.debug(j)
+            if j['header']['results_returned']>0:
+                for i in j['results']:
+                    h, d = i['header'], i['data']
+                    res = [
+                        f"相似度：{h['similarity']}",
+                        f"作者：{d.get('member_name', d.get('creator', '<不详>'))}",
+                        f"标题：{d.get('jp_name', d.get('title', '<不详>'))}",
+                        '\n'.join(d.get('ext_urls', ''))
+                    ]
+                    ret.append('\n'.join(res))
+
+            else:
+                ret.append('无结果')
+    return '\n\n'.join((f"#{p+1} {i}" for p,i in enumerate(ret)))
+
+
+
+
+
+
+
+
 def 刷CF(ent: CoreEntity):
     """#刷CF []
     爬取给定用户的做题记录。
