@@ -671,7 +671,7 @@ def 搜图(ent: CoreEntity):
         if r.status_code!=200:
             ret.append(f'搜到一半，十有八九是寄了：{r.status_code}\n{r.text}')
         else:
-            j = ret.json()
+            j = r.json()
             logger.debug(j)
             if j['header']['results_returned']>0:
                 for i in j['results']:
