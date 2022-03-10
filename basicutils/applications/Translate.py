@@ -333,7 +333,11 @@ def deepl(ent: CoreEntity):
         )
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
-        return [Plain(text=deepl_translate(l1=attrs[0], l2=attrs[1], src=' '.join(attrs[2:])))]
+        source_lang = ' '.join(attrs[2:]).strip()
+        translated = deepl_translate(l1=attrs[0], l2=attrs[1], src=source_lang).strip()
+        if 'sniffer_invoke' in ent.meta and translated == source_lang:
+            return []
+        return [Plain(text=translated)]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
 
@@ -379,7 +383,11 @@ def 咕狗翻译(ent: CoreEntity):
         )
         return [Plain(f'快速翻译启动,结束打E')]
     if len(attrs) > 2:
-        return [Plain(text=googleTrans([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
+        source_lang = ' '.join(attrs[2:]).strip()
+        translated = googleTrans([attrs[0], attrs[1], source_lang]).strip()
+        if 'sniffer_invoke' in ent.meta and translated == source_lang:
+            return []
+        return [Plain(text=translated)]
     else:
         return [Plain(text='原谅我不知道你在说什么（')]
 
@@ -415,7 +423,11 @@ def 百度翻译(ent: CoreEntity):
         )
         return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
-        return [Plain(text=BDtranslate([attrs[0], attrs[1], ' '.join(attrs[2:])]))]
+        source_lang = ' '.join(attrs[2:]).strip()
+        translated = BDtranslate([attrs[0], attrs[1], source_lang]).strip()
+        if 'sniffer_invoke' in ent.meta and translated == source_lang:
+            return []
+        return [Plain(text=translated)]
     else:
         return [Plain(text='原谅我不知道你在说什么（\n')]
 
