@@ -826,8 +826,9 @@ def 川普生成器(ent: CoreEntity):
 	return [Plain(pat)]
 
 def 骰子(ent: CoreEntity):
-	"""#Roll [#roll]
-	44的骰娘，返回指定区间的一个整数。用法:#Roll <左区间(包含)> <右区间(包含)>
+	"""#roll [#rand]
+	【随机数】
+	44的骰娘，返回指定区间的一个随机整数。用法:#Roll <左区间(包含)> <右区间(包含)>
 	"""
 	attrs = ent.chain.tostr().split(' ')
 	if (len(attrs)>=2):
