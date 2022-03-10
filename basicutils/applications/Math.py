@@ -356,6 +356,7 @@ def 孙子定理(ent: CoreEntity):
 
 def 计算器(ent: CoreEntity):
     """#计算器 [#calc]
+    （懒得打开桌面的计算器或者是手机应用？试试这个
     计算中缀表达式
     :param exp: 待求表达式（python风格）exp
     :return:
@@ -377,7 +378,10 @@ def 计算器(ent: CoreEntity):
     elif attrs[0] in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#计算器')
         return [Plain('禁用快速计算')]
-    exp, res = evaluate_expression(''.join(attrs).replace(' ','').strip())
+    raw_expression = ''.join(attrs).replace(' ','').strip()
+    exp, res = evaluate_expression(raw_expression)
+    if 'sniffer_invoke' in ent.meta and raw_expression == res:
+        return []
     return [Plain(f"{exp} = {res}")]
 
 def 逆波兰(ent: CoreEntity):
@@ -491,6 +495,7 @@ def 老线代bot了(ent: CoreEntity):
 
 def 离散闭包用工具(ent: CoreEntity):
     """#encap []
+    【xdz快乐小脚本】
     根据所给二元组表分析关系。例子：#encap a,b a,c a,d
     """
     attrs = ent.chain.tostr().split(' ')
