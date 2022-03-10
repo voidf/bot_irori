@@ -39,7 +39,7 @@ def asobi2048(ent: CoreEntity):
         #2048 w (向上滑动)
     """
     attrs = ent.chain.tostr().split(' ')
-    player = ent.player
+    player = ent.pid
     f = False
     n = 4
 
@@ -189,7 +189,7 @@ def asobiSlidingPuzzle(ent: CoreEntity):
         bg <图片>:换背景
         t:用文本方式打印拼图
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
 
     def find1(array):

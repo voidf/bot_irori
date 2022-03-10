@@ -1,8 +1,6 @@
 from mongoengine import *
 from typing import Optional, TypeVar, Union, get_type_hints
 import datetime
-from mongoengine import connection
-from mongoengine.connection import connect, disconnect
 from mongoengine.fields import *
 from mongoengine.pymongo_support import *
 from mongoengine.context_managers import *

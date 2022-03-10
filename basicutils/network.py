@@ -4,16 +4,16 @@ from pydantic import BaseModel # 为了用json
 from pydantic import Field
 from typing import *
 import datetime
-import logging
 import json
 from basicutils.chain import *
 
 # Core内部传输用
 class CoreEntity(BaseModel):
+    """irori系统内部的消息传输形式"""
     chain: MessageChain
-    player: str  = '' # 发送来源player ObjectId
+    # player: str  = '' # 发送来源player ObjectId
     pid: str  = ''    # 发送来源player id
-    source: str  = '' # 发送来源Adapterid或是相关jwt
+    source: str  = '' # 发送来源Sessionid或是相关jwt
     meta: dict   = {} # 额外参数，对worker会使用ts时间戳来维护忙状态，解析的--参数也会放在这里
     jwt: str     = '' # 令牌
     member: str  = '' # 实际发送者的player号
@@ -27,17 +27,12 @@ class CoreEntity(BaseModel):
         mt = {'msg': msg}
         return cls(
             chain=MessageChain.get_empty(),
-            player='',
-            source='',
             meta=mt
         )
     @classmethod
     def wrap_strchain(cls, msg: str):
         return cls(
             chain=MessageChain.auto_make(msg),
-            player='',
-            source='',
-            meta={}
         )
     def unpack_rawstring(self) -> str:
         return self.meta.get('msg', '')
@@ -45,11 +40,9 @@ class CoreEntity(BaseModel):
     def wrap_dict(cls, d: dict):
         return cls(
             chain=MessageChain.get_empty(),
-            player='',
-            source='',
             meta=d
         )
-
+'''
 from abc import ABC, abstractmethod
 import asyncio
 import cfg
@@ -144,3 +137,4 @@ class QUICSessionBase(ABC):
         payload = data.encode('utf-8')
         contentlen = bytes(str(len(payload)), 'utf-8')
         self._writer.write(contentlen + payload)
+'''

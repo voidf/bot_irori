@@ -6,7 +6,7 @@ from basicutils.task import *
 
 def BaiduTTS(text: str) -> str:
     """拿百度TTS的链接"""
-    return f'http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=5&text={text}'
+    return f'https://fanyi.baidu.com/gettts?lan=zh&spd=5&source=web&text={text}'
 
 # def generateTmpFile(b: bytes, fm='png') -> str:
 #     """生成一个30s后会删掉的临时文件"""

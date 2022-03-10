@@ -22,8 +22,35 @@ sys.dont_write_bytecode = True
 
 res = ''
 
-from cfg import proxy, baidu_appid, baidu_secretKey
+import jieba
+import jieba.posseg as pseg
 
+def _RM_convert(x, y, _volumn):
+    if random.random() > _volumn:
+        return x
+    if x in {'，', '。'}:
+        return '……'
+    if x in {'!', '！'}:
+        return '❤'
+    if len(x) > 1 and random.random() < 0.5:
+        return f'{x[0]}……{x}'
+    else:
+        if y == 'n' and random.random() < 0.5:
+            x = '〇' * len(x)
+        return f'……{x}'
+
+
+def chs2yin(ent: CoreEntity):
+    """#yinglish []
+    抄自RimoChan/yinglish
+    哼，不告诉你怎么用！
+    """
+    try:
+        _volumn = float(ent.meta.get('-v', 0.5))
+    except:
+        _volumn = 0.5
+    s = ent.chain.tostr()
+    return ''.join([_RM_convert(x, y, _volumn) for x, y in pseg.cut(s)])
 
 def jsontimestampnow(): return int(datetime.datetime.now().timestamp()*1000)
 
@@ -87,6 +114,11 @@ def BDtranslate(req):
     toLang = req[1]
     salt = random.randint(32768, 65536)
     q = req[2]
+    from fapi.models.Auth import IroriConfig
+
+    cfg = IroriConfig.objects().first()
+    baidu_appid, baidu_secretKey = cfg.api_keys['baidu.fanyi.appid'], cfg.api_keys['baidu.fanyi.secret']
+
     sign = baidu_appid + q + str(salt) + baidu_secretKey
     sign = hashlib.md5(sign.encode()).hexdigest()
     myurl = myurl + '?appid=' + baidu_appid + '&q=' + urllib.parse.quote(
@@ -101,7 +133,7 @@ def BDtranslate(req):
         res = result['trans_result'][0]['dst']
 
     except:
-        res = f"{result}"
+        res = f"网络连接错误"
 
     finally:
         if trans:
@@ -281,7 +313,7 @@ def deepl(ent: CoreEntity):
         "RU" - Russian
         "ZH" - Chinese
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#deepl')
@@ -328,7 +360,7 @@ def 咕狗翻译(ent: CoreEntity):
     一般用例：
         #gkr ja zh-CN やりますね
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#gkr')
@@ -364,7 +396,7 @@ def 百度翻译(ent: CoreEntity):
     一般用例：
         #bkr jp zh 自分で百度しろ
     """
-    player = ent.player
+    player = ent.pid
     attrs = ent.chain.tostr().split(' ')
     if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
         Sniffer.clear(player, '#bkr')

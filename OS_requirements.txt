@@ -3,11 +3,17 @@
 
 
 # adapters
-prompt_toolkit
+# prompt_toolkit
+
+# server
+brotlipy
+aiohttp
 
 # worker
+jieba
 pillow
 pydantic
+brotli
 requests[socks]
 bs4
 numpy

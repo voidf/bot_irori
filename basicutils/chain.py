@@ -15,6 +15,8 @@ class Element(BaseModel):
         return super().json(exclude_none=True)
     def tostr(self) -> str:
         return ''
+    def __str__(self) -> str:
+        return self.tostr()
 
 class MessageChain(BaseModel):
     __root__: List[Element]
@@ -86,12 +88,16 @@ class MessageChain(BaseModel):
         return cls(__root__=[Plain(str(obj))])
     def __iter__(self):
         return self.__root__.__iter__()
+    def __str__(self) -> str:
+        return self.tostr()
     def tostr(self) -> str:
+        """调用所有消息元素的tostr方法然后不分隔的拼成一个字符串返回"""
         output = []
         for i in self.__root__:
             output.append(i.tostr())
         return ''.join(output)
     def onlyplain(self) -> str:
+        """只将Plain文本元素空格隔开拼成一个字符串返回"""
         output = []
         for i in self.__root__:
             if i.type == "Plain":
@@ -104,7 +110,7 @@ class MessageChain(BaseModel):
                 if not ato:
                     self.__root__.pop(p)
                 i.text = ' '.join(ato)
-                return cmd
+                return cmd.strip()
         return ''
 
 class Plain(Element):

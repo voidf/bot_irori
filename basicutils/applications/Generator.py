@@ -13,6 +13,74 @@ from basicutils.network import *
 from basicutils.task import *
 from basicutils.media import *
 
+import xlrd
+
+def 随机中文名生成器(ent: CoreEntity):
+	"""#起名 [#name, #名字]
+	根据数据库老师给的不靠谱的百家姓和常用名字生成随机中文名
+	（可能会生成笑死人的名字
+	"""
+	firstname = []
+	firstnameweight = []
+	b = xlrd.open_workbook(r'Assets/random_name/first.xlsx')
+	s = b.sheet_by_index(0)
+
+	for r in s.col(0):
+		firstname.append(r.value)
+
+	lastname = []
+	lastnameweight = []
+	b = xlrd.open_workbook(r'Assets/random_name/last.xlsx')
+	s = b.sheet_by_index(0)
+	for r in s.col(0):
+		lastname.append(r.value)
+
+	mp1 = {}
+	su1 = len(lastname)
+	for i in lastname:
+		mp1[i] = 1
+
+	mp2 = {}
+	su2 = len(firstname)
+	for i in firstname:
+		mp2[i] = 1
+
+	b = xlrd.open_workbook(r'Assets/random_name/train.xls')
+	s = b.sheet_by_index(0)
+	for r in s.col(1)[1:]:
+		na = r.value
+		fs, ls = na[0], list(na[1:])
+		mp1[fs] = mp1.get(fs, 0) + 1
+		su1+=1
+		su2+=len(ls)
+		for i2 in ls:
+			mp2[i2] = mp2.get(i2, 0) + 1
+		
+	for i in firstname:
+		firstnameweight.append(mp2[i]/su2)
+		mp2.pop(i)
+
+	while mp2:
+		k, v = mp2.popitem()
+		firstname.append(k)
+		firstnameweight.append(v/su2)
+
+	for i in lastname:
+		lastnameweight.append(mp1[i]/su1)
+		mp1.pop(i)
+
+	while mp1:
+		k, v = mp1.popitem()
+		lastname.append(k)
+		lastnameweight.append(v/su1)
+
+
+	ret = random.choices(lastname, weights=lastnameweight)[0] + random.choices(firstname, weights=firstnameweight)[0]
+	if random.randint(0,1):
+		return ret + random.choices(firstname, weights=firstnameweight)[0]
+	return ret
+		
+
 def 不会吧(ent: CoreEntity):
 	"""#不会吧 []
 	不会吧生成器，例：#不会吧 在会谈时脱出来"""

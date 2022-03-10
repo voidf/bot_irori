@@ -6,7 +6,6 @@ from mongoengine.pymongo_support import *
 from mongoengine.context_managers import *
 from mongoengine.document import *
 
-from fapi.models.Auth import Adapter
 from fapi.models.Base import *
 from basicutils.algorithms import *
 import basicutils.CONST
@@ -14,8 +13,8 @@ import basicutils.CONST
 INVISIBLE = TypeVar('INVISIBLE')
 
 class Player(Document):
-    pid = StringField()
-    aid = ReferenceField(Adapter)
+    pid = StringField(primary_key=True)
+    # aid = ReferenceField(Adapter)
     items = DictField()
     @staticmethod
     def expand_mono(obj):
@@ -56,25 +55,17 @@ class Player(Document):
             d['id'] = str(self.id)
         return d
     @classmethod
-    def chk(cls, pk: str, aid: Optional[Union[Adapter, str]]=None):
+    def chk(cls, pk: str):
         # print("CHK", pk, aid)
         # print(pk, )
         if isinstance(pk, cls):
             return pk
-        if aid is None or len(pk)==24:
-            q = cls.objects(pk=pk).first()
-            if not q:
-                raise FileNotFoundError("指定player不存在")
-            # print(q.get_base_info())
-            return q
-        else:
-            a = Adapter.chk(aid)
-            q = cls.objects(aid=a, pid=pk).first()
-            if not q:
-                q = cls(aid=a, pid=pk).save()
-                # print("NEW PLAYER", q.get_base_info(), "CREATED!")
-            # print(q.get_base_info())
-            return q
+        q = cls.objects(pid=pk).first()
+        if not q:
+            q = cls(pid=pk).save()
+            # print("NEW PLAYER", q.get_base_info(), "CREATED!")
+        # print(q.get_base_info())
+        return q
     
     def upd_credit(self, operator: str, val: float) -> bool:
         """修改用户的信用点

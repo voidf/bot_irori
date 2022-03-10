@@ -1,7 +1,10 @@
 """爬虫类"""
+from dataclasses import dataclass
 import enum
 import os
 import sys
+
+from async_timeout import timeout
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
@@ -22,6 +25,67 @@ import urllib
 from basicutils.chain import *
 from basicutils.network import *
 from basicutils.task import *
+
+@dataclass
+class Contest():
+    id: str
+    title: str
+    begintime: float
+    length: float
+
+def contesttime2str(t: float) -> str:
+    return datetime.datetime.strftime(datetime.datetime.fromtimestamp(t), "%m月%d日 %H:%M")
+
+
+def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) -> str:
+    """没命中回空字符串"""
+    ent.meta['routiner'] = routiner
+    if keyword in GLOBAL.unsubscribes:
+        resp = requests.delete(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return f"已取消{contest_type}比赛提醒推送"
+    elif keyword in GLOBAL.subscribes:
+        resp = requests.post(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return f"已订阅{contest_type}比赛提醒推送"
+    elif keyword == 'upd':
+        ent.meta['call'] = 'upd'
+        resp = requests.options(
+            server_api('/worker/routiner'),
+            json={'ents': ent.json()}
+        )
+        if resp.status_code!=200:
+            return resp.text
+        return f"成功更新{contest_type}比赛推送"
+    return ""
+
+def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, spider: Callable[[None], List[Contest]]):
+    attrs = ent.chain.tostr().split(' ')
+    li = []
+
+    if attrs:
+        ret = subscriber(attrs[0],routiner,ent,contest_type)
+        if ret: return ret
+
+    for c in spider():
+        hint = [c.title, f"{contesttime2str(c.begintime)}开始，持续{datetime.timedelta(seconds=c.length)!s}"]
+        if c.begintime > datetime.datetime.now().timestamp():
+            hint.append(f"倒计时{datetime.datetime.fromtimestamp(c.begintime)-datetime.datetime.now()!s}")
+        else:
+            hint.append(f"已经开始{datetime.datetime.now()-datetime.datetime.fromtimestamp(c.begintime)!s}")
+
+        li.append("\n".join(hint))
+    if not li:
+        li = '没有即将开始的比赛'
+    return '\n\n'.join(li)
 
 # async def 没救了(*attrs,kwargs={}):
 #     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
@@ -185,78 +249,32 @@ def 爬CF(ent: CoreEntity):
     """#CF []
     爬取CodeForces将要开始的比赛的时间表
     可用参数:
-        TD  （取消提醒）
-        sub （订阅提醒）"""
-    attrs = ent.chain.tostr().split(' ')
-    ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'CodeforcesRoutinuer'
-    li = []
-    if len(attrs):
-        if attrs[0] in GLOBAL.unsubscribes:
-            resp = requests.delete(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            return [Plain('取消本群的CodeForces比赛提醒服务')]
-        elif attrs[0] in GLOBAL.subscribes:
-            resp = requests.post(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            li.append(Plain('已订阅Codeforces比赛提醒推送\n'))
-    
-    li.append(Plain(text='{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format('名称', '开始时间', '比赛时长', '倒计时')))
-    resp = requests.get('https://codeforces.com/api/contest.list').json()['result']
-    for i in resp:
-        if i['phase'] == 'FINISHED':
-            break
-        li.append(
-            Plain(
-                '{:<10}\n{:<10}\n{:<10}\n{:<15}\n\n'.format(
-                    i['name'], 
-                    str(datetime.datetime.fromtimestamp(i['startTimeSeconds'])), 
-                    f"{i['durationSeconds'] / 60}min" , 
-                    str(datetime.timedelta(seconds=-i['relativeTimeSeconds']))
+        TD  取消提醒
+        sub 订阅提醒"""
+    def spider() -> List[Contest]:
+        li = []
+        for i in requests.get('https://codeforces.com/api/contest.list', timeout=30).json()['result']:
+            if i['phase'] == 'FINISHED':
+                break
+            li.append(
+                Contest(
+                    i['id'],
+                    i['name'],
+                    i['startTimeSeconds'],
+                    i['durationSeconds']
                 )
             )
-        )
-    if not li:
-        li = '没有即将开始的比赛'
-    return li
+        return li
+    return contest_fetcher_common('CodeforcesRoutiner', ent, 'Codeforces', spider)
 
 def 爬AtCoder(ent: CoreEntity):
     """#AT []
     爬取AtCoder将要开始的比赛的时间表
     可用参数:
-        reset（取消提醒）
+        TD  取消提醒
+        sub 订阅提醒
     """
-    attrs = ent.chain.tostr().split(' ')
-    ent.meta['routiner'] = 'AtcoderRoutinuer'
-    li = []
-
-    if attrs:
-        if attrs[0] in GLOBAL.unsubscribes:
-            resp = requests.delete(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            return [Plain('取消本群的AtCoder比赛提醒服务')]
-        elif attrs[0] in GLOBAL.subscribes:
-            resp = requests.post(
-                server_api('/worker/routiner'),
-                json={'ents': ent.json()}
-            )
-            if resp.status_code!=200:
-                return resp.text
-            li.append(Plain('已订阅AtCoder比赛提醒推送\n'))
-    def fetchAtCoderContests() -> dict:
-        j = {}
+    def spider() -> List[Contest]:
         l = []
         r = requests.get('https://atcoder.jp/contests/',
                         headers=GLOBAL.AtCoderHeaders, timeout=30)
@@ -264,37 +282,31 @@ def 爬AtCoder(ent: CoreEntity):
         try:
             for p, i in enumerate(s.find('h3', string='Active Contests').next_sibling.next_sibling('tr')):
                 if p:
-                    l.append({
-                        'length': i('td')[2].text,
-                        'ranking_range': i('td')[3].text,
-                        'title': i('a')[1].text,
-                        'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                    })
+                    hours, mins = i('td')[2].text.split(':')
+                    l.append(
+                        Contest(
+                            i('a')[1]['href'],
+                            i('a')[1].text, 
+                            (datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)).timestamp(),
+                            int(hours) * 3600 + int(mins) * 60
+                        )
+                    )
         except:
             pass
-        j['running'] = l
-        l = []
         # 持续时间 排名区间 比赛名 比赛时间
         for p, i in enumerate(s.find('h3', string='Upcoming Contests').next_sibling.next_sibling('tr')):
             if p:
-                l.append({
-                    'length': i('td')[2].text,
-                    'ranking_range': i('td')[3].text,
-                    'title': i('a')[1].text,
-                    'begin': datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)
-                })
-        j['upcoming'] = l
-        print(j)
-        return j
-    ATData = fetchAtCoderContests()
-    if ATData['running']:
-        li.append(Plain('正在运行的比赛：\n'))
-        for cont in ATData['running']:
-            li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-    li.append(Plain('将来的比赛：\n'))
-    for cont in ATData['upcoming']:
-        li.append(Plain(f"{cont['title']} {cont['ranking_range']} {cont['length']} {cont['begin'].strftime('%Y/%b/%d %H:%M')}\n"))
-    return li
+                hours, mins = i('td')[2].text.split(':')
+                l.append(
+                    Contest(
+                        i('a')[1]['href'],
+                        i('a')[1].text, 
+                        (datetime.datetime.strptime(i('a')[0].text, "%Y-%m-%d %H:%M:%S+0900") - datetime.timedelta(hours=1)).timestamp(),
+                        int(hours) * 3600 + int(mins) * 60
+                    )
+                )
+        return l
+    return contest_fetcher_common('AtcoderRoutiner', ent, 'atcoder', spider)
 
 def 爬LaTeX(ent: CoreEntity):
     """#LaTeX [#tex, #latex]
@@ -303,37 +315,89 @@ def 爬LaTeX(ent: CoreEntity):
     base = r'\dpi{150} \bg_white \large ' + ent.chain.tostr().replace('+','&plus;')
     lnk = 'https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base))
     return Image(url=lnk)
+import html
+def 爬牛客(ent: CoreEntity):
+    """#牛客 [#NC]
+    爬取牛客将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
+    """
+    def spider() -> List[Contest]:
+        l: List[Contest] = []
+        res = requests.get(
+            'https://ac.nowcoder.com/acm/contest/vip-index', timeout=30)
+        sp = BeautifulSoup(res.text, 'html.parser')
+        for item in sp.find_all('div',class_='platform-item js-item'):
+            j = json.loads(html.unescape(html.unescape(item['data-json'])))
+            l.append(
+                Contest(
+                    j['contestId'],
+                    j['contestName'],
+                    j['contestStartTime']/1e3,
+                    j['contestDuration']/1e3,
+                )
+            )
+        return l
+    return contest_fetcher_common('NowcoderRoutiner', ent, '牛客', spider)
 
-async def 爬牛客(*attrs,kwargs={}):
-    try:
-        gp = kwargs['gp'].id
-    except:
-        gp = kwargs['gp']
-    player = getPlayer(**kwargs)
-    
-    NCNoticeQueue = GLOBAL.OTNoticeQueueGlobal.setdefault(gp,{})
-            
-    if len(attrs):
-        if attrs[0] in GLOBAL.unsubscribes:
-            NowCoderSubscribe.chk(player).delete()
-            return [Plain('取消本群的牛客比赛提醒服务')]
-    else:
-        NowCoderSubscribe.chk(player)
-    li = []
-    if NowCoderSubscribe.objects(pk=Player.chk(player)):
-        NCData = fetchNowCoderContests()
-        for i in NCData:
-            li.append(Plain(i['title']+'\n'))
-            li.append(Plain(f"{i['begin']}"+'\t'))
-            li.append(Plain(i['length']+'\n\n'))
-            i['title'] = '【牛客】' + i['title']
-
-        OTNoticeManager(NCData,**kwargs)
+def 爬力扣(ent: CoreEntity):
+    """#力扣 [#LC]
+    爬取力扣将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
+    """
+    def spider() -> List[Contest]:
+        l: List[Contest] = []
+        res = requests.post('https://leetcode-cn.com/graphql', json={
+            'operationName': None, 
+            'variables': {}, 
+            'query': '{\n  contestUpcomingContests {\n    containsPremium\n    title\n    cardImg\n    titleSlug\n    description\n    startTime\n    duration\n    originStartTime\n    isVirtual\n    isLightCardFontColor\n    company {\n      watermark\n      __typename\n    }\n    __typename\n  }\n}\n'
+        }, timeout=30)
+        for item in res.json()['data']['contestUpcomingContests']:
+            l.append(
+                Contest(
+                    item['titleSlug'],
+                    item['title'],
+                    item['startTime'],
+                    item['duration'],
+                )
+            )
+        return l
+    return contest_fetcher_common('LeetcodeRoutiner', ent, '力扣', spider)
+from urllib.parse import unquote
+def 爬洛谷(ent: CoreEntity):
+    """#洛谷 [#luogu]
+    爬取洛谷将要开始的比赛的时间表
+    可用参数:
+        TD  取消提醒
+        sub 订阅提醒
+    """
+    def spider() -> List[Contest]: # 洛谷爬虫需要至少带UA，encoding启用压缩，可选
+        l: List[Contest] = []
+        res = requests.get(
+            'https://www.luogu.com.cn/contest/list',
+            headers={
+                "accept-encoding":"gzip, deflate, br", # br压缩要额外装brotli这个库才能有requests支持
+                "user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36"
+            },
+            timeout=30)
         
-        li.append(Plain('已自动订阅牛客的比赛提醒服务，取消请使用#NC reset'))
+        for item in json.loads(unquote(re.findall(r"""JSON.parse\(decodeURIComponent\("(.*?)"\)\);""", res.text)[0]))['currentData']['contests']['result']:
+            if item['endTime'] < datetime.datetime.now().timestamp():
+                break
+            l.append(
+                Contest(
+                    item['id'],
+                    item['name'],
+                    item['startTime'],
+                    item['endTime']-item['startTime'],
+                )
+            )
+        return l
+    return contest_fetcher_common('LuoguRoutiner', ent, '洛谷', spider)
 
-    return li
-        
 def 爬歌(ent: CoreEntity):
     """#什么值得听 [#uta, #music]
     根据给定关键词从几个平台爬歌（以后大概不会更新更多平台的咕（危
@@ -434,7 +498,7 @@ def 爬天气(ent: CoreEntity):
     if not attrs:
         return [Plain('你想问哪个城市的天气？\n')]
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'WeatherReportRoutinuer'
+    ent.meta['routiner'] = 'WeatherReportRoutiner'
     if attrs[0] in GLOBAL.unsubscribes:
 
         resp = requests.delete(
@@ -452,7 +516,7 @@ def 爬天气(ent: CoreEntity):
                 server_api('/worker/routiner'),
                 json = {'ents': ent.json()}
             )
-            output.append(f'从现在开始每天0点i宝会告诉你{attrs[0]}的天气情况哦！')
+            output.append(f'{attrs[0]}的天气推送已订阅')
     except:
         logging.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
@@ -467,7 +531,7 @@ def 爬每日一句(ent: CoreEntity):
         #每日一句 cancel"""
     attrs = ent.chain.tostr().split(' ')
     ent.chain.__root__.clear()
-    ent.meta['routiner'] = 'DailySentenceRoutinuer'
+    ent.meta['routiner'] = 'DailySentenceRoutiner'
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
             requests.delete(
@@ -578,6 +642,93 @@ def 爬what_anime(ent: CoreEntity):
         return [Plain('您没发图哥哥！')]
     return ret
 
+def 搜图(ent: CoreEntity):
+    """#搜图 []
+    fufu不在线，那交给i宝了
+    格式：
+        #搜图 [图片1] [图片2] ...
+    参数：
+        --save=typ 存入图片api，仅管理员能用
+        --rec 存入待审库，给管理员过目后可以加入图片api
+    """
+    from fapi.models.Auth import IroriConfig
+    from PIL import Image as Pimg
+    ret = []
+    config = IroriConfig.objects().first()
+    authorized = ent.member in config.auth_masters
+    logger.info(f"admin:{authorized}")
+    for pic in filter(lambda x:isinstance(x, Image), ent.chain):
+        imgio = BytesIO(requests.get(pic.url).content)
+        img = Pimg.open(imgio).convert('RGB')
+        imgio.truncate(0)
+        imgio.seek(0)
+        img.save(imgio, format='PNG') # 转png
+        r = requests.post('http://saucenao.com/search.php',params={
+            'output_type':2,
+            'numres':1,
+            'db':999,
+            'api_key':config.api_keys['saucenao.key']
+        },files={
+            'file':("image.png", imgio.getvalue())
+        })
+        if r.status_code!=200:
+            ret.append(f'搜到一半，十有八九是寄了：{r.status_code}\n{r.text}')
+        else:
+            j = r.json()
+            logger.debug(j)
+            if j['header']['results_returned']>0:
+                for i in j['results']:
+                    h, d = i['header'], i['data']
+                    res = [
+                        f"相似度：{h['similarity']}",
+                        f"作者：{d.get('member_name', d.get('creator', '<不详>'))}",
+                        f"标题：{d.get('jp_name', d.get('title', '<不详>'))}",
+                        '\n'.join(d.get('ext_urls', ''))
+                    ]
+                    ret.append('\n'.join(res))
+
+            else:
+                ret.append('无结果')
+    return '\n\n'.join((f"#{p+1} {i}" for p,i in enumerate(ret)))
+
+def 开车(ent: CoreEntity):
+    """#开车 [#car]
+    fufu不在线，那交给i宝了vol.2
+    格式:
+        #开车 <typ>
+        typ可选字段:
+            nice   开好车
+            ero    开痛车
+            kusa   开灵车
+            kawaii 开校车
+            r18    开坦克 （没造好
+    
+    """
+    from cfg import setu_api
+    typ = ent.chain.pop_first_cmd()
+    allow = [
+        'ero', 
+        'kawaii', 
+        'nice', 
+    #    'r18', 我想到解决方案再开放
+        'kusa'
+    ]
+    if not typ:
+        typ = 'nice'
+    if typ not in allow:
+        return f'交警提示：您的车型{typ}不能上路'
+    j = requests.get(setu_api + f'random?typ={typ}').json()
+    return [
+        Image(url=setu_api + f'bin/{j["id"]}'),
+        Plain(
+f"""{j['title']}
+https://www.pixiv.net/artworks/{j['id']}""")]
+
+
+
+
+
+
 def 刷CF(ent: CoreEntity):
     """#刷CF []
     爬取给定用户的做题记录。
@@ -670,10 +821,7 @@ functionDescript = {
 
     '#牛客':
 """
-爬取牛客将要开始的比赛的时间表
-感谢@Kevin010304提供的爬虫
-可用参数:
-    reset（取消提醒）
+
 """,
     '#什么值得听':'',
     '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',

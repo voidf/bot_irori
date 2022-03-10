@@ -1,5 +1,5 @@
 pydantic
-numpy==1.19.3
+numpy==1.21.0
 bs4
 requests[socks]
 qrcode
@@ -17,3 +17,4 @@ xlrd==1.2.0
 mongoengine
 pyzipper
 websockets
+# python-magic-bin==0.4.14
