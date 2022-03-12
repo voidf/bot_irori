@@ -45,7 +45,7 @@ async def startup_coroutines():
     from fapi.models.FileStorage import TempFile
     from fapi.routers.auth import connect_mirai
 
-    asyncio.gather(
+    asyncio.wait(
         connect_mirai(i['miraiwsurl']) 
         for i in IroriConfig.objects().first().startup_connect_actions
     ) # 先接入预设的输出会话
