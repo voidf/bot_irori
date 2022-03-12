@@ -33,6 +33,11 @@ def sleep2(timepoint: float=0, cycle: float=86400):
     return (cycle - imaseconds(cycle) + timepoint) % cycle
 
 class Routiner(Base, Document):
+    """
+    这个模块提供服务器的定时任务与主动推送功能
+
+    但是其实很多功能都可以放github actions而不必本地实现
+    """
     meta = {'allow_inheritance': True}
     # adapter = ReferenceField(Adapter)
     player = ReferenceField(Player)
@@ -42,7 +47,7 @@ class Routiner(Base, Document):
         """总恢复入口，不能被重载"""
         for sc in cls.__subclasses__():
             logger.info(f'{sc} is initializing...')
-            await sc.resume()
+            asyncio.create_task(sc.resume()) # 先排完队，避免串行
             routiner_namemap[sc.__name__] = sc
 
     @classmethod
@@ -101,7 +106,7 @@ class ContestRoutiner(Routiner):
             for subs in q:
                 pid = str(subs.player)
                 for s in SessionManager.get_routiner_list(pid):
-                    await s.upload(
+                    asyncio.create_task(s.upload(
                         CoreEntity(
                             pid=pid,
                             chain=chain.MessageChain.auto_make(
@@ -110,7 +115,7 @@ class ContestRoutiner(Routiner):
                             source='',
                             meta={}
                         )
-                    )
+                    ))
                     logger.debug('{}向{}通知完毕', contest.name, pid)
         except:
             logger.error(traceback.format_exc())
@@ -150,17 +155,18 @@ class ContestRoutiner(Routiner):
         要按比赛推送，而不是按订阅者去请求比赛。
         比赛日程器应该要能执行手动更新命令
         """
-        if not cls.__subclasses__():
+        if not (scs:=cls.__subclasses__()):
             cls.contest_futures = {}
             cls.call_map = {
                 'upd': cls.update_futures
             }
-            await cls.update_futures()
-            asyncio.ensure_future(cls.mainloop())
+            # asyncio.create_task(cls.update_futures()).add_done_callback(cls.mainloop)
+            await cls.update_futures() # 要在mainloop之前完成
+            asyncio.create_task(cls.mainloop())
         else:
-            for sc in cls.__subclasses__():
+            for sc in scs:
                 routiner_namemap[sc.__name__] = sc
-                await sc.resume()
+                asyncio.create_task(sc.resume())
 
 
     @classmethod
@@ -320,24 +326,20 @@ import random
 import basicutils.CONST as CONST
 from Worker import import_applications
 class CreditInfoRoutiner(Routiner):
+    """信用点定时更新任务，但是实际上这个功能已经不维护了"""
     @classmethod
     async def info(cls, ent: CoreEntity):
         return ','.join(list(cls.credit_cmds.keys()))
     @classmethod
     async def resume(cls):
         logger.debug(f'{cls} resume called')
-        # cls.future_map = {}
-        # if not fapi.G.initialized:
         cls.call_map = {
             'info': cls.info
         }
         cls.credit_cmds = {}
-        # print(cls)
-        # print(cls.call_map)
 
         await cls.update_futures()
-        asyncio.ensure_future(cls.mainloop())
-        logger.info(f'{cls} initialized')
+        asyncio.create_task(cls.mainloop())
 
 
     @classmethod
@@ -360,7 +362,7 @@ class CreditInfoRoutiner(Routiner):
         # if q:
         for subs in q:
             for s in SessionManager.get_routiner_list(str(subs.player)):
-                await s.upload(
+                asyncio.create_task(s.upload(
                     CoreEntity(
                         pid=str(subs.player),
                         chain=chain.MessageChain.auto_make(
@@ -369,11 +371,16 @@ class CreditInfoRoutiner(Routiner):
                         source='',
                         meta={}
                     )
-                )
+                ))
 
 
 from basicutils.chain import *
 class DDLNoticeRoutiner(Routiner):
+    """
+    DDL功能设计理念是准时提醒而不是节约资源
+    
+    所以应该按任务提醒，不能定期扫描
+    """
     ddl = DateTimeField()
     title = StringField()
     mem = IntField()
@@ -391,7 +398,7 @@ class DDLNoticeRoutiner(Routiner):
         }
         cls.future_map = {}
         for subs in cls.objects():
-            await cls.routine(subs)
+            asyncio.create_task(cls.routine(subs))
         # asyncio.ensure_future(cls.mainloop())
         logger.info(f'{cls} initialized')
 
@@ -404,19 +411,19 @@ class DDLNoticeRoutiner(Routiner):
         logger.debug('delay for {}', delay)
         await asyncio.sleep(delay)
         for s in SessionManager.get_routiner_list(pid):
-            await s.upload(
+            asyncio.create_task(s.upload(
                 CoreEntity(
                     pid=pid,
                     chain=chain.MessageChain.auto_make([At(target=int(mem)), Plain(text=message)] if int(pid)!=mem else message),
                     source='',
                     meta={}
                 )
-            )
+            ))
     
     @classmethod
     async def deleter(cls, obj: "DDLNoticeRoutiner", delay: float, nkey: tuple):
         await asyncio.sleep(delay)
-        logger.debug('{} 已完成',cls.future_map.pop(nkey))
+        logger.debug('{} 已完成', cls.future_map.pop(nkey))
         obj.delete()
 
     @classmethod
@@ -572,7 +579,7 @@ class WeatherReportRoutiner(Routiner):
                     output.append(
                         f'{i.h1.text} {t[0].text} {t[1].text.strip()} {t[2].span["title"]}{t[2].text.strip()}')
             for s in SessionManager.get_routiner_list(pid):
-                await s.upload(
+                asyncio.create_task(s.upload(
                     CoreEntity(
                         pid=pid,
                         chain=chain.MessageChain.auto_make(
@@ -581,7 +588,7 @@ class WeatherReportRoutiner(Routiner):
                         source='',
                         meta={}
                     )
-                )
+                ))
 
 
     @classmethod
@@ -602,7 +609,7 @@ class DailySentenceRoutiner(Routiner):
     @classmethod
     async def resume(cls):
         logger.debug(f'{cls} resume called')
-        asyncio.ensure_future(cls.mainloop())
+        asyncio.create_task(cls.mainloop())
         logger.info(f'{cls} initialized')
 
     @classmethod
@@ -644,9 +651,7 @@ class DailySentenceRoutiner(Routiner):
                 pid = str(subs.player)
                 ent.pid = pid
                 for s in SessionManager.get_routiner_list(pid):
-                    await s.upload(
-                        ent
-                    )
+                    asyncio.create_task(s.upload(ent))
 
 
     @classmethod
@@ -680,7 +685,5 @@ class LoginNoticeRoutiner(Routiner):
                 meta={}
             )
             for s in SessionManager.get_routiner_list(pid):
-                await s.upload(
-                    ent
-                )
+                asyncio.create_task(s.upload(ent))
 

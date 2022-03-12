@@ -1,7 +1,7 @@
 .vscode/
 compile_commands.json
 
-irori.log
+*.log
 CF/
 credits/
 __pycache__/

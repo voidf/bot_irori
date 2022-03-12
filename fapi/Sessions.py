@@ -16,7 +16,7 @@ import markdown
 from fapi.utils.syscall import *
 
 class Session(ABC):
-    """收发消息的实体"""
+    """收发消息的实体，表示一个Irori能向外输出的会话接口"""
     def __init__(self) -> None:
         self._alive = True
     def _init_sid(self, sid):
@@ -144,6 +144,7 @@ class Session(ABC):
 
 
 class SessionManager():
+    """用来管理活动Session的静态函数包，别实例化"""
     s = {}      # 活动Session表
     # a2p = {}    # adapter: {session: [(player, playername)]}表 内部通信用
     p2s = {}    # player: [session号]表 日程器用
@@ -204,7 +205,10 @@ class SessionManager():
     # def get_contactable_list(aid: str):
         # return [(sid, pid, pname) for sid, (pid, pname) in SessionManager.a2p.get(aid, {}).items()]
     @staticmethod
-    def get_routiner_list(pid: str):
+    def get_routiner_list(pid: str) -> List[Session]:
+        """返回可以联系到给定的pid标识的player的Session表
+        
+        调用时懒惰更新存活表"""
         a = []
         sessions: List[Session] = []
         for i in SessionManager.p2s.get(pid, []):

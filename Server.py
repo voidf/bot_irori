@@ -1,6 +1,8 @@
+import loguru
 from fapi.models.Routiner import *
 from fastapi import FastAPI, Depends
 from loguru import logger
+logger.add("Server.log", rotation="20 MB")
 from cfg import db, web_host, web_port
 
 from fapi.models.Auth import *
@@ -40,12 +42,19 @@ app = create_fastapi()
 
 @app.on_event('startup')
 async def startup_coroutines():
-    await Routiner.recover_routiners()
     from fapi.models.FileStorage import TempFile
-    await TempFile.resume()
-    for i in IroriConfig.objects().first().startup_connect_actions:
-        from fapi.routers.auth import connect_mirai
-        await connect_mirai(i['miraiwsurl'])
+    from fapi.routers.auth import connect_mirai
+
+    asyncio.gather(
+        connect_mirai(i['miraiwsurl']) 
+        for i in IroriConfig.objects().first().startup_connect_actions
+    ) # 先接入预设的输出会话
+
+    asyncio.create_task(Routiner.recover_routiners()) # 不需要返回值的进队之后再执行
+    asyncio.create_task(TempFile.resume())
+
+    logger.debug("【TASKS】")
+    logger.debug(asyncio.all_tasks())
     # if os.path.exists('startup_actions.json'):
     #     import json
     #     with open('startup_actions.json', 'r') as f:

@@ -24,5 +24,9 @@ class TempFile(FileStorage):
         self.delete()
     @classmethod
     async def resume(cls):
+        """
+        今后文件多的时候不应按文件删除
+        应定时检测再删除
+        """
         for i in cls.objects():
             asyncio.ensure_future(i.deleter())

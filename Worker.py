@@ -21,6 +21,7 @@ app.config_from_object('celeryconfig')
 from basicutils.network import *
 from basicutils.chain import *
 from loguru import logger
+logger.add("Worker.log", rotation="20 MB")
 import traceback
 import requests
 # from cfg import dist_host, web_port
