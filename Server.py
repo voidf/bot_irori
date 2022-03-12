@@ -45,10 +45,10 @@ async def startup_coroutines():
     from fapi.models.FileStorage import TempFile
     from fapi.routers.auth import connect_mirai
 
-    asyncio.wait(
+    asyncio.gather(*(
         connect_mirai(i['miraiwsurl']) 
         for i in IroriConfig.objects().first().startup_connect_actions
-    ) # 先接入预设的输出会话
+    )) # 先接入预设的输出会话
 
     asyncio.create_task(Routiner.recover_routiners()) # 不需要返回值的进队之后再执行
     asyncio.create_task(TempFile.resume())
