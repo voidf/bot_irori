@@ -4,7 +4,7 @@ import json
 import logging
 import asyncio
 from typing import NoReturn
-from basicutils.taskutils import ArgumentParser
+from basicutils.task import ArgumentParser
 from loguru import logger
 import sys
 
@@ -25,7 +25,8 @@ import cfg
 sport = cfg.quic_port
 hostname = cfg.quic_host
 
-from basicutils.socketutils import *
+from basicutils.network import *
+from basicutils.quic import *
 
 class QUICTerminalSession(QUICSessionBase):
     def initialize(self):
@@ -86,16 +87,12 @@ class QUICTerminalSession(QUICSessionBase):
 
 
 
-import concurrent.futures
-import datetime
 import traceback
-from basicutils.socketutils import *
 
 import ssl
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.h3.connection import H3_ALPN
 from aioquic.asyncio.client import connect
-import functools
 
 syncid: str
 playerid: str

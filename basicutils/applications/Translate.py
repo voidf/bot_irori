@@ -22,8 +22,7 @@ sys.dont_write_bytecode = True
 
 res = ''
 
-import jieba
-import jieba.posseg as pseg
+
 
 def _RM_convert(x, y, _volumn):
     if random.random() > _volumn:
@@ -45,6 +44,8 @@ def chs2yin(ent: CoreEntity):
     抄自RimoChan/yinglish
     哼，不告诉你怎么用！
     """
+    import jieba
+    import jieba.posseg as pseg
     try:
         _volumn = float(ent.meta.get('-v', 0.5))
     except:

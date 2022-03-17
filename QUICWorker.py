@@ -4,7 +4,8 @@ import json
 from loguru import logger
 import asyncio
 from typing import NoReturn
-from basicutils.socketutils import *
+from basicutils.network import *
+from basicutils.quic import *
 import logging
 logging.basicConfig(
 	level=logging.DEBUG,  
@@ -12,7 +13,7 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 )
 
-import cfg
+from QUICFaker import Configuration as cfg
 
 sport = cfg.quic_port
 hostname = cfg.quic_host

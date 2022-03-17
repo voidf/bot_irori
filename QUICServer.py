@@ -1,27 +1,16 @@
 # 只能运行在linux上，wsl也行
 
-import argparse
 import asyncio
-import importlib
 # import logger
-import time
-from collections import deque
-from email.utils import formatdate
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
 
-
-import aioquic
 from aioquic.asyncio import QuicConnectionProtocol, serve
-from aioquic.h3.connection import H3_ALPN, H3Connection
-from aioquic.h3.events import DataReceived, H3Event, HeadersReceived
-from aioquic.h3.exceptions import NoAvailablePushIDError
+import aioquic
 from aioquic.quic.configuration import QuicConfiguration
-from aioquic.quic.events import DatagramFrameReceived, ProtocolNegotiated, QuicEvent
 from aioquic.tls import SessionTicket
 
 import random
-from basicutils.taskutils import ArgumentParser
-import json
+from basicutils.task import ArgumentParser
 import os
 import traceback
 
@@ -50,7 +39,8 @@ adapters = {}
 adapters_meta = {}
 player_adapter = {} # player -> adapter映射表
 
-import cfg
+
+from QUICFaker import Configuration as cfg
 
 sport = cfg.bind_port
 
@@ -75,7 +65,8 @@ class SessionTicketStore:
 
 
 import datetime
-from basicutils.socketutils import *
+from basicutils.network import *
+from basicutils.quic import *
 
 
 class QUICServerSession(QUICSessionBase):
@@ -192,7 +183,7 @@ async def handle_inbound(
         try:
             while 1:
                 ent = (await ses.recv())
-                sendto: QUICServerSession = adapters[player_adapter[ent.player]]
+                sendto: QUICServerSession = adapters[player_adapter[ent.pid]]
                 await sendto.send(ent)
         except:
             logger.warning(traceback.format_exc())
@@ -254,7 +245,7 @@ async def handle_inbound(
                 ent = (await ses.recv())
                 logger.debug("Adapter received: {}", ent)
                 logger.debug(ent.json())
-                player_adapter[ent.player] = syncid # 反向学习
+                player_adapter[ent.pid] = syncid # 反向学习
 
                 data = ent.chain.onlyplain()
                 c, *att = data.split(' ') 
