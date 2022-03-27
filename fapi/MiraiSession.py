@@ -56,7 +56,7 @@ class MiraiSession(Session):
                         if await self._handle_syscall(ent):
                             continue
                         try:
-                            logger.warning(f'conn2wk{ent}')
+                            # logger.warning(f'conn2wk{ent}')
                             task.delay(ent.json()) # 向Worker发布任务
                         except:
                             logger.critical(traceback.format_exc())

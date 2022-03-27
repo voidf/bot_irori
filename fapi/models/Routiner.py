@@ -526,9 +526,13 @@ class WeatherReportRoutiner(Routiner):
     @classmethod
     async def mainloop(cls):
         ses = aiohttp.ClientSession()
-        while 1:
-            await asyncio.sleep(sleep2(5))
-            await cls.update_futures(ses)
+        try:
+            while 1:
+                await asyncio.sleep(sleep2(1))
+                await cls.update_futures(ses)
+        except:
+            logger.critical('WeatherReportRoutiner')
+            logger.critical(traceback.format_exc())
 
     @classmethod
     async def update_futures(cls, ses: aiohttp.ClientSession):

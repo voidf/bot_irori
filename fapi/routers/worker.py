@@ -30,7 +30,7 @@ class CoreEntityJson(BaseModel):
 
 
 async def parse_session_jwt(f: CoreEntityJson) -> CoreEntity:
-    logger.critical(f)
+    # logger.critical(f)
     ent = CoreEntity.handle_json(f.ents)
     # logger.debug(ent)
     src, msg = verify_session_jwt(ent.jwt)
