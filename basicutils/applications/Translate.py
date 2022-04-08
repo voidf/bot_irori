@@ -168,7 +168,7 @@ def int_overflow(val):
     return val
 
 
-def unsigned_right_shitf(n, i):
+def unsigned_right_shift(n, i):
     # 数字小于0，则转为32位无符号uint
     if n < 0:
         n = ctypes.c_uint32(n).value
@@ -230,7 +230,7 @@ def google_RL(a, b):
         else:
             d = int(d)
         if b[c+1] == Yb:
-            d = unsigned_right_shitf(a, d)
+            d = unsigned_right_shift(a, d)
         else:
             d = int(a) << d
         if b[c] == Yb:
