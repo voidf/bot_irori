@@ -97,6 +97,7 @@ async def delete_oss(fspk: str, ent: CoreEntity = Depends(parse_session_jwt)):
     fs: FileStorage = FileStorage.trychk(fspk)
     if not fs:
         return falseReturn(404, 'No such resource')
+    fs.content.delete()
     fs.delete()
     return trueReturn()
 
