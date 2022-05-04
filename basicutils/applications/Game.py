@@ -63,7 +63,6 @@ def asobi2048(ent: CoreEntity):
         grids = numpy.array([[0 for _ in range(n)] for __ in range(n)])
         grids[random.randint(0,n-1)][random.randint(0,n-1)] = random.randint(1,2)*2
     movedGrids=set()
-    logger.debug(f'attrs=>{attrs}; unsubs=>{GLOBAL.unsubscribes}')
     if attrs[0] in ('上','W','w','ue'):
         for i in range(n):
             for j in range(1,n):
@@ -144,7 +143,7 @@ def asobi2048(ent: CoreEntity):
                             grids[i][k] = grids[i][j]
                             grids[i][j] = 0
                             f = True
-    elif attrs[0].lower() in GLOBAL.unsubscribes:
+    elif attrs[0] in GLOBAL.unsubscribes:
         Sniffer.clear(player,'#2048')
         return [Plain(text=random.choice(['快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
