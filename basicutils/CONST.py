@@ -379,7 +379,7 @@ QQFaces = {
 
 
 subscribes = ('S','sub','subscribe','订阅','推送','push','enable')
-unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭嘴', 'damare', 'E', 'yamero', '停','disable','clear')
+unsubscribes = ('unsubscribe','cancel','td','TD','reset','stop','黙れ', '闭嘴', 'damare', 'E', 'yamero', '停','disable','clear', 'bye')
 
 
 chat_log = {}

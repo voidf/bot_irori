@@ -48,7 +48,8 @@ def 清空嗅探器(ent: CoreEntity):
     """%clear []
     清空所有本会话Sniffer
     """
-    return [Plain(Sniffer.drop(ent.pid))]
+    Sniffer.drop(ent.pid)
+    return [Plain("[Sniffer] 清除完毕")]
 
 
 functionDescript = {
