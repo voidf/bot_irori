@@ -63,6 +63,7 @@ def asobi2048(ent: CoreEntity):
         grids = numpy.array([[0 for _ in range(n)] for __ in range(n)])
         grids[random.randint(0,n-1)][random.randint(0,n-1)] = random.randint(1,2)*2
     movedGrids=set()
+    logger.debug(f'attrs=>{attrs}; unsubs=>{GLOBAL.unsubscribes}')
     if attrs[0] in ('上','W','w','ue'):
         for i in range(n):
             for j in range(1,n):
@@ -145,14 +146,14 @@ def asobi2048(ent: CoreEntity):
                             f = True
     elif attrs[0].lower() in GLOBAL.unsubscribes:
         Sniffer.clear(player,'#2048')
-        return [Plain(text=random.choice(['我错了我不会条条都回了','快速游戏模式关闭']))]
+        return [Plain(text=random.choice(['快速游戏模式关闭']))]
     elif attrs[0] in ('快速模式','gamestart'):
         sni: Sniffer = Sniffer.overwrite(player,'#2048')
         sni.add(
             '#2048',
             [TriggerRule('.*')]
         )
-        return [Plain(text=random.choice(['断言：你知道你在干什么————刷屏模式开始……', '快速游戏模式开启，关闭请使用bye']))]
+        return [Plain(text=random.choice(['快速游戏模式开启，关闭请使用bye']))]
     if f:
         zeromap = []
         for i in range(n):
