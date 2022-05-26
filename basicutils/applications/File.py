@@ -279,6 +279,7 @@ def 疯狂星期四(ent: CoreEntity):
     selected = None
     while not selected:
         r = random.choice(content['messages'])
+        logger.debug(f'choiced: {r}')
         if (text := r.get('text') is not None):
             if not isinstance(text, str):
                 continue
