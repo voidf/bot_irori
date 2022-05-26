@@ -140,6 +140,10 @@ sudo 系列命令只有在消息的发送来源包括在auth_masters内的时候
 
 [be5invis/Sarasa-Gothic](https://github.com/be5invis/Sarasa-Gothic)
 
+## 其它引用资源（侵删）
+
+[telegram: 疯狂星期四文案收集姬](https://t.me/crazythu)
+
 ## irori的好朋友
 
 [ssttkkl/PixivBot](https://github.com/ssttkkl/PixivBot)

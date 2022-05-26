@@ -264,6 +264,33 @@ def ddl通知姬(ent: CoreEntity):
 #         return GLOBAL.DEKnowledge[ins]
 #     else:
 #         return [Plain('不存在此条目')]
+
+from PIL import Image as PImage
+from basicutils.media import pimg_base64
+
+def 疯狂星期四(ent: CoreEntity):
+    """#疯狂星期四 [#KFC, #鸡]
+    随机来一条疯狂星期四文案
+    """
+    mount = 'Assets/疯狂星期四/'
+
+    with open(f'{mount}result.json', 'r', encoding='utf-8') as f:
+        content = json.load(f)
+    selected = None
+    while not selected:
+        r = random.choice(content['messages'])
+        if (text := r.get('text') is not None):
+            if not isinstance(text, str):
+                continue
+            if text == '':
+                if (photo := r.get('photo')):
+                    selected = Image(base64=pimg_base64(PImage.open(f'{mount}{photo}')))
+            else:
+                selected = text
+    return selected
+
+    
+
 import base64
 def 在线P歌(ent: CoreEntity):
     """#P歌 [#P]
