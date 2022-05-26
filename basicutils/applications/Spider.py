@@ -790,6 +790,14 @@ def 对(ent: CoreEntity):
     resp = requests.get(couplet_lnk, headers=couplet_hds).json()['output']
     return [Plain(resp)]
 
+def 聊天(ent: CoreEntity):
+    """#chat [#cc]
+    临时起的聊天机器人，黄鸡语料手工洗至31w训练而成
+    """
+    inputstr = ent.chain.tostr().strip()
+    resp = requests.get(f'http://127.0.0.1:9001?word={inputstr}').json()
+    return resp['reply']
+
 
 functionMap = {
     # '#看看病':没救了,
