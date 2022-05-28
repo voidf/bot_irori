@@ -701,7 +701,7 @@ def 开车(ent: CoreEntity):
             ero    开痛车
             kusa   开灵车
             kawaii 开校车
-            r18    开坦克 （没造好
+            tank   开战车
     
     """
     from cfg import setu_api
@@ -710,13 +710,16 @@ def 开车(ent: CoreEntity):
         'ero', 
         'kawaii', 
         'nice', 
-    #    'r18', 我想到解决方案再开放
+        'tank',
         'kusa'
     ]
     if not typ:
         typ = 'nice'
+    if typ == 'tank':
+        return Image(url=setu_api + 'autotank')
     if typ not in allow:
         return f'交警提示：您的车型{typ}不能上路'
+
     j = requests.get(setu_api + f'random?typ={typ}').json()
     return [
         Image(url=setu_api + f'bin/{j["id"]}'),
