@@ -687,14 +687,51 @@ def 这么臭的函数有必要定义吗(ent: CoreEntity):
 		print(e)
 		return [Plain('这么恶臭的字串有必要论证吗')]
 
-emoji_font = 'Assets/851tegaki_zatsu_normal_0883.ttf'
+思源黑体 = 'Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf'
+
+tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
+
+def 喜报生成器(ent: CoreEntity):
+	"""#喜报 []
+	用法：
+		#喜报 <填字>
+	生成喜报梗图"""
+	fontsize = 50
+	
+	font = ImageFont.truetype(思源黑体, fontsize)
+	template = PImage.open('Assets/喜报.jpg').convert('RGBA')
+	W, H = template.size # 780, 584
+	
+	br_per_char = (W - 80) // fontsize
+	li = []
+	text = ent.chain.tostr()
+	for i in text.split('\n'):
+		buf = []
+		for c in i:
+			buf.append(c)
+			if len(buf) >= br_per_char:
+				li.append(''.join(buf))
+				buf.clear()
+	
+
+	layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
+	draw = ImageDraw.Draw(layer2)
+	draw.multiline_text(xy=(W/2, H/2), text='\n'.join(li),
+		align='center',
+		anchor='mm',
+		fill=(236,1,0,255),
+		stroke_width=7,
+		stroke_fill=(255, 255, 1),
+		font=font)
+	# draw.multiline_text(beginPixel,text,fill=(0,0,0,255),font=font)
+	return [Image(base64=pimg_base64(PImage.alpha_composite(template,layer2)))]
 
 def 猫图生成器(ent: CoreEntity):
 	"""#nya []
 	生成猫表情，目前大概最多放4个中文字，例:#nya 要命
 	"""
 	attrs = ent.chain.tostr().split(' ')
-	font = ImageFont.truetype(emoji_font, 18)
+	font = ImageFont.truetype(tegaki_zatsu, 18)
 	nyaSrc = PImage.open('Assets/nya.png').convert('RGBA')
 	layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -716,7 +753,7 @@ def 优质解答生成器(ent: CoreEntity):
 	"""#解答 []
 	生成优质解答图片,例:#解答 自分で百度しろ
 	"""
-	font = ImageFont.truetype(emoji_font,25)
+	font = ImageFont.truetype(tegaki_zatsu,25)
 	nyaSrc = PImage.open('Assets/answer.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA',nyaSrc.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -742,7 +779,7 @@ def IPlay生成器(ent: CoreEntity):
 	自己试试效果吧，例:#iplay I play BanG Dream!
 	"""
 
-	font = ImageFont.truetype(emoji_font,25)
+	font = ImageFont.truetype(tegaki_zatsu,25)
 	Src = PImage.open('Assets/IPlayRhythmGame.png').convert('RGBA')
 	layer2 = PImage.new('RGBA',Src.size,(255,255,255,0))
 	draw = ImageDraw.Draw(layer2)
@@ -757,7 +794,7 @@ def 希望没事生成器(ent: CoreEntity):
 	"""#希望 []
 	希望人没事生成器（莲华）,例:#希望 人别死我家门口
 	"""
-	font = ImageFont.truetype(emoji_font,100)
+	font = ImageFont.truetype(tegaki_zatsu,100)
 	nyaSrc = PImage.open('Assets/wish.png').convert('RGBA')
 	layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
 	draw = ImageDraw.Draw(layer2)
@@ -778,7 +815,7 @@ def 希望工程(ent: CoreEntity):
 	"""#希望工程 []
 	希望人没事生成器（一般）,例:#希望 人别死我家门口
 	"""
-	font = ImageFont.truetype(emoji_font,100)
+	font = ImageFont.truetype(tegaki_zatsu,100)
 	nyaSrc = PImage.open('Assets/wish.jpg').convert('RGBA')
 	layer2 = PImage.new('RGBA', nyaSrc.size, (255, 255, 255, 0))
 	draw = ImageDraw.Draw(layer2)
