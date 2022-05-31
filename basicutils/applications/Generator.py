@@ -712,6 +712,7 @@ def 喜报生成器(ent: CoreEntity):
 			if len(buf) >= br_per_char:
 				li.append(''.join(buf))
 				buf.clear()
+	if buf: li.append(''.join(buf))
 	
 
 	layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
