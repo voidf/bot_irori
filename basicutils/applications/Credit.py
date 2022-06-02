@@ -418,7 +418,8 @@ def 改运(ent: CoreEntity):
     
     if cost > credit:
         return f'您的信用点不足以改运！{credit}/{cost}'
-    player.items['credit'] = credit - cost
+    ato = credit - cost
+    player.items['credit'] = ato
 
     if attrs:
         cnt = int(attrs[0])
@@ -432,7 +433,7 @@ def 改运(ent: CoreEntity):
 
     player.save()
     sign.save()
-    return ans    
+    return ans + f'\n消费了{cost}信用点，剩余{ato}点'
 
 
 
