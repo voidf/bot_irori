@@ -125,6 +125,7 @@ from fapi.models.Player import *
     "同床竞技": "您就是时间管理带师",
     "推旮": "会说话的纸片女人真是太香了",
     # 私货
+    "作文":"学非文学类专业救不了中国人",
     "参赛": "拿牌",
     "给i宝修锅": "她好像变得更人了"
 }
@@ -226,11 +227,12 @@ from fapi.models.Player import *
     "同床竞技": "杰哥不要啊（",
     "推旮": "小 心 系 统 音 量",
     # 私货
+    "作文":"当代鲁迅一个字也发不出去",
     "参赛": "坐牢",
     "给i宝修锅": "mht的马和mirai总得有一个炸了"
 }
 
-运势 = ('特大吉', '大吉', '中吉', '小吉', '中平', '凶', '大凶', '危')
+运势 = ('特大吉', '大吉', '中吉', '小吉', '中平', '寄', '大寄', '危')
 # 运势 = ('特大吉\n元旦快乐！', '特大吉\n新年快乐！')
 
 
@@ -363,6 +365,8 @@ from mongoengine import *
 
 class DailySignLog(RefPlayerBase, Document):
     combo = IntField(default=0)
+    fortune = FloatField()
+    remake_count = IntField()
     info = StringField()
     last_sign = DateTimeField()
 
@@ -372,12 +376,73 @@ class DailySignBackUP(Document):
     info = StringField()
     last_sign = DateTimeField()
 
+def generate_sign_log(fortune_word_count: int):
+    rp = random.random() * 101
+    d = len(运势)
+    f = 100 / d
+    for p, i in enumerate(运势):
+        if 100 - (p+1) * f < rp:
+            fortune = i
+            break
+
+    # fortune = random.choice(运势)
+    y = random.sample(宜.items(),fortune_word_count)
+    t忌 = copy.deepcopy(忌)
+    for yi in y: t忌.pop(yi[0],(0,False))
+    j = random.sample(t忌.items(),fortune_word_count) # 防重
+    if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
+    if fortune in ('大凶','危'): y = [('诸事不宜','')]
+    for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
+    for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
+    ans = f"{fortune} (运: {rp:.3f}%)\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n"
+    return rp, ans
+
+def 改运(ent: CoreEntity):
+    """#改运 []
+    消耗信用点可以重新抽取今日运势，每日第一次消耗64点，之后每次费用加倍
+    至于信不信就是你的事了
+    用法：
+        #改运 <抽取词条数=rand(2~5)>
+    """
+    mem = ent.member
+    player = Player.chk(mem)
+
+    sign = DailySignLog.chk(player)
+    if not sign.last_sign or sign.last_sign.strftime('%Y-%m-%d') != datetime.datetime.now().strftime('%Y-%m-%d'):
+        return '您今日还没求过签！'
+    attrs = ent.chain.tostr().split(' ')
+
+    credit = player.items.setdefault('credit', 500)
+    remake_cnt = sign.remake_count if sign.remake_count else 0
+    cost = 64 << remake_cnt
+    
+    if cost > credit:
+        return f'您的信用点不足以改运！{credit}/{cost}'
+    player.items['credit'] = credit - cost
+
+    if attrs:
+        cnt = int(attrs[1])
+    else:
+        cnt = random.randint(2, 5)
+    
+    rp, ans = generate_sign_log(cnt)
+    sign.fortune = rp
+    sign.remake_count = remake_cnt + 1
+    sign.info = ans
+
+    player.save()
+    sign.save()
+    return ans    
+
+
+
+
 def 仿洛谷每日签到(ent: CoreEntity):
     """#求签 []
     用来获得你的今日运势（从洛谷收集的语料（别迷信了，真的
     """
     attrs = ent.chain.tostr().split(' ')
-    generate_key_count = random.randint(2,5)
+    fortune_word_count = random.randint(2,5)
     # print(kwargs['mem'])
     # print(dir(kwargs['mem']))
     mem = ent.member
@@ -393,28 +458,17 @@ def 仿洛谷每日签到(ent: CoreEntity):
             entity['combo'] = 0
         entity['combo'] += 1
 
-        rp = random.random() * 100
-        d = len(运势)
-        f = 100 / d
-        for p, i in enumerate(运势):
-            if 100 - (p+1) * f < rp:
-                fortune = i
-                break
+        rp, ans = generate_sign_log(fortune_word_count)
 
-        # fortune = random.choice(运势)
-        y = random.sample(宜.items(),generate_key_count)
-        t忌 = copy.deepcopy(忌)
-        for yi in y: t忌.pop(yi[0],(0,False))
-        j = random.sample(t忌.items(),generate_key_count) # 防重
-        if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
-        if fortune in ('大凶','危'): y = [('诸事不宜','')]
-        for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
-        for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
         cd = math.ceil(rp/10) * entity['combo']
-        ans = f"{fortune} (运: {rp:.3f}%)\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
+        bonus_hint = f"您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
+
+        
         player.upd_credit('+', cd)
-        entity['info'] = ans
+        entity['info'] = ans + bonus_hint
         entity['last_sign'] = datetime.datetime.now()
+        entity['fortune'] = rp
+        entity['remake_count'] = 0
         entity.save()
         DailySignBackUP(player=player, combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
 
