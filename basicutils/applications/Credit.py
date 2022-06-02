@@ -421,7 +421,7 @@ def 改运(ent: CoreEntity):
     player.items['credit'] = credit - cost
 
     if attrs:
-        cnt = int(attrs[1])
+        cnt = int(attrs[0])
     else:
         cnt = random.randint(2, 5)
     
