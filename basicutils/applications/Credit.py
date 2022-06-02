@@ -243,39 +243,39 @@ import requests
 import copy
 
 
-def 信用点命令更新订阅姬(ent: CoreEntity):
-    """#信用点情报 []
-    查看今天用什么命令会对信用点产生影响
-    """
-    attrs = ent.chain.tostr().split(' ')
-    # arg = copy.deepcopy(ent)
-    ent.chain = MessageChain.get_empty()
-    if attrs and attrs[0] in C.unsubscribes:
-        # CreditSubscribe.chk(player).delete()
-        resp = requests.delete(
-            server_api('/worker/routiner'),
-            json={"ents": ent.json()}
-        )
-        if resp.status_code != 200:
-            return traceback.format_exc()
-        return [Plain('取消信用点命令更新订阅')]
-    ent.meta['call'] = 'info'
-    ent.meta['routiner'] = 'CreditInfoRoutiner'
-    resp = requests.options(
-        server_api('/worker/routiner'),
-        json={"ents": ent.json()}
-    ).json()
+# def 信用点命令更新订阅姬(ent: CoreEntity):
+#     """#信用点情报 []
+#     查看今天用什么命令会对信用点产生影响
+#     """
+#     attrs = ent.chain.tostr().split(' ')
+#     # arg = copy.deepcopy(ent)
+#     ent.chain = MessageChain.get_empty()
+#     if attrs and attrs[0] in C.unsubscribes:
+#         # CreditSubscribe.chk(player).delete()
+#         resp = requests.delete(
+#             server_api('/worker/routiner'),
+#             json={"ents": ent.json()}
+#         )
+#         if resp.status_code != 200:
+#             return traceback.format_exc()
+#         return [Plain('取消信用点命令更新订阅')]
+#     ent.meta['call'] = 'info'
+#     ent.meta['routiner'] = 'CreditInfoRoutiner'
+#     resp = requests.options(
+#         server_api('/worker/routiner'),
+#         json={"ents": ent.json()}
+#     ).json()
 
-    ret = [f'今天使用{resp["res"]}这些命令会有惊喜哦（']
-    if attrs and attrs[0] in C.subscribes:
-        resp = requests.post(
-            server_api('/worker/routiner'),
-            json={"ents": ent.json()}
-        )
-        if resp.status_code != 200:
-            return traceback.format_exc()
-        ret.append('订阅信用点命令更新')
-    return [Plain('\n'.join(ret))]
+#     ret = [f'今天使用{resp["res"]}这些命令会有惊喜哦（']
+#     if attrs and attrs[0] in C.subscribes:
+#         resp = requests.post(
+#             server_api('/worker/routiner'),
+#             json={"ents": ent.json()}
+#         )
+#         if resp.status_code != 200:
+#             return traceback.format_exc()
+#         ret.append('订阅信用点命令更新')
+#     return [Plain('\n'.join(ret))]
 
 crdmap = [
     (-1000, ('全民公敌', '耗子尾汁')),
@@ -410,7 +410,7 @@ def 改运(ent: CoreEntity):
     sign = DailySignLog.chk(player)
     if not sign.last_sign or sign.last_sign.strftime('%Y-%m-%d') != datetime.datetime.now().strftime('%Y-%m-%d'):
         return '您今日还没求过签！'
-    attrs = ent.chain.tostr().split(' ')
+    attrs = ent.chain.tostr()
 
     credit = player.items.setdefault('credit', 500)
     remake_cnt = sign.remake_count if sign.remake_count else 0
@@ -422,7 +422,7 @@ def 改运(ent: CoreEntity):
     player.items['credit'] = ato
 
     if attrs:
-        cnt = int(attrs[0])
+        cnt = int(attrs)
     else:
         cnt = random.randint(2, 5)
     
