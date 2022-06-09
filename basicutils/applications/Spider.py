@@ -801,6 +801,86 @@ def 聊天(ent: CoreEntity):
     resp = requests.get(f'http://127.0.0.1:8999?word={inputstr}').json()
     return resp['reply']
 
+def CloseWHU(ent: CoreEntity):
+    """#openwhu [#whu]
+    武大选课速查表，网络对接CloseWHU
+    用法：
+        查询课程概况：
+        #openwhu get <课程名字:str> <老师名字:str>
+        查询具体评价：
+        #openwhu get <课程名字:str> <老师名字:str> <评价下标:int>
+        投稿一条评价：
+        #openwhu post <课程名字:str> <老师名字:str> <内容:json字符串>
+    一条投稿的json schema如下定义：
+        {
+            comment: str = None # 你的体验
+            score: float = None # 学分数量
+            scoring: str = None # 给分情况
+            material: List[str] = None  # 推荐教材
+            appendix: str = None    # 补充说明
+            examination: str = None # 考核方式
+            intro: str = None   # 课程内容
+            type: str = None    # 课程性质
+        }
+    一个示例投稿命令：
+        #openwhu post 挑战2022高考数学全国卷 杜老师 {"comment":"笑死我了"}
+    """
+    guest_url = 'http://127.0.0.1:65472/api/v1'
+    args = ent.chain.tostr().split(' ')
+    if not len(args) or args[0] not in ('get', 'post'):
+        return '格式错误: 期望输入操作命令(get或post)'
+    if args[0] == 'get':
+        if len(args) == 3:
+            resp = requests.get(f'{guest_url}/post?course={args[1]}&teacher={args[2]}')
+            if resp.status_code == 404:
+                return '找不到该课程'
+            elif resp.status_code == 200:
+                j = resp.json()
+                return f'''
+课程名称：{j['course']}
+任课教师：{j['teacher']}
+共计评测数: {len(j['content'])}
+                '''
+            else:
+                logger.critical(resp.status_code)
+                logger.critical(resp.content)
+                return '内部错误[backend]'
+        elif len(args) == 4:
+            resp = requests.get(f'{guest_url}/post/{args[3]}?course={args[1]}&teacher={args[2]}')
+            if resp.status_code == 404:
+                return '找不到该课程'
+            elif resp.status_code == 500:
+                return '内部错误[backend] 可能是数组越界'
+            elif resp.status_code == 200:
+                j = resp.json()
+                output = []
+                if tmp:=j.get('comment'): output.append(f'你的体验:{tmp}')
+                if tmp:=j.get('score'): output.append(f'学分数量:{tmp}')
+                if tmp:=j.get('scoring'): output.append(f'给分情况:{tmp}')
+                if tmp:=j.get('material'): output.append(f'推荐教材:{"、".join(tmp)}')
+                if tmp:=j.get('appendix'): output.append(f'补充说明:{tmp}')
+                if tmp:=j.get('examination'): output.append(f'考核方式:{tmp}')
+                if tmp:=j.get('intro'): output.append(f'课程内容:{tmp}')
+                if tmp:=j.get('type'): output.append(f'课程性质:{tmp}')
+                return '\n'.join(output)
+            else:
+                logger.critical(resp.status_code)
+                logger.critical(resp.content)
+                return '内部错误[backend]'
+    elif args[0] == 'post':
+        if len(args) < 4:
+            return '格式错误：投稿参数不够'
+        course, teacher, *js = args[1:]
+        js = ' '.join(js)
+        js = json.loads(js)
+        resp = requests.post(f'{guest_url}/contrib', json={'c':{'course': course, 'teacher':teacher}, 'm': js})
+        if resp.status_code == 200:
+            return '投稿成功，注意投稿需要管理员审核后才会显示'
+        else:
+            logger.critical(resp.status_code)
+            logger.critical(resp.content)
+            return '投稿失败'
+    return '请使用#h #openwhu查看用法'
 
 functionMap = {
     # '#看看病':没救了,
