@@ -492,7 +492,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         is_dup = True
         entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
 
-    if ent.meta.get('render'): # 图片模块
+    if ent.meta.get('-render'): # 图片模块
         from PIL import Image as PImage
         from PIL import ImageDraw, ImageFont
         from basicutils.media import pimg_base64
