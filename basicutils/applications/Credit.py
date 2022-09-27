@@ -495,6 +495,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
     if ent.meta.get('render'): # 图片模块
         from PIL import Image as PImage
         from PIL import ImageDraw, ImageFont
+        from basicutils.media import pimg_base64
 
         # 思源黑体 = 'Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf'
         tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
@@ -505,9 +506,11 @@ def 仿洛谷每日签到(ent: CoreEntity):
         layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
         draw = ImageDraw.Draw(layer2)
         
-        text = ' '.join(attrs)
+        text = entity['info']
         beginPixel = (34-len(text)*9,55)
         draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
+        return [Image(base64=pimg_base64(PImage.alpha_composite(template,layer2)))]
+
 
     return [Plain(entity['info'])]
 
