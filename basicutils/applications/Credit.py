@@ -501,7 +501,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
         font = ImageFont.truetype(tegaki_zatsu, 18)
 
-        template = PImage.open('Assets/sign/withBG/B1pink.png').convert('RGBA')
+        template = PImage.open('Assets/sign/withBG/B1pink.jpg').convert('RGBA')
 
         layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
         draw = ImageDraw.Draw(layer2)
