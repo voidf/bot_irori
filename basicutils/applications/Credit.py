@@ -376,7 +376,11 @@ class DailySignBackUP(Document):
     info = StringField()
     last_sign = DateTimeField()
 
-def generate_sign_log(fortune_word_count: int):
+from collections import namedtuple
+
+SignLog = namedtuple('SignLog', ('fortune', 'y', 'j', 'msg', 'rp'))
+
+def generate_sign_log(fortune_word_count: int) -> SignLog:
     rp = random.random() * 101
     d = len(运势)
     f = 100 / d
@@ -395,7 +399,14 @@ def generate_sign_log(fortune_word_count: int):
     for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
     for p,i in enumerate(j): j[p] ='\t' + '\t'.join(i)
     ans = f"{fortune} (运: {rp:.3f}%)\n\n宜:\n{chr(10).join(y)}\n\n忌:\n{chr(10).join(j)}\n\n"
-    return rp, ans
+    rep = SignLog(
+        fortune=fortune,
+        y=y,
+        j=j,
+        msg=ans,
+        rp=rp,
+    )
+    return rep
 
 def 改运(ent: CoreEntity):
     """#改运 []
@@ -426,7 +437,8 @@ def 改运(ent: CoreEntity):
     else:
         cnt = random.randint(2, 5)
     
-    rp, ans = generate_sign_log(cnt)
+    rep = generate_sign_log(cnt)
+    rp, ans = rep.rp, rep.msg
     sign.fortune = rp
     sign.remake_count = remake_cnt + 1
     sign.info = ans
@@ -452,6 +464,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
     
 
     def to_datetime(s): return datetime.datetime.strptime(s, '%Y-%m-%d')
+    is_dup = False
     # print('A', entity.last_sign.strftime('%Y-%m-%d'))
     # print('B', datetime.datetime.now().strftime('%Y-%m-%d'))
     if not entity.last_sign or entity.last_sign.strftime('%Y-%m-%d') != datetime.datetime.now().strftime('%Y-%m-%d'):
@@ -459,7 +472,9 @@ def 仿洛谷每日签到(ent: CoreEntity):
             entity['combo'] = 0
         entity['combo'] += 1
 
-        rp, ans = generate_sign_log(fortune_word_count)
+        rep = generate_sign_log(fortune_word_count)
+
+        rp, ans = rep.rp, rep.msg
 
         cd = math.ceil(rp/10) * entity['combo']
         bonus_hint = f"您已连续求签{entity['combo']}天\n\n今日奖励：信用点{cd}点"
@@ -473,7 +488,27 @@ def 仿洛谷每日签到(ent: CoreEntity):
         entity.save()
         DailySignBackUP(player=player, combo=entity.combo, info=entity.info, last_sign=entity.last_sign).save()
 
-    else: entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
+    else: 
+        is_dup = True
+        entity['info'] = '您今天已经求过签啦！以下是求签结果：\n' + entity['info']
+
+    if ent.meta.get('render'): # 图片模块
+        from PIL import Image as PImage
+        from PIL import ImageDraw, ImageFont
+
+        # 思源黑体 = 'Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf'
+        tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
+        font = ImageFont.truetype(tegaki_zatsu, 18)
+
+        template = PImage.open('Assets/sign/B1pink.png').convert('RGBA')
+
+        layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
+        draw = ImageDraw.Draw(layer2)
+        
+        text = ' '.join(attrs)
+        beginPixel = (34-len(text)*9,55)
+        draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
+
     return [Plain(entity['info'])]
 
 def get_cryptocurrencies():
