@@ -507,7 +507,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         draw = ImageDraw.Draw(layer2)
         
         text = entity['info']
-        beginPixel = (34-len(text)*9,55)
+        beginPixel = (34,55)
         draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
         return [Image(base64=pimg_base64(PImage.alpha_composite(template,layer2)))]
 
