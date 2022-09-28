@@ -508,7 +508,8 @@ def 仿洛谷每日签到(ent: CoreEntity):
             fortune=gen_fortune(entity['fortune']),
             y=entity['y'] if 'y' in entity else '',
             j=entity['j'] if 'j' in entity else '',
-            rp=entity['fortune']
+            rp=entity['fortune'],
+            msg='',
         )
 
         tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
