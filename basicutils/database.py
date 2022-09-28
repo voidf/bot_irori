@@ -8,9 +8,13 @@ import datetime
 import cfg
 from fapi.models.Base import *
 from fapi.models.Player import *
-INVISIBLE = TypeVar('INVISIBLE')
+from loguru import logger
 
-connect(**cfg.db)
+INVISIBLE = TypeVar('INVISIBLE')
+try:
+    connect(**cfg.db)
+except AttributeError:
+    logger.warning('database authorization not found (please set it in cfg.py)')
 
 # class Base():
 #     """每次都写get_base_info好烦"""

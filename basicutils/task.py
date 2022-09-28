@@ -2,6 +2,8 @@ from io import BytesIO
 import sys
 import argparse
 from typing import Union
+from loguru import logger
+
 class ArgumentParser(argparse.ArgumentParser):    
     def _get_action_from_name(self, name):
         """Given a name, get the Action instance registered with this parser.
@@ -26,8 +28,12 @@ class ArgumentParser(argparse.ArgumentParser):
             # exc.argument = self._get_action_from_name(exc.argument_name)
             # raise exc
         # super(ArgumentParser, self).error(message)
-
-from cfg import dist_host, web_port
+try:
+    from cfg import dist_host, web_port
+except ImportError:
+    logger.warning('<dist_host> or <web_port> not found, using localhost:1234 instead')
+    dist_host, web_port = 'localhost', 1234
+    
 def server_api(relative_path: str) -> str:
     return f"{dist_host}:{web_port}{relative_path}"
 

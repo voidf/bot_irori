@@ -366,6 +366,8 @@ from mongoengine import *
 class DailySignLog(RefPlayerBase, Document):
     combo = IntField(default=0)
     fortune = FloatField()
+    y = ListField(StringField())
+    j = ListField(StringField())
     remake_count = IntField()
     info = StringField()
     last_sign = DateTimeField()
@@ -380,14 +382,16 @@ from collections import namedtuple
 
 SignLog = namedtuple('SignLog', ('fortune', 'y', 'j', 'msg', 'rp'))
 
-def generate_sign_log(fortune_word_count: int) -> SignLog:
-    rp = random.random() * 101
+def gen_fortune(rp: float):
     d = len(运势)
     f = 100 / d
     for p, i in enumerate(运势):
         if 100 - (p+1) * f < rp:
-            fortune = i
-            break
+           return i
+
+def generate_sign_log(fortune_word_count: int) -> SignLog:
+    rp = random.random() * 101
+    fortune = gen_fortune(rp)
 
     # fortune = random.choice(运势)
     y = random.sample(宜.items(),fortune_word_count)
@@ -481,6 +485,8 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
         
         player.upd_credit('+', cd)
+        entity['y'] = rep.y
+        entity['j'] = rep.j
         entity['info'] = ans + bonus_hint
         entity['last_sign'] = datetime.datetime.now()
         entity['fortune'] = rp
@@ -496,19 +502,75 @@ def 仿洛谷每日签到(ent: CoreEntity):
         from PIL import Image as PImage
         from PIL import ImageDraw, ImageFont
         from basicutils.media import pimg_base64
+        from fapi.models.Routiner import imaseconds
 
-        # 思源黑体 = 'Assets/sarasa-gothic-ttf-0.12.5/sarasa-ui-tc-bold.ttf'
+        rep = SignLog(
+            fortune=gen_fortune(entity['fortune']),
+            y=entity['y'] if 'y' in entity else '',
+            j=entity['j'] if 'j' in entity else '',
+            rp=entity['fortune']
+        )
+
         tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
-        font = ImageFont.truetype(tegaki_zatsu, 18)
+        seto_font = 'Assets/setofont.ttf'
 
-        template = PImage.open('Assets/sign/withBG/B1pink.jpg').convert('RGBA')
+        font_tegaki = ImageFont.truetype(tegaki_zatsu, 24)
 
-        layer2 = PImage.new('RGBA',template.size,(255,255,255,0))
+        fortune_size = 80
+        font_fortune = ImageFont.truetype(seto_font, fortune_size)
+        rp_size = 20
+        font_rp = ImageFont.truetype(seto_font, rp_size)
+
+        font_yj = ImageFont.truetype(seto_font, 40)
+
+        emotion_type = 'B' if rep.rp >= 62.5 else ('C' if rep.rp <= 47.5 else 'N')
+        time_now = imaseconds()
+        time_period = 'light' if time_now > 6 * 3600 else ('normal' if 19*3600 > time_now > 12*3600 else 'dark')
+
+        template = PImage.open(f'Assets/sign/alpha/small/{emotion_type}{time_period}.png').convert('RGBA')
+
+        backgroundRGB = random.randint(0,255), random.randint(0,255), random.randint(0,255), 255
+        background_grey = backgroundRGB[0] * 0.299 + backgroundRGB[1] * 0.587 + backgroundRGB[2] * 0.114
+
+        layer3 = PImage.new('RGBA',template.size,backgroundRGB) # 上底色
+        w, h = template.size
+
+        font_color = (255, 255, 255, 255) if background_grey < 128 else (0, 0, 0, 255)
+
+        template = PImage.alpha_composite(layer3,template,)
+
+        layer2 = PImage.new('RGBA',template.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(layer2)
-        
-        text = entity['info']
-        beginPixel = (34,55)
-        draw.text(beginPixel,text,fill=(0,0,0,255),font=font)
+
+        fortune = gen_fortune(rep.rp)
+
+        def write_center(text, font, height, percentage=0.5):
+            lines = text.split('\n')
+            W = max(font.getsize(tx)[0] for tx in lines)
+            draw.text(((w-W)*percentage , height), text, fill=font_color, font=font)
+
+        write_center(fortune, font_fortune, h * 0.04)
+        write_center(f"{rep.rp:.3f}%", font_rp, h * 0.115)
+        write_center("宜", font_yj, h * 0.142, 0.5)
+        write_center("忌", font_yj, h * 0.310, 0.5)
+
+        def write_yj_items(li: List[str], font, begin_height):
+            H = font.getsize(li[0])[1]
+            for i in li:
+                C = i.strip().split('\t')
+                if len(C) == 2:
+                    A, B = C
+                    draw.text((w * 0.05 , begin_height), A, fill=font_color, font=font)
+                    draw.text((w * 0.95 , begin_height), B, fill=font_color, font=font, anchor='ra')
+                else:
+                    write_center(C[0], font, begin_height)
+                begin_height += H
+
+        write_yj_items(rep.y, font_tegaki, h*0.183)
+        write_yj_items(rep.j, font_tegaki, h*0.351)
+
+        # PImage.alpha_composite(template,layer2)
+
         return [Image(base64=pimg_base64(PImage.alpha_composite(template,layer2)))]
 
 
