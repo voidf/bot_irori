@@ -541,9 +541,9 @@ def 仿洛谷每日签到(ent: CoreEntity):
         if '-color' in ent.meta:
             backgroundRGB = ent.meta['-color']
             if ',' in backgroundRGB:
-                backgroundRGB = (int(i) for i in backgroundRGB.split(','))
+                backgroundRGB = tuple(int(i) for i in backgroundRGB.split(','))
             if '#' == backgroundRGB[:1]:
-                backgroundRGB = (int(i, 16) for i in (backgroundRGB[x:x+2] for x in range(len(backgroundRGB)>>1)))
+                backgroundRGB = tuple(int(i, 16) for i in (backgroundRGB[x:x+2] for x in range(len(backgroundRGB)>>1)))
             while len(backgroundRGB) < 4:
                 backgroundRGB += (255,)
         else:
