@@ -72,4 +72,11 @@ def write_yj_items(li: List[str], font, begin_height):
 write_yj_items(rep.y, font_tegaki, h*0.183)
 write_yj_items(rep.j, font_tegaki, h*0.351)
 
+import re
+def disassemble_msg(token: str, msg):
+    t = re.search(token + r'\n(.*?)\n\n', msg, re.M | re.DOTALL).group(1)
+    return t.split('\n')
+
+disassemble_msg('宜:', rep.msg)
+
 PImage.alpha_composite(template,layer2).show()

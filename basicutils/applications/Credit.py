@@ -503,11 +503,16 @@ def 仿洛谷每日签到(ent: CoreEntity):
         from PIL import ImageDraw, ImageFont
         from basicutils.media import pimg_base64
         from fapi.models.Routiner import imaseconds
+        import re
+        def disassemble_msg(token: str, msg):
+            t = re.search(token + r'\n.*?\n\n', msg, re.M | re.DOTALL).group(0)
+            return t.split('\n')
+
 
         rep = SignLog(
             fortune=gen_fortune(entity['fortune']),
-            y=entity['y'] if 'y' in entity else '',
-            j=entity['j'] if 'j' in entity else '',
+            y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
+            j=entity['j'] if 'j' in entity and entity['y'] else disassemble_msg('忌:', entity['info']),
             rp=entity['fortune'],
             msg='',
         )
@@ -524,13 +529,16 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
         font_yj = ImageFont.truetype(seto_font, 40)
 
-        emotion_type = 'B' if rep.rp >= 62.5 else ('C' if rep.rp <= 47.5 else 'N')
+        emotion_type = 'B' if rep.rp >= 62.5 else ('C' if rep.rp <= 37.5 else 'N')
         time_now = imaseconds()
         time_period = 'light' if time_now > 6 * 3600 else ('normal' if 19*3600 > time_now > 12*3600 else 'dark')
 
         template = PImage.open(f'Assets/sign/alpha/small/{emotion_type}{time_period}.png').convert('RGBA')
 
-        backgroundRGB = random.randint(0,255), random.randint(0,255), random.randint(0,255), 255
+        if '-color' in ent.meta:
+            backgroundRGB = ent.meta['-color']
+        else:
+            backgroundRGB = random.randint(0,255), random.randint(0,255), random.randint(0,255), 255
         background_grey = backgroundRGB[0] * 0.299 + backgroundRGB[1] * 0.587 + backgroundRGB[2] * 0.114
 
         layer3 = PImage.new('RGBA',template.size,backgroundRGB) # 上底色
