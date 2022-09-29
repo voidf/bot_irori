@@ -505,10 +505,10 @@ def 仿洛谷每日签到(ent: CoreEntity):
         from fapi.models.Routiner import imaseconds
         import re
         def disassemble_msg(token: str, msg):
-            t = re.search(token + r'\n.*?\n\n', msg, re.M | re.DOTALL).group(0)
+            t = re.search(token + r'\n(.*?)\n\n', msg, re.M | re.DOTALL).group(1)
             return t.split('\n')
 
-
+        
         rep = SignLog(
             fortune=gen_fortune(entity['fortune']),
             y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
