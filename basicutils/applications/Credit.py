@@ -540,6 +540,12 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
         if '-color' in ent.meta:
             backgroundRGB = ent.meta['-color']
+            if ',' in backgroundRGB:
+                backgroundRGB = (int(i) for i in backgroundRGB.split(','))
+            if '#' == backgroundRGB[:1]:
+                backgroundRGB = (int(i, 16) for i in (backgroundRGB[x:x+2] for x in range(len(backgroundRGB)>>1)))
+            while len(backgroundRGB) < 4:
+                backgroundRGB += (255,)
         else:
             backgroundRGB = random.randint(0,255), random.randint(0,255), random.randint(0,255), 255
         background_grey = backgroundRGB[0] * 0.299 + backgroundRGB[1] * 0.587 + backgroundRGB[2] * 0.114
