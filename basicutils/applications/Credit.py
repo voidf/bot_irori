@@ -506,9 +506,10 @@ def 仿洛谷每日签到(ent: CoreEntity):
         import re
         def disassemble_msg(token: str, msg):
             t = re.search(token + r'\n(.*?)\n\n', msg, re.M | re.DOTALL).group(1)
+            logger.debug(t)
             return t.split('\n')
 
-        
+        logger.debug(entity.to_mongo())
         rep = SignLog(
             fortune=gen_fortune(entity['fortune']),
             y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
@@ -516,6 +517,8 @@ def 仿洛谷每日签到(ent: CoreEntity):
             rp=entity['fortune'],
             msg='',
         )
+        logger.debug(rep)
+
 
         tegaki_zatsu = 'Assets/851tegaki_zatsu_normal_0883.ttf'
         seto_font = 'Assets/setofont.ttf'
