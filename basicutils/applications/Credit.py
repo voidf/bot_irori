@@ -534,7 +534,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
         emotion_type = 'B' if rep.rp >= 62.5 else ('C' if rep.rp <= 37.5 else 'N')
         time_now = imaseconds()
-        time_period = 'light' if time_now > 6 * 3600 else ('normal' if 19*3600 > time_now > 12*3600 else 'dark')
+        time_period = 'light' if 12 * 3600 > time_now > 6 * 3600 else ('normal' if 19*3600 > time_now > 12*3600 else 'dark')
 
         template = PImage.open(f'Assets/sign/alpha/small/{emotion_type}{time_period}.png').convert('RGBA')
 
