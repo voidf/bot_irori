@@ -513,7 +513,7 @@ def 仿洛谷每日签到(ent: CoreEntity):
         rep = SignLog(
             fortune=gen_fortune(entity['fortune']),
             y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
-            j=entity['j'] if 'j' in entity and entity['y'] else disassemble_msg('忌:', entity['info']),
+            j=entity['j'] if 'j' in entity and entity['j'] else disassemble_msg('忌:', entity['info']),
             rp=entity['fortune'],
             msg='',
         )
