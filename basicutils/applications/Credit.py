@@ -443,6 +443,8 @@ def 改运(ent: CoreEntity):
     
     rep = generate_sign_log(cnt)
     rp, ans = rep.rp, rep.msg
+    sign.y = rep.y
+    sign.j = rep.j
     sign.fortune = rp
     sign.remake_count = remake_cnt + 1
     sign.info = ans
@@ -512,8 +514,10 @@ def 仿洛谷每日签到(ent: CoreEntity):
         logger.debug(entity.to_mongo())
         rep = SignLog(
             fortune=gen_fortune(entity['fortune']),
-            y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
-            j=entity['j'] if 'j' in entity and entity['j'] else disassemble_msg('忌:', entity['info']),
+            # y=entity['y'] if 'y' in entity and entity['y'] else disassemble_msg('宜:', entity['info']),
+            # j=entity['j'] if 'j' in entity and entity['j'] else disassemble_msg('忌:', entity['info']),
+            y=disassemble_msg('宜:', entity['info']),
+            j=disassemble_msg('忌:', entity['info']),
             rp=entity['fortune'],
             msg='',
         )
