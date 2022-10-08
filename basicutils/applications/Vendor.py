@@ -32,7 +32,8 @@ from mongoengine import *
 
 def 约稿(ent: CoreEntity):
     """#约稿 [#waifu]
-    ai画图，txt2img，容易被封所以还是建议优先直接用网页"""
+    ai画图，txt2img，容易被封所以还是建议优先直接用网页
+    """
     tokens = ent.chain.tostr()
     model = [
         tokens,     # prompt
