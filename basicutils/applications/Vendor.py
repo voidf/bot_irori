@@ -37,7 +37,7 @@ def 约稿(ent: CoreEntity):
     """
     tokens = ent.chain.tostr().lower().strip()
     if tokens == '样例':
-        with open('prompts.pickle', 'rb') as f:
+        with open('Assets/waifusd/prompts.pickle', 'rb') as f:
             li = pickle.load(f)
         return random.choice(li)
     neg = ""
