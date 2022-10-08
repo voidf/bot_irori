@@ -87,44 +87,6 @@ def contest_fetcher_common(routiner: str, ent: CoreEntity, contest_type: str, sp
         li = '没有即将开始的比赛'
     return '\n\n'.join(li)
 
-# async def 没救了(*attrs,kwargs={}):
-#     r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{tnow().strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-#     if r.status_code==404:
-#         print('没有今天的')
-#         r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-#     if r.status_code==404:
-#         print('没有昨天的')
-#         r = requests.get(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=2)).strftime("%m-%d-%Y")}.csv',proxies=GLOBAL.proxy)
-#         print(f'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{(tnow()-datetime.timedelta(days=1)).strftime("%m-%d-%Y")}.csv')
-#         #print(r.text)
-#     if r.status_code!=200:
-#         return [Plain('别看了，没救了')]
-#     c = csv.reader(io.StringIO(r.text))
-#     s = []
-#     d = {}
-#     for i in c:
-#         if i[0]=='FIPS':
-#             t=[]
-#             #t.append('国家或地区')
-#             #t.append('更具体一点')
-#             t.append('累计')
-#             t.append('死亡')
-#             t.append('治愈')
-#             t.append('患者')
-#             s.append('\t\t\t'.join(t))
-#         else:
-#             it = d.setdefault(i[3],[0,0,0,0])
-#             it[0]+=int(i[-7])
-#             it[1]+=int(i[-6])
-#             it[2]+=int(i[-5])
-#             it[3]+=int(i[-4])
-#     for k,v in sorted(d.items(),key=lambda x: x[1][0],reverse=True):
-#         #s.append(f'{k}\t{v[0]}\t{v[1]}\t{v[2]}\t{v[3]}')
-#         s.append("""{0}:\n{1:{5}<10.10}{2:{5}<10.10}{3:{5}<10.10}{4:{5}<10.10}""".format(k,str(v[0]),str(v[1]),str(v[2]),str(v[3]),chr(8214)))
-#         #s.append("""{0:_<30.30}{1:_<37.37}{2:_<10.10}{3:_<10.10}{4:_<10.10}{5:_<10.10}""".format(i[3],i[2],i[-5],i[-4],i[-3],i[-2]))
-
-#     return [Plain('\n\n'.join(s))]
-
 def 爬一言(ent: CoreEntity):
     """#一言 [#yy]
     请求一言app，加某些参数会黑化
@@ -139,84 +101,6 @@ def 爬一言(ent: CoreEntity):
     j = json.loads(tmp.text)
     return [Plain(text=j['hitokoto'])]
 
-from basicutils.algorithms import randstr
-
-def 爬OIWiki(ent: CoreEntity, kwargs):
-
-    lnk = 'https://oi-wiki.org/'
-    query = ent.chain.tostr()
-    if query:
-        plnk = 'https://search.oi-wiki.org:8443/?s=' + query
-        j = json.loads(requests.get(plnk).text)
-        ostr = [Plain(text='找到了%d个类似的东西\n'%len(j))]
-        if len(j):
-            c = j[0]
-            ostr.append(Plain(text='直接把%s扔给你了\n'%c['title']))
-            suflnk = c['url']
-        else:
-            ostr.append(Plain(text='无结果'))
-            return ostr
-    else:
-        ostr = []
-        if random.choice([True,False]):
-            r = requests.get(lnk, headers=GLOBAL.OIWikiHeaders)
-            r.encoding = 'utf-8'
-
-            s = BeautifulSoup(r.text, 'html.parser')
-            res = s.find('nav', attrs={'data-md-component': 'tabs'})
-
-            hdir = random.choice(res('a')[2:-2])
-            subRes = s.find('label',string=hdir.string,attrs={'class':'md-nav__link'})
-
-            hd2 = random.choice(list(subRes.next_siblings)[1]('li',attrs={'class':'md-nav__item'}))
-            suflnk = hd2.a['href']
-        else:
-            lnk = 'https://ctf-wiki.github.io/ctf-wiki/'
-            r = requests.get(lnk, headers=GLOBAL.OIWikiHeaders)
-            r.encoding = 'utf-8'
-
-            s = BeautifulSoup(r.text, 'html.parser')
-            res = s.find('nav', attrs={'data-md-component': 'tabs'})
-
-            hdir = random.choice(res('a')[1:])
-            subRes = [i for i in s('label',attrs={'class':'md-nav__link','for':re.compile('nav-[0-9]*$')}) if hdir.string.strip() in i.text][0]
-
-            hd2 = random.choice(list(subRes.next_siblings)[1]('li',attrs={'class':'md-nav__item'}))
-            suflnk = hd2.a['href']
-
-    url=lnk+suflnk
-    print(url)
-
-    # save_fn=randstr(GLOBAL.randomStrLength)+"tmpLearn"+str(kwargs['gp'].id)+'.png'
-    # ostr += await renderHtml(url,save_fn)
-    
-    # asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
-    # ostr.append(generateImageFromFile(save_fn))
-    return ostr
-
-async def 爬萌娘(*attrs,kwargs={}):
-    lnk = 'https://zh.moegirl.org/Special:%E9%9A%8F%E6%9C%BA%E9%A1%B5%E9%9D%A2'
-    if len(attrs):
-        keyWord = ' '.join(attrs)
-        r = requests.get('https://zh.moegirl.org/index.php?title=Special:搜索&go=前往&search='+keyWord,headers=GLOBAL.moeGirlHeaders)
-        r.encoding = 'utf-8'
-        s = BeautifulSoup(r.text, 'html.parser')
-        res = s.find('ul', attrs={'class': 'mw-search-results'})
-        if res is None:
-            if len(r.history):
-                lnk = r.url
-            else:
-                tlnk = 'https://zh.moegirl.org/' + keyWord
-                if requests.get(tlnk).status_code == 404:
-                    return [Plain(text=random.choice(['这不萌娘','在萌娘找不到这玩意']))]
-                else:
-                    lnk = tlnk
-        else:
-            lnk = 'https://zh.moegirl.org'+res.find('a')['href']
-    save_fn=randstr(GLOBAL.randomStrLength)+"tmpMoe"+str(kwargs['mem'].id)+'.png'
-    l = await renderHtml(lnk, save_fn)
-    asyncio.ensure_future(rmTmpFile(save_fn),loop=None)
-    return l+[generateImageFromFile(save_fn)]
 
 def 爬OEIS(ent: CoreEntity):
     """#oeis []
@@ -315,7 +199,9 @@ def 爬LaTeX(ent: CoreEntity):
     base = r'\dpi{150} \bg_white \large ' + ent.chain.tostr().replace('+','&plus;')
     lnk = 'https://latex.vimsky.com/test.image.latex.php?fmt=png&dl=0&val='+urllib.parse.quote(urllib.parse.quote(base))
     return Image(url=lnk)
+
 import html
+
 def 爬牛客(ent: CoreEntity):
     """#牛客 [#NC]
     爬取牛客将要开始的比赛的时间表
@@ -556,37 +442,6 @@ def 爬每日一句(ent: CoreEntity):
         print(traceback.format_exc())
     return output
 
-# async def 爬ip(*attrs,kwargs={}):
-#     if not attrs:
-#         return [Plain('没有输入ip哦\n'+SpiderDescript['#ip'])]
-#     ip = attrs[0]
-#     lnk = f'https://ip.51240.com/{ip}__ip/'
-
-#     r = requests.get(lnk)
-
-#     rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
-#     if not rr:
-#         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
-#     if not rr:
-#         return [Plain('输入有点问题？我找着找着找炸了')]
-#     ans = [' '.join(i) for i in rr]
-#     return [Plain('\n'.join(ans))]
-
-# async def 反爬ip(*attrs,kwargs={}):
-#     if not attrs:
-#         return [Plain('没有输入地址哦\n'+SpiderDescript['#addr'])]
-#     kw = ' '.join(attrs)
-#     lnk = f'https://ip.51240.com/?dz={kw}'
-
-#     r = requests.get(lnk)
-#     rr = re.findall(f'''<tr><td height="25" bgcolor="#FFFFFF" style="text-align: center">(.*?)</td><td bgcolor="#FFFFFF" style="text-align: center">(.*?)</td></tr>''' ,r.text)
-#     if not rr:
-#         rr = re.findall(f'''<tr><td height="25" colspan="2" bgcolor="#FFD7D7" style="text-align: center;color: #F00;">(.*?)</td></tr></table>''',r.text)
-#     if not rr:
-#         return [Plain('输入有点问题？我找着找着找炸了')]
-#     ans = [' '.join(i) for i in rr]
-#     return [Plain('\n'.join(ans))]
-
 def 爬what_anime(ent: CoreEntity):
     '''#搜番 []
     爬取whats_anime的番剧信息
@@ -728,10 +583,6 @@ f"""{j['title']}
 https://www.pixiv.net/artworks/{j['id']}""")]
 
 
-
-
-
-
 def 刷CF(ent: CoreEntity):
     """#刷CF []
     爬取给定用户的做题记录。
@@ -793,129 +644,12 @@ def 对(ent: CoreEntity):
     resp = requests.get(couplet_lnk, headers=couplet_hds).json()['output']
     return [Plain(resp)]
 
-def 聊天(ent: CoreEntity):
-    """#chat [#cc]
-    临时起的聊天机器人，黄鸡语料手工洗至31w训练而成
-    """
-    inputstr = ent.chain.tostr().strip()
-    resp = requests.get(f'http://127.0.0.1:8999?word={inputstr}').json()
-    return resp['reply']
-
-def CloseWHU(ent: CoreEntity):
-    """#openwhu [#whu]
-    武大选课速查表，网络对接CloseWHU
-    用法：
-        查询课程概况：
-        #openwhu get <课程名字:str> <老师名字:str>
-        查询具体评价：
-        #openwhu get <课程名字:str> <老师名字:str> <评价下标:int>
-        投稿一条评价：
-        #openwhu post <课程名字:str> <老师名字:str> <内容:json字符串>
-    一条投稿的json schema如下定义：
-        {
-            comment: str = None # 你的体验
-            score: float = None # 学分数量
-            scoring: str = None # 给分情况
-            material: List[str] = None  # 推荐教材
-            appendix: str = None    # 补充说明
-            examination: str = None # 考核方式
-            intro: str = None   # 课程内容
-            type: str = None    # 课程性质
-        }
-    一个示例投稿命令：
-        #openwhu post 挑战2022高考数学全国卷 杜老师 {"comment":"笑死我了"}
-    """
-    guest_url = 'http://127.0.0.1:65472/api/v1'
-    args = ent.chain.tostr().split(' ')
-    if not len(args) or args[0] not in ('get', 'post'):
-        return '格式错误: 期望输入操作命令(get或post)'
-    if args[0] == 'get':
-        if len(args) == 3:
-            resp = requests.get(f'{guest_url}/post?course={args[1]}&teacher={args[2]}')
-            if resp.status_code == 404:
-                return '找不到该课程'
-            elif resp.status_code == 200:
-                j = resp.json()
-                return f'''
-课程名称：{j['course']}
-任课教师：{j['teacher']}
-共计评测数: {len(j['content'])}
-                '''
-            else:
-                logger.critical(resp.status_code)
-                logger.critical(resp.content)
-                return '内部错误[backend]'
-        elif len(args) == 4:
-            resp = requests.get(f'{guest_url}/post/{args[3]}?course={args[1]}&teacher={args[2]}')
-            if resp.status_code == 404:
-                return '找不到该课程'
-            elif resp.status_code == 500:
-                return '内部错误[backend] 可能是数组越界'
-            elif resp.status_code == 200:
-                j = resp.json()
-                output = []
-                if tmp:=j.get('comment'): output.append(f'你的体验:{tmp}')
-                if tmp:=j.get('score'): output.append(f'学分数量:{tmp}')
-                if tmp:=j.get('scoring'): output.append(f'给分情况:{tmp}')
-                if tmp:=j.get('material'): output.append(f'推荐教材:{"、".join(tmp)}')
-                if tmp:=j.get('appendix'): output.append(f'补充说明:{tmp}')
-                if tmp:=j.get('examination'): output.append(f'考核方式:{tmp}')
-                if tmp:=j.get('intro'): output.append(f'课程内容:{tmp}')
-                if tmp:=j.get('type'): output.append(f'课程性质:{tmp}')
-                return '\n'.join(output)
-            else:
-                logger.critical(resp.status_code)
-                logger.critical(resp.content)
-                return '内部错误[backend]'
-    elif args[0] == 'post':
-        if len(args) < 4:
-            return '格式错误：投稿参数不够'
-        course, teacher, *js = args[1:]
-        js = ' '.join(js)
-        js = json.loads(js)
-        resp = requests.post(f'{guest_url}/contrib', json={'c':{'course': course, 'teacher':teacher}, 'm': js})
-        if resp.status_code == 200:
-            return '投稿成功，注意投稿需要管理员审核后才会显示'
-        else:
-            logger.critical(resp.status_code)
-            logger.critical(resp.content)
-            return '投稿失败'
-    return '请使用#h #openwhu查看用法'
 
 functionMap = {
-    # '#看看病':没救了,
-    '#什么值得学':爬OIWiki,
-    '#什么值得娘':爬萌娘,
-    '#牛客':爬牛客,
-    # '#ip':爬ip,
-    # '#addr':反爬ip,
-    # '#每日一句':爬每日一句,
-    '#搜番':爬what_anime
 }
 
 shortMap = {
-    '#xx':'#什么值得学',
-    '#moe':'#什么值得娘',
-    '#什么值得d':'#什么值得娘',
-    '#什么值得萌':'#什么值得娘',
-    # '#什么值得医':'#看看病',
-    # '#救命':'#看看病',
-    '#NC':'#牛客',
-
 }
 
 functionDescript = {
-    '#什么值得学':'传参即在OI-Wiki搜索条目，不传参随便从OI或者CTFWiki爬点什么\n例:#什么值得学 后缀自动机【开发笔记：用此功能需要安装https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb，以及从http://npm.taobao.org/mirrors/chromedriver选择好对应版本放进/usr/bin里面，修完依赖启动记得传参--no-sandbox，还要把字体打包扔到/usr/share/fonts/truetype】\n==一条条渲染完了才会发送，老师傅们放过学生机吧TUT==',
-    '#什么值得娘':'传参即在萌百爬取搜索结果，不传参即随便从萌娘爬点什么，例:#什么值得娘 リゼ・ヘルエスタ',
-
-    '#看看病':'从jhu看板爬目前各个国家疫情的数据',
-
-    '#牛客':
-"""
-
-""",
-    '#什么值得听':'',
-    '#ip':'根据给定ip地址查询地理地址。例: #ip 19.19.8.10',
-    '#addr':'根据给定地址爬ip。例：#addr 谷歌',
-    
 }
