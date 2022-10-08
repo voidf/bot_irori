@@ -3,6 +3,7 @@ import base64
 from dataclasses import dataclass
 import enum
 import os
+import pickle
 import sys
 
 from async_timeout import timeout
@@ -34,10 +35,18 @@ def 约稿(ent: CoreEntity):
     """#约稿 [#waifu, #召唤]
     ai画图，txt2img，容易被封所以还是建议优先直接用网页
     """
-    tokens = ent.chain.tostr()
+    tokens = ent.chain.tostr().lower().strip()
+    if tokens == '样例':
+        with open('prompts.pickle', 'rb') as f:
+            li = pickle.load(f)
+        return random.choice(li)
+    neg = ""
+
+    if 'negative prompt:' in tokens:
+        tokens, neg = tokens.split('negative prompt:', 1)
     model = [
         tokens,     # prompt
-        "",         # negetive prompt
+        neg,        # negetive prompt
         "None",
         "None",
         20,         # sampling Steps
@@ -53,8 +62,8 @@ def 约稿(ent: CoreEntity):
         0,
         0,
         False,
-        512,        # width
-        512,        # height
+        ent.meta.get('-width', 512),        # width
+        ent.meta.get('-height', 512),        # height
         False,
         False,
         0.7,
