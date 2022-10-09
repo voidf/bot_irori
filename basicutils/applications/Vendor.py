@@ -40,6 +40,10 @@ def 约稿(ent: CoreEntity):
         with open('Assets/waifusd/prompts.pickle', 'rb') as f:
             li = pickle.load(f)
         return random.choice(li)
+    if tokens == '词汇表':
+        with open('Assets/waifusd/chat_tokens.txt', 'r', encoding='utf-8') as f:
+            li = f.read().split('\n')
+        return '\n'.join(random.sample(li, 10))
     neg = ""
 
     if 'negative prompt:' in tokens:
