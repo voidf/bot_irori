@@ -54,7 +54,7 @@ def 约稿(ent: CoreEntity):
         "None",
         "None",
         20,         # sampling Steps
-        "Euler a",  # sampling method: Euler a, Euler, LMS, Heun, DPM2, DPM2 a, DPM fast, DPM adaptive, DDIM, PLMS
+        "DDIM",  # sampling method: Euler a, Euler, LMS, Heun, DPM2, DPM2 a, DPM fast, DPM adaptive, DDIM, PLMS
         False,
         False,
         1,          # batch count
@@ -86,7 +86,7 @@ def 约稿(ent: CoreEntity):
         "",
         ""
     ]
-    r = requests.post("http://127.0.0.1:7012/api/predict", json={'fn_index':11, 'data':model}).json()['data'][0][0][22:]
+    r = requests.post("http://127.0.0.1:7012/api/predict", json={'fn_index':12, 'data':model}).json()['data'][0][0][22:]
     return [Image(base64=r)]
     
 
