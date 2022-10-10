@@ -48,8 +48,8 @@ def 约稿(ent: CoreEntity):
 
     if 'negative prompt:' in tokens:
         tokens, neg = tokens.split('negative prompt:', 1)
-        tokens = '((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes' + tokens
-        neg += 'nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
+    tokens = '((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes' + tokens
+    neg += 'nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
     model = [
         tokens,     # prompt
         neg,        # negetive prompt
