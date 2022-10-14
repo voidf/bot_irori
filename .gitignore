@@ -21,3 +21,5 @@ celeryconfig.py
 fapi/webcfg.py
 
 startup_actions.json
+
+waifusd_auth.pickle

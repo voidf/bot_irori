@@ -35,6 +35,16 @@ def 约稿(ent: CoreEntity):
     """#约稿 [#waifu, #召唤]
     ai画图，txt2img，容易被封所以还是建议优先直接用网页
     """
+    ses = requests.session()
+    authdir = 'waifusd_auth.pickle'
+    apibase = 'http://127.0.0.1:7012'
+
+
+    if os.path.exists(authdir):
+        with open(authdir, 'rb') as f:
+            usr, pw = pickle.load(f)
+        ses.post(apibase+'/login', data={'username':usr,'password':pw})
+
     tokens = ent.chain.tostr().lower().strip()
     if tokens == '样例':
         with open('Assets/waifusd/prompts.pickle', 'rb') as f:
@@ -88,7 +98,7 @@ def 约稿(ent: CoreEntity):
         "",
         ""
     ]
-    r = requests.post("http://127.0.0.1:7012/api/predict", json={'fn_index':12, 'data':model}).json()['data'][0][0][22:]
+    r = ses.post(f"{apibase}/api/predict", json={'fn_index':12, 'data':model}).json()['data'][0][0][22:]
     return [Image(base64=r)]
     
 
