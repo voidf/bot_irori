@@ -68,6 +68,8 @@ def 约稿(ent: CoreEntity):
         p = 0
 
         def chk():
+            nonlocal p
+            nonlocal cur
             for ind, token in enumerate(pm):
                 if src[p:p+len(token)] == token:
                     p += len(token)
