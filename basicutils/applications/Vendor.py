@@ -107,7 +107,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "prompt", "negative_prompt", "prompt_style", "prompt_style2", "steps",
             "sampler", "restore_faces", "tiling", "batch_count", "batch_size",
             "cfg_scale", "seed", "sub_seed", "subseed_strength", "seed_resize_from_h",
-            "seed_resize_from_w", "unk_1", "width", "height", "highres_fix",
+            "seed_resize_from_w", "unk_1", "height", "width", "highres_fix",
             "scale_latent", "denoising_strength", "script",
         ], defaults=[
             "loli", "nsfw", "None", "None", 30,
