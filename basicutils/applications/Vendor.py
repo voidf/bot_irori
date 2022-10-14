@@ -50,7 +50,7 @@ def 约稿(ent: CoreEntity):
     filter_p = re.compile('<.*?>', re.MULTILINE)
     def filter(src):
         b = []
-        for i in filter_p.sub(' ', src.lower()).replace('\n', ' ').strip():
+        for i in filter_p.sub(' ', src).replace('\n', ' ').strip():
             if b[-1:] == [' '] and ' ' == i:
                 continue
             else:
@@ -71,7 +71,7 @@ def 约稿(ent: CoreEntity):
             nonlocal p
             nonlocal cur
             for ind, token in enumerate(pm):
-                if src[p:p+len(token)] == token:
+                if src[p:p+len(token)].lower() == token:
                     p += len(token)
                     cur = b[ind]
                     return False

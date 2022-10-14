@@ -1,14 +1,22 @@
-import pickle, random, collections, string, re
+import pickle, random, collections, string, re, requests, os
 
 def func(rawinputs: str):
     """#约稿 [#waifu, #召唤, #产粮]
     ai画图，txt2img，容易被封所以还是建议优先直接用网页
     """
+    ses = requests.session()
+    authdir = 'waifusd_auth.pickle'
+    apibase = 'http://127.0.0.1:7860'
+    if os.path.exists(authdir):
+        with open(authdir, 'rb') as f:
+            usr, pw = pickle.load(f)
+        ses.post(apibase+'/login', data={'username':usr,'password':pw})
+    
 
     filter_p = re.compile('<.*?>', re.MULTILINE)
     def filter(src):
         b = []
-        for i in filter_p.sub(' ', src.lower()).replace('\n', ' ').strip():
+        for i in filter_p.sub(' ', src).replace('\n', ' ').strip():
             if b[-1:] == [' '] and ' ' == i:
                 continue
             else:
@@ -29,7 +37,7 @@ def func(rawinputs: str):
             nonlocal p
             nonlocal cur
             for ind, token in enumerate(pm):
-                if src[p:p+len(token)] == token:
+                if src[p:p+len(token)].lower() == token:
                     p += len(token)
                     cur = b[ind]
                     return False
@@ -115,12 +123,23 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
         "", # json like object
         ""  # html like object
     )
-    return args
+    # return args
+    # print(args)
+    jj = ses.post(f"{apibase}/api/predict", json={'fn_index':13, 'data':args}).json()
+    print(jj)
+    j = ses.post(f"{apibase}/api/predict", json={'fn_index':13, 'data':args}).json()['data']
+    return j
+    return [Image(base64=j[0][0][22:]), Plain(filter(j[2]))]
+    
 
 def banner(): print("==========================")
 
-print(func("""robot,blue,gun,death"""))
+a1 = func("""robot,blue,gun,death""")
 banner()
-print(func("""masterpiece, best quility ,official art,extremely detailed CG unity 8k wallpaper,delicate scene,2 young girl,symmetrical docking,hug,beautiful detailed eyes, look at the viewer,small breasts,undressing
+a2 = func("""masterpiece, best quility ,official art,extremely detailed CG unity 8k wallpaper,delicate scene,2 young girl,symmetrical docking,hug,beautiful detailed eyes, look at the viewer,small breasts,undressing
 Negative prompt: lowres, bad anatomy, bad hands,text, error, missing fingers,extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry,dick,cum
-Steps: 32, Sampler: Heun, CFG scale: 12, Seed: 84833071, Size: 512x768, Model hash: e6e8e1fc, Hypernet: anime_3, Clip skip: 2"""))
+Steps: 32, Sampler: Heun, CFG scale: 12, Seed: 84833071, Size: 512x768, Model hash: e6e8e1fc, Hypernet: anime_3, Clip skip: 2""")
+print(a1,'\n', a2)
+for p, (i, j) in enumerate(zip(a1, a2)):
+    if (type(i)!=type(j)):
+        print('Err', p, type(i), type(j))
