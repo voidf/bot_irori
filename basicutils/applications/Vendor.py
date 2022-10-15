@@ -149,6 +149,8 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             w, h = re.compile('([0-9]+)[x\*]([0-9]+)').search(sz).groups()
             modify['width'] = int(w)
             modify['height'] = int(h)
+        if 'denoising strength:' in parsed:
+            modify['highres_fix'] = True
         model = txt2img_inputs(**modify)
     else: # 简易模式
         model = txt2img_inputs(
