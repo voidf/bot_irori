@@ -179,7 +179,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                     hint_position = 1
                 else:
                     if v := d.get(sp):
-                        tokens[hint_position].append(v)
+                        tokens[hint_position].append(random.choice(v))
                     else:
                         unk.append(sp)
 
@@ -187,8 +187,8 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             modify = {
                 'width': w,
                 'height': h,
-                'prompt': tokens[0],
-                'negative_prompt': tokens[1],
+                'prompt': ','.join(tokens[0]),
+                'negative_prompt': ','.join(tokens[1]),
             }
             if '-d' in ent.meta or '-debug' in ent.meta:
                 return f"modify={modify}, unk={unk}, c={c}"

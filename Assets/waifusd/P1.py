@@ -50,6 +50,6 @@ with open('cn_cheatsheet_dict.pkl', 'wb') as f:
     pickle.dump(d, f)
 with open('cn_cheatsheet_list.pkl', 'wb') as f:
     pickle.dump(l, f)
-# with open('cn_cheatsheet.dict', 'w', encoding='utf-8') as f:
-#     for k in d.keys():
-#         f.write(k+'\n')
+with open('cn_cheatsheet.dict', 'w', encoding='utf-8') as f:
+    for k in d.keys():
+        f.write(k+'\n')
