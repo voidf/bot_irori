@@ -114,13 +114,13 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "sampler", "restore_faces", "tiling", "batch_count", "batch_size",
             "cfg_scale", "seed", "sub_seed", "subseed_strength", "seed_resize_from_h",
             "seed_resize_from_w", "unk_1", "height", "width", "highres_fix",
-            "scale_latent", "denoising_strength", "script",
+            "denoising_strength","firstpass_width","firstpass_height","script",
         ], defaults=[
             "loli", "nsfw", "None", "None", 30,
             "DDIM", False, False, 1, 1,
             7, -1, -1, 0, 0,
             0, False, 512, 512, False,
-            False, 0.85, "None",
+            0.85,0,0, "None",
         ])
 
     def nums(src):
