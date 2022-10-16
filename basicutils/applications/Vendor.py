@@ -33,6 +33,7 @@ from basicutils.task import *
 from mongoengine import *
 
 
+
 def 约稿(ent: CoreEntity):
     """#约稿 [#waifu, #召唤, #产粮]
     ai画图，txt2img，容易被封所以还是建议优先直接用网页
@@ -48,9 +49,17 @@ def 约稿(ent: CoreEntity):
         ses.post(apibase+'/login', data={'username':usr,'password':pw})
     
     filter_p = re.compile('<.*?>', re.MULTILINE)
+    def get_resolution(src):
+        mc = re.compile('([0-9]+)[x\*]([0-9]+)').search(src)
+        if mc:
+            w, h = mc.groups()
+            return int(w), int(h)
+        else:
+            return 512, 512
+
     def filter(src):
         b = []
-        for i in filter_p.sub(' ', src).replace('\n', ' ').strip():
+        for i in filter_p.sub(' ', src).replace('\n', ' ').strip().replace('{', '(').replace('}', ')'):
             if b[-1:] == [' '] and ' ' == i:
                 continue
             else:
@@ -85,18 +94,15 @@ def 约稿(ent: CoreEntity):
             b[p] = ''.join(i).strip().removesuffix(',')
         return {j:i for i, j in zip(b, pm) if i}
 
-
-
-        
     rawinputs = ent.chain.tostr()
     if rawinputs == '样例':
-        with open('Assets/waifusd/prompts.pickle', 'rb') as f:
+        with open('Assets/waifusd/cn_cheatsheet_list.pkl', 'rb') as f:
             li = pickle.load(f)
         return random.choice(li)
     if rawinputs == '词汇表':
-        with open('Assets/waifusd/chat_tokens.txt', 'r', encoding='utf-8') as f:
-            li = f.read().split('\n')
-        return '\n'.join(random.sample(li, 10))
+        with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
+            d = pickle.load(f)
+        return '\n'.join(random.sample([f'{k}:{v}' for k, v in d.items()], 10))
     if rawinputs == '模板':
         return """((masterpiece)), best quality, illustration, 1 girl, beautiful,beautiful detailed sky, catgirl,beautiful detailed water, cinematic lighting, Ice Wings, (few clothes),loli,(small breasts),light aero blue hair, Cirno(Touhou), wet clothes,underwater,hold breath,bubbles,cat ears ,dramatic angle
 Negative prompt: lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, bad feet, huge breasts
@@ -146,17 +152,58 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                 modify[pk] = mapping_string[type(txt2img_inputs._field_defaults[pk])](v)
 
         if sz := parsed.get('size:', ''):
-            w, h = re.compile('([0-9]+)[x\*]([0-9]+)').search(sz).groups()
-            modify['width'] = int(w)
-            modify['height'] = int(h)
+            w, h = get_resolution(sz)
+            modify['width'] = w
+            modify['height'] = h
         if 'denoising strength:' in parsed:
             modify['highres_fix'] = True
         model = txt2img_inputs(**modify)
     else: # 简易模式
-        model = txt2img_inputs(
-            prompt='((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes,' + parsed['prompt:'],
-            negative_prompt='nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
-        )
+        inp = parsed['prompt:']
+
+        if re.compile(r'[\u4e00-\u9fa5]').search(parsed.get('prompt:', '')):
+            import jieba
+            with open('cn_cheatsheet_dict.pkl', 'rb') as f:
+                d = pickle.load(f)
+            jieba.load_userdict('cn_cheatsheet.dict')
+            c = jieba.lcut(parsed)
+            cn_neg_tokens = ['不要', '别']
+            tokens = [
+                [], []
+            ]
+
+            unk = []
+
+            
+            hint_position = 0
+
+            for sp in c:
+                if sp in cn_neg_tokens:
+                    hint_position = 1
+                else:
+                    if v := d.get(sp):
+                        tokens[hint_position].append(v)
+                    else:
+                        unk.append(sp)
+
+            w, h = get_resolution(inp)
+            modify = {
+                'width': w,
+                'height': h,
+                'prompt': tokens[0],
+                'negative_prompt': tokens[1],
+            }
+            if '-d' in ent.meta or '-debug' in ent.meta:
+                return f"modify={modify}, unk={unk}, c={c}"
+            
+        else:
+            modify = {
+                'prompt': inp,
+                'negative_prompt': ''
+            }
+        modify['negative_prompt'] += ',nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
+        modify['prompt'] += ',((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes'
+        model = txt2img_inputs(**modify)
        
     args = model + (
         False, False, None, "", "Seed",
