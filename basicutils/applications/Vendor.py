@@ -211,8 +211,10 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
     )
     req = ses.post(f"{apibase}/api/predict", json={'fn_index':13, 'data':args})
     j = req.json()['data']
+    bts = ses.get(f"{apibase}/file={j[0][0]['name']}").content
+
     # return f"{req.request.body}\nj={j}"
-    return [Image(url=f"{apibase}/file={j[0][0]['name']}"), Plain(filter(j[2]))]
+    return [Image(base64=base64.b64encode(bts)), Plain(filter(j[2]))]
     
 
 
