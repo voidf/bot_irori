@@ -166,7 +166,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
                 d = pickle.load(f)
             jieba.load_userdict('Assets/waifusd/cn_cheatsheet.dict')
-            c = jieba.lcut(parsed)
+            c = list(jieba.cut(parsed))
             cn_neg_tokens = ['不要', '别']
             tokens = [
                 [], []
