@@ -163,18 +163,15 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
 
         if re.compile(r'[\u4e00-\u9fa5]').search(parsed.get('prompt:', '')):
             import jieba
-            with open('cn_cheatsheet_dict.pkl', 'rb') as f:
+            with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
                 d = pickle.load(f)
-            jieba.load_userdict('cn_cheatsheet.dict')
+            jieba.load_userdict('Assets/waifusd/cn_cheatsheet.dict')
             c = jieba.lcut(parsed)
             cn_neg_tokens = ['不要', '别']
             tokens = [
                 [], []
             ]
-
             unk = []
-
-            
             hint_position = 0
 
             for sp in c:
