@@ -70,6 +70,8 @@ def 约稿(ent: CoreEntity):
         pm = [
             'prompt:', 'negative prompt:', 'steps:', 'sampler:', 'cfg scale:',
             'seed:', 'size:', 'model hash:', 'denoising strength:', 'clip skip:',
+            'variation seed:', 'variation seed strength:', 'seed resize from:', 'ensd:',
+            'mask blur:', 'hypernet:'
         ]
         b = [[] for i in pm]
 
@@ -117,7 +119,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "denoising_strength","firstpass_width","firstpass_height","script",
         ], defaults=[
             "loli", "nsfw", "None", "None", 30,
-            "DDIM", False, False, 1, 1,
+            "Euler a", False, False, 1, 1,
             7, -1, -1, 0, 0,
             0, False, 512, 512, False,
             0.85,0,0, "None",
@@ -143,7 +145,6 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
     }
     
     parsed = parser(filter(rawinputs))
-    # model = txt2img_inputs()
     if len(parsed) > 1: # 有东西，高级模式
         modify = {}
         for k, v in parsed.items():
@@ -155,9 +156,14 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             w, h = get_resolution(sz)
             modify['width'] = w
             modify['height'] = h
+
+        if sz := parsed.get('seed resize from:', ''):
+            w, h = get_resolution(sz)
+            modify['seed_resize_from_w'] = w
+            modify['seed_resize_from_h'] = h
+        
         if 'denoising strength:' in parsed:
             modify['highres_fix'] = True
-        model = txt2img_inputs(**modify)
     else: # 简易模式
         inp = parsed['prompt:']
 
@@ -200,16 +206,68 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             }
         modify['negative_prompt'] += ',nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
         modify['prompt'] += ',((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes'
-        model = txt2img_inputs(**modify)
-       
-    args = model + (
-        False, False, None, "", "Seed",
-        "", "Nothing", "", True, False,
-        False, None,
-        "", # json like object
-        ""  # html like object
-    )
-    req = ses.post(f"{apibase}/api/predict", json={'fn_index':13, 'data':args})
+
+    img2img_flag = False
+
+    for i in ent.chain:
+        if i.type == 'Image':
+            img2img_flag = True
+            import magic
+            i: Image
+            imginp = requests.get(i.url).content
+            # modify['type'] = 0
+            modify['img'] = 'data:' + magic.from_buffer(imginp, mime=True) + ';base64,' + base64.b64encode(imginp)
+
+            img2img_inputs = collections.namedtuple('img2img_inputs',
+                field_names=[
+                    "mode", # 0: img2img 1: inpaint 2: batch img2img
+                    "prompt", "negative_prompt", "prompt_style", "prompt_style2", "img",
+                    "crop_option", # 一个包含{image: "data:image/jpeg;base64,/", mask: "data:image/png;base64,iVBORw0KGgoAAA"}这样的对象，Crop and resize和Resize and fill用到
+                    "unk_null7", "unk_null8",
+                    "draw_mask", "steps", "sampler", "mask_blur", # 我猜这个12是mask blur
+                    "original", "restore_faces", "tiling", "batch_count", "batch_size",
+                    "cfg_scale", "denoising_strength", "seed", "variation_seed", 
+                    "variation_strength", "seed_resize_from_h", "seed_resize_from_w", 
+                    "dont_crop", "height", "width", "mode_name", "unk_false29",
+                    "unk_32_30", "inpaint_masked", "unk_empty_32", "unk_empty_33",
+                    "script",
+                ], defaults=[
+                    0,
+                    "loli", "nsfw", "None", "None", "data:image/png;base64,iVBORw0KGgoAAAANSUhE",
+                    None, None, None,
+                    "Draw mask", 50, "Euler a", 4,
+                    "original", False, False, 1, 1,
+                    7, 0.85, -1, -1, 
+                    0, 0, 0,
+                    True, 768, 512, "Just resize", False,
+                    32, "Inpaint masked", "", "",
+                    "None",
+            ])
+
+            args = img2img_inputs(**modify) + (
+                "<ul>↵<li><code>CFG Scale</code> should be 2 or lower.</li>↵</ul>↵", True, True, "", "",
+                True, 50, True, 1, 0,
+                False, 4, 1, """<p style="margin-bottom:0.75em">Recommended settings: Sampling Steps: 80-100, Sampler: Euler a, Denoising strength: 0.8</p>""", 128,
+                8, ["left", "right", "up", "down"], 1, 0.05, 128,
+                4, "fill", ["left", "right", "up", "down"], False, False,
+                None, "", """<p style="margin-bottom:0.75em">Will upscale the image to twice the dimensions; use width and height sliders to set tile size</p>""", 64, "None",
+                "Seed", "", "Nothing", "", True,
+                False, False, None, "", "<div class='error'>"
+            )
+            req_json = {'fn_index':33,'data':args}
+            break
+        
+    if not img2img_flag:
+        args = txt2img_inputs(**modify) + (
+            False, False, None, "", "Seed",
+            "", "Nothing", "", True, False,
+            False, None,
+            "", # json like object
+            ""  # html like object
+        )
+        req_json = {'fn_index':13, 'data':args}
+
+    req = ses.post(f"{apibase}/api/predict", json=req_json)
     j = req.json()['data']
     bts = ses.get(f"{apibase}/file={j[0][0]['name']}").content
 
