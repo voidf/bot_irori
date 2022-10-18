@@ -32,7 +32,9 @@ from basicutils.network import *
 from basicutils.task import *
 from mongoengine import *
 
-
+def get_command(cmdlist: list, pos: int):
+    if len(cmdlist) > pos: return cmdlist[pos]
+    return None
 
 def 约稿(ent: CoreEntity):
     """#约稿 [#waifu, #召唤, #产粮]
@@ -96,14 +98,20 @@ def 约稿(ent: CoreEntity):
             b[p] = ''.join(i).strip().removesuffix(',')
         return {j:i for i, j in zip(b, pm) if i}
 
-    rawinputs = ent.chain.tostr()
+    rawinputs = ent.chain.onlyplain()
     if rawinputs == '样例':
         with open('Assets/waifusd/cn_cheatsheet_list.pkl', 'rb') as f:
             li = pickle.load(f)
         return random.choice(li)
-    if rawinputs == '词汇表':
+    if rawinputs.startswith('词汇表'):
+        args = rawinputs.split(' ')
         with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
             d = pickle.load(f)
+        if a1 := get_command(args, 1):
+            if a2 := get_command(args, 2):
+                return '\n'.join([f'{k}:{v}' for k, v in d.items() if a2 in k])
+            else:
+                return '请输入带查询的关键词'
         return '\n'.join(random.sample([f'{k}:{v}' for k, v in d.items()], 10))
     if rawinputs == '模板':
         return """((masterpiece)), best quality, illustration, 1 girl, beautiful,beautiful detailed sky, catgirl,beautiful detailed water, cinematic lighting, Ice Wings, (few clothes),loli,(small breasts),light aero blue hair, Cirno(Touhou), wet clothes,underwater,hold breath,bubbles,cat ears ,dramatic angle
