@@ -244,7 +244,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                     "None",
             ])
 
-            args = img2img_inputs(**modify) + (
+            args = img2img_inputs(**(modify & img2img_inputs._field_defaults.keys())) + (
                 "<ul>↵<li><code>CFG Scale</code> should be 2 or lower.</li>↵</ul>↵", True, True, "", "",
                 True, 50, True, 1, 0,
                 False, 4, 1, """<p style="margin-bottom:0.75em">Recommended settings: Sampling Steps: 80-100, Sampler: Euler a, Denoising strength: 0.8</p>""", 128,
@@ -258,7 +258,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             break
 
     if not img2img_flag:
-        args = txt2img_inputs(**modify) + (
+        args = txt2img_inputs(**(modify & txt2img_inputs._field_defaults.keys())) + (
             False, False, None, "", "Seed",
             "", "Nothing", "", True, False,
             False, None,
