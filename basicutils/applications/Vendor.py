@@ -216,7 +216,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             i: Image
             imginp = requests.get(i.url).content
             # modify['type'] = 0
-            modify['img'] = 'data:' + magic.from_buffer(imginp, mime=True) + ';base64,' + base64.b64encode(imginp)
+            modify['img'] = 'data:' + magic.from_buffer(imginp, mime=True) + ';base64,' + str(base64.b64encode(imginp))
 
             img2img_inputs = collections.namedtuple('img2img_inputs',
                 field_names=[
@@ -256,7 +256,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             )
             req_json = {'fn_index':33,'data':args}
             break
-        
+
     if not img2img_flag:
         args = txt2img_inputs(**modify) + (
             False, False, None, "", "Seed",
