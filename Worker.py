@@ -1,5 +1,4 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
-from basicutils.database import TriggerRule
 from fapi.models.Auth import IroriConfig
 from basicutils.task import server_api, internal_api
 import os
@@ -176,6 +175,8 @@ def import_applications():
 
 def sub_task(task: CoreEntity) -> MessageChain:
     from basicutils.database import Sniffer 
+    from basicutils.database import TriggerRule
+
 
     # 应该对每个fork进程开一个pymongo实例，否则容易产生死锁
     # https://pymongo.readthedocs.io/en/stable/faq.html#is-pymongo-fork-safe
