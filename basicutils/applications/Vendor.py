@@ -108,10 +108,13 @@ def 约稿(ent: CoreEntity):
         with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
             d = pickle.load(f)
         if a1 := get_command(args, 1):
-            if a2 := get_command(args, 2):
-                return '\n'.join([f'{k}:{v}' for k, v in d.items() if a2 in k])
+            if a1 == 'search':
+                if a2 := get_command(args, 2):
+                    return '\n'.join([f'{k}:{v}' for k, v in d.items() if a2 in k])
+                else:
+                    return '请输入待查询的关键词'
             else:
-                return '请输入带查询的关键词'
+                return '未知指令' + a1
         return '\n'.join(random.sample([f'{k}:{v}' for k, v in d.items()], 10))
     if rawinputs == '模板':
         return """((masterpiece)), best quality, illustration, 1 girl, beautiful,beautiful detailed sky, catgirl,beautiful detailed water, cinematic lighting, Ice Wings, (few clothes),loli,(small breasts),light aero blue hair, Cirno(Touhou), wet clothes,underwater,hold breath,bubbles,cat ears ,dramatic angle
