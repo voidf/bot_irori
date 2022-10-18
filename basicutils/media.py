@@ -37,19 +37,19 @@ import requests
 def convert_to_amr(typ: str, lnk: Union[bytes, str], mode: int=0):
     if isinstance(lnk, str):
         ret = requests.post(
-            server_api(f'/convert/amr?format={typ}&mode={mode}'),
+            internal_api(f'/convert/amr?format={typ}&mode={mode}'),
             data={'lnk': lnk}
         ).json()['url']
     else:
         ret = requests.post(
-            server_api(f'/convert/amr?format={typ}&mode={mode}'),
+            internal_api(f'/convert/amr?format={typ}&mode={mode}'),
             files={'f': BytesIO(lnk)}
         ).json()['url']
     return server_api('/worker/oss/'+ret)
 
 def convert_file_to_amr(typ: str, fp, mode: int=0):
     ret = requests.post(
-        server_api(f'/convert/amr?format={typ}&mode={mode}'),
+        internal_api(f'/convert/amr?format={typ}&mode={mode}'),
         files={'f': open(fp,'rb')}
     ).json()['url']
     return server_api('/worker/oss/'+ret)

@@ -1,6 +1,5 @@
 """测试类（开发用"""
 from basicutils.database import Sniffer
-from basicutils.task import server_api
 import os
 import sys
 if os.getcwd() not in sys.path:

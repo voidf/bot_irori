@@ -200,7 +200,7 @@ def ddl通知姬(ent: CoreEntity):
                     ent.meta['ts'] = t.timestamp()
                     ent.meta['title'] = s
                     resp = requests.post(
-                        server_api('/worker/routiner'),
+                        internal_api('/worker/routiner'),
                         json={'ents': ent.json()}
                     )
                     if resp.status_code != 200:
@@ -214,7 +214,7 @@ def ddl通知姬(ent: CoreEntity):
                 s = attrs[1]
                 ent.meta['title'] = s
                 resp = requests.delete(
-                    server_api('/worker/routiner'),
+                    internal_api('/worker/routiner'),
                     json={'ents': ent.json()}
                 )
                 if resp.status_code != 200:
@@ -227,7 +227,7 @@ def ddl通知姬(ent: CoreEntity):
                 ent.meta['call'] = 'info'
                 # ent.meta
                 resp = requests.options(
-                    server_api('/worker/routiner'),
+                    internal_api('/worker/routiner'),
                     json={'ents': ent.json()}
                 )
                 if resp.status_code != 200:

@@ -1,7 +1,7 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
 from basicutils.database import TriggerRule
 from fapi.models.Auth import IroriConfig
-from basicutils.task import server_api
+from basicutils.task import server_api, internal_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 from celery import Celery
@@ -42,7 +42,7 @@ def task(s: str):
     ent.chain = MessageChain.auto_make(res)
     if ent.chain.__root__:
         resp = requests.post(
-            server_api("/worker/submit"),
+            internal_api("/worker/submit"),
             json={"ents": ent.json()}
         )
         if resp.status_code!=200:

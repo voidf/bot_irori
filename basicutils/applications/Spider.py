@@ -42,7 +42,7 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) 
     ent.meta['routiner'] = routiner
     if keyword in GLOBAL.unsubscribes:
         resp = requests.delete(
-            server_api('/worker/routiner'),
+            internal_api('/worker/routiner'),
             json={'ents': ent.json()}
         )
         if resp.status_code!=200:
@@ -50,7 +50,7 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) 
         return f"已取消{contest_type}比赛提醒推送"
     elif keyword in GLOBAL.subscribes:
         resp = requests.post(
-            server_api('/worker/routiner'),
+            internal_api('/worker/routiner'),
             json={'ents': ent.json()}
         )
         if resp.status_code!=200:
@@ -59,7 +59,7 @@ def subscriber(keyword: str, routiner: str, ent: CoreEntity, contest_type: str) 
     elif keyword == 'upd':
         ent.meta['call'] = 'upd'
         resp = requests.options(
-            server_api('/worker/routiner'),
+            internal_api('/worker/routiner'),
             json={'ents': ent.json()}
         )
         if resp.status_code!=200:
@@ -388,7 +388,7 @@ def 爬天气(ent: CoreEntity):
     if attrs[0] in GLOBAL.unsubscribes:
 
         resp = requests.delete(
-            server_api('/worker/routiner'),
+            internal_api('/worker/routiner'),
             json = {'ents': ent.json()}
         )
         return [Plain('不看天气预报是吧')]
@@ -399,7 +399,7 @@ def 爬天气(ent: CoreEntity):
         if attrs[1] in GLOBAL.subscribes:
             ent.meta['city'] = attrs[0]
             resp = requests.post(
-                server_api('/worker/routiner'),
+                internal_api('/worker/routiner'),
                 json = {'ents': ent.json()}
             )
             output.append(f'{attrs[0]}的天气推送已订阅')
@@ -421,7 +421,7 @@ def 爬每日一句(ent: CoreEntity):
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:
             requests.delete(
-                server_api('/worker/routiner'),
+                internal_api('/worker/routiner'),
                 json={'ents': ent.json()}
             )
             return [Plain(f'不学英语是吧')]
@@ -434,7 +434,7 @@ def 爬每日一句(ent: CoreEntity):
     try:
         if attrs and attrs[0] in GLOBAL.subscribes:
             requests.post(
-                server_api('/worker/routiner'),
+                internal_api('/worker/routiner'),
                 json={'ents': ent.json()}
             )
             output.append(Plain(f'成功订阅每日一句推送,回复td退订'))
