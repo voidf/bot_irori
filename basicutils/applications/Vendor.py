@@ -217,10 +217,10 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             i: Image
             imginp = requests.get(i.url).content
             # modify['type'] = 0
-            imgb64 = str(base64.b64encode(imginp))
-            logger.debug(f'len imgb64={len(imgb64)}')
-            modifyimg = modify['img'] = 'data:' + magic.from_buffer(imginp, mime=True) + ';base64,' + str(base64.b64encode(imginp))
-            logger.debug(f'len modifyimg={len(modifyimg)}')
+            # imgb64 = str(base64.b64encode(imginp))
+            # logger.debug(f'len imgb64={len(imgb64)}')
+            modify['img'] = 'data:' + magic.from_buffer(imginp, mime=True) + ';base64,' + base64.b64encode(imginp).decode('utf-8')
+            # logger.debug(f'len modifyimg={len(modifyimg)}')
 
             img2img_inputs = collections.namedtuple('img2img_inputs',
                 field_names=[
@@ -258,7 +258,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                 "Seed", "", "Nothing", "", True,
                 False, False, None, "", "<div class='error'>"
             )
-            logger.debug(f'len args.img={args.img}')
+            logger.debug(f'len args.img={args[5]}')
 
             req_json = {'fn_index':33,'data':args}
             break
