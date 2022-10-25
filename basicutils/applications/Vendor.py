@@ -31,10 +31,14 @@ from basicutils.chain import *
 from basicutils.network import *
 from basicutils.task import *
 from mongoengine import *
+from fapi.models.Player import RefPlayerBase
 
 def get_command(cmdlist: list, pos: int):
     if len(cmdlist) > pos: return cmdlist[pos]
     return None
+
+class DiffusionGlossary(RefPlayerBase, Document):
+    wordmap = DictField()
 
 def 约稿(ent: CoreEntity):
     """#约稿 [#waifu, #召唤, #产粮]
@@ -121,7 +125,31 @@ def 约稿(ent: CoreEntity):
         return """((masterpiece)), best quality, illustration, 1 girl, beautiful,beautiful detailed sky, catgirl,beautiful detailed water, cinematic lighting, Ice Wings, (few clothes),loli,(small breasts),light aero blue hair, Cirno(Touhou), wet clothes,underwater,hold breath,bubbles,cat ears ,dramatic angle
 Negative prompt: lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry, bad feet, huge breasts
 Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model hash: e6e8e1fc, Clip skip: 2"""
+    glossary = None
+    if rawinputs.startswith('词库'):
+        glossary = DiffusionGlossary.chk(ent.pid)
+        args = rawinputs.split(' ')
+        if a1 := get_command(args, 1):
+            if a1 == 'add':
+                if a2 := get_command(args, 2):
+                    if a3 := get_command(args, 3):
+                        glossary.wordmap[a2] = a3
+                        glossary.save()
+                        return 'OK'
+                return '错误，添加一个术语命令格式为：#约稿 词库 add 例词 sample'
+            elif a1 == 'del':
+                if a2 := get_command(args, 2):
+                    if a2 in glossary.wordmap:
+                        glossary.wordmap.pop(a2)
+                        glossary.save()
+                    return 'OK'
+                return '错误，删除一个术语命令格式为：#约稿 词库 del 例词'
+            else:
+                return '错误，词库的子命令有：add del两种，不加子命令则打印当前会话的自定义术语表'
+        else:
+            return json.dumps(glossary, indent=2, sort_keys=True)
 
+        
     txt2img_inputs = collections.namedtuple('txt2img_inputs',
         field_names=[
             "prompt", "negative_prompt", "prompt_style", "prompt_style2", "steps",
@@ -179,11 +207,17 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
     else: # 简易模式
         inp = parsed['prompt:']
 
-        if re.compile(r'[\u4e00-\u9fa5]').search(parsed.get('prompt:', '')):
+        if re.compile(r'[\u4e00-\u9fa5]').search(parsed.get('prompt:', '')): # 中文模糊模式
+                
             import jieba
             with open('Assets/waifusd/cn_cheatsheet_dict.pkl', 'rb') as f:
                 d = pickle.load(f)
             jieba.load_userdict('Assets/waifusd/cn_cheatsheet.dict')
+            if glossary is None:
+                glossary = DiffusionGlossary.chk(ent.pid)
+            for wk, wv in glossary.wordmap.items():
+                jieba.add_word(wk)
+                d[wk] = wv
             c = list(jieba.cut(inp))
             cn_neg_tokens = ['不要', '别']
             tokens = [
@@ -204,13 +238,13 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             w, h = get_resolution(inp)
             if '-d' in ent.meta or '-debug' in ent.meta:
                 reply.append(f"modify={modify}, unk={unk}, c={c}")
-            reply.append(f'不在词库中的单词：{unk}')
+            reply.append(f'不在词库中的单词：{unk}\n')
             if ('-n' not in ent.meta or '-no_trans' not in ent.meta) and unk:
                 from basicutils.rpc.translate import Baidu
                 translated = Baidu.trans('zh', 'en', '\n'.join(unk)).split('\n')
                 tokens[0] += translated
                 logger.debug(f'tokens={tokens}')
-                reply.append(f'已启用机器翻译：{translated}')
+                reply.append(f'已启用机器翻译：{translated}\n')
             modify = {
                 'width': w,
                 'height': h,
