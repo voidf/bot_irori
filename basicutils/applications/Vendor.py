@@ -147,7 +147,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             else:
                 return '错误，词库的子命令有：add del两种，不加子命令则打印当前会话的自定义术语表'
         else:
-            return json.dumps(glossary, indent=2, sort_keys=True)
+            return json.dumps(glossary.wordmap, indent=2, sort_keys=True)
 
         
     txt2img_inputs = collections.namedtuple('txt2img_inputs',
