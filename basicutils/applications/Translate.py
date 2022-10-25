@@ -108,42 +108,7 @@ def deepl_translate(src, l1='ZH', l2='EN'):
     print(r4.text)
     return res['result']['translations'][0]['beams'][0]['postprocessed_sentence']
 
-def BDtranslate(req):
-    trans = None
-    myurl = '/api/trans/vip/translate'
-    fromLang = req[0]
-    toLang = req[1]
-    salt = random.randint(32768, 65536)
-    q = req[2]
-    from fapi.models.Auth import IroriConfig
-
-    cfg = IroriConfig.objects().first()
-    baidu_appid, baidu_secretKey = cfg.api_keys['baidu.fanyi.appid'], cfg.api_keys['baidu.fanyi.secret']
-
-    sign = baidu_appid + q + str(salt) + baidu_secretKey
-    sign = hashlib.md5(sign.encode()).hexdigest()
-    myurl = myurl + '?appid=' + baidu_appid + '&q=' + urllib.parse.quote(
-        q) + '&from=' + fromLang + '&to=' + toLang + '&salt=' + str(salt) + '&sign=' + sign
-
-    try:
-        trans = http.client.HTTPConnection('api.fanyi.baidu.com')
-        trans.request('GET', myurl)
-        response = trans.getresponse()
-        result_all = response.read().decode("utf-8")
-        result = json.loads(result_all)
-        res = result['trans_result'][0]['dst']
-
-    except:
-        res = f"网络连接错误"
-
-    finally:
-        if trans:
-            trans.close()
-    return res
-
 # 好好说话
-
-
 def hhsh(req):
     result = ''
     url = 'https://lab.magiconch.com/api/nbnhhsh/guess'
@@ -425,7 +390,8 @@ def 百度翻译(ent: CoreEntity):
         return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
         source_lang = ' '.join(attrs[2:]).strip()
-        translated = BDtranslate([attrs[0], attrs[1], source_lang]).strip()
+        from basicutils.rpc.translate import Baidu
+        translated = Baidu.trans([attrs[0], attrs[1], source_lang]).strip()
         if 'sniffer_invoke' in ent.meta and translated == source_lang:
             return []
         return [Plain(text=translated)]

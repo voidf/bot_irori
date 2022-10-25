@@ -216,7 +216,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                 'negative_prompt': ''
             }
         modify['negative_prompt'] += ',nsfw, lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry'
-        modify['prompt'] += ',((masterpiece)), best quality, illustration, beautiful, beautiful detailed eyes'
+        modify['prompt'] += ',((masterpiece)), best quality, illustration, beautiful, (an extremely delicate and beautiful), illustration, (extremely detailed cg)'
 
     img2img_flag = False
     def dict_intersect(d1: dict, d2: dict): return {k: v for k, v in d1.items() if k in d2}
