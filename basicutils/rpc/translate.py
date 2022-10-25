@@ -3,7 +3,6 @@ import random
 import json
 import http
 import urllib
-from loguru import logger
 
 
 class Baidu:
@@ -37,8 +36,10 @@ class Baidu:
             response = conn.getresponse()
             result_all = response.read().decode("utf-8")
             result = json.loads(result_all)
-            logger.debug(f"trans_result:{result['trans_result']}")
-            res = result['trans_result'][0]['dst']
+            li = []
+            for r in result['trans_result']:
+                li.append(r['dst'])
+            res = '\n'.join(li)
 
         except:
             res = f"网络连接错误"
