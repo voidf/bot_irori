@@ -389,10 +389,10 @@ def 百度翻译(ent: CoreEntity):
         )
         return [Plain(f'快速翻译启动，结束打E')]
     if len(attrs) > 2:
-        source_lang = ' '.join(attrs[2:]).strip()
+        _text = ' '.join(attrs[2:]).strip()
         from basicutils.rpc.translate import Baidu
-        translated = Baidu.trans([attrs[0], attrs[1], source_lang]).strip()
-        if 'sniffer_invoke' in ent.meta and translated == source_lang:
+        translated = Baidu.trans(attrs[0], attrs[1], _text).strip()
+        if 'sniffer_invoke' in ent.meta and translated == _text:
             return []
         return [Plain(text=translated)]
     else:
