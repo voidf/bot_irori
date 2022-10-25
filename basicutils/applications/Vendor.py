@@ -43,6 +43,7 @@ def 约稿(ent: CoreEntity):
     ses = requests.session()
     authdir = 'waifusd_auth.pickle'
     apibase = 'http://127.0.0.1:7012'
+    reply = []
 
 
     if os.path.exists(authdir):
@@ -201,14 +202,21 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                         unk.append(sp)
 
             w, h = get_resolution(inp)
+            if '-d' in ent.meta or '-debug' in ent.meta:
+                reply.append(f"modify={modify}, unk={unk}, c={c}")
+            reply.append(f'不在词库中的单词：{unk}')
+            if ('-n' not in ent.meta or '-no_trans' not in ent.meta) and unk:
+                from basicutils.rpc.translate import Baidu
+                translated = Baidu.trans('zh', 'en', '\n'.join(unk)).split('\n')
+                tokens[0] += translated
+                logger.debug(f'tokens={tokens}')
+                reply.append(f'已启用机器翻译：{translated}')
             modify = {
                 'width': w,
                 'height': h,
                 'prompt': ','.join(tokens[0]),
                 'negative_prompt': ','.join(tokens[1]),
             }
-            if '-d' in ent.meta or '-debug' in ent.meta:
-                return f"modify={modify}, unk={unk}, c={c}"
             
         else:
             modify = {
@@ -289,7 +297,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
     bts = ses.get(f"{apibase}/file={j[0][0]['name']}").content
 
     # return f"{req.request.body}\nj={j}"
-    return [Image(base64=base64.b64encode(bts)), Plain(filter(j[2]))]
+    return reply + [Image(base64=base64.b64encode(bts)), Plain(filter(j[2]))]
     
 
 
