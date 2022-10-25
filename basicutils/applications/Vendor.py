@@ -237,8 +237,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                         unk.append(sp)
 
             w, h = get_resolution(inp)
-            if '-d' in ent.meta or '-debug' in ent.meta:
-                reply.append(f"modify={modify}, unk={unk}, c={c}")
+            
             reply.append(f'不在词库中的单词：{unk}\n')
             if ('-n' not in ent.meta or '-no_trans' not in ent.meta) and unk:
                 from basicutils.rpc.translate import Baidu
@@ -252,6 +251,8 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                 'prompt': ','.join(tokens[0]),
                 'negative_prompt': ','.join(tokens[1]),
             }
+            if '-d' in ent.meta or '-debug' in ent.meta:
+                reply.append(f"modify={modify}, unk={unk}, c={c}\n")
             
         else:
             modify = {
