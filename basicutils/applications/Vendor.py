@@ -218,7 +218,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                 glossary = DiffusionGlossary.chk(ent.pid)
             for wk, wv in glossary.wordmap.items():
                 jieba.add_word(wk)
-                d[wk] = wv
+                d[wk] = [wv]
             c = list(jieba.cut(inp))
             cn_neg_tokens = ['不要', '别']
             tokens = [
