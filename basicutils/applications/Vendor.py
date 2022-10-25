@@ -130,13 +130,13 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
         glossary = DiffusionGlossary.chk(ent.pid)
         args = rawinputs.split(' ')
         if a1 := get_command(args, 1):
-            if a1 == 'add':
+            if a1 == 'set':
                 if a2 := get_command(args, 2):
                     if a3 := get_command(args, 3):
-                        glossary.wordmap[a2] = a3
+                        glossary.wordmap[a2] = ' '.join(args[3:])
                         glossary.save()
                         return 'OK'
-                return '错误，添加一个术语命令格式为：#约稿 词库 add 例词 sample'
+                return '错误，设置一个术语命令格式为：#约稿 词库 set 例词 sample'
             elif a1 == 'del':
                 if a2 := get_command(args, 2):
                     if a2 in glossary.wordmap:
@@ -145,7 +145,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
                     return 'OK'
                 return '错误，删除一个术语命令格式为：#约稿 词库 del 例词'
             else:
-                return '错误，词库的子命令有：add del两种，不加子命令则打印当前会话的自定义术语表'
+                return '错误，词库的子命令有：set del两种，不加子命令则打印当前会话的自定义术语表'
         else:
 
             return '\n'.join(f"{wk}: {wv}" for wk, wv in glossary.wordmap.items())
