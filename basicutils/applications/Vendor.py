@@ -241,7 +241,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             w, h = get_resolution(inp)
             
             reply.append(f'不在词库中的单词：{unk}\n')
-            if ('-n' not in ent.meta or '-no_trans' not in ent.meta) and unk:
+            if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and unk:
                 from basicutils.rpc.translate import Baidu
                 translated = Baidu.trans('zh', 'en', '\n'.join(unk)).split('\n')
                 tokens[0] += translated
@@ -390,7 +390,7 @@ def 跟OpenGPT聊天(ent: CoreEntity):
     字面意思，跟openai提供的openGPT聊天，如果输入带中文则会走百度翻译
     """
     pro = ent.chain.tostr()
-    if ('-n' not in ent.meta or '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
+    if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
         return '\n\n'.join(OpenAI.chat(pro))
     else:
         return '\n\n'.join(OpenAI.chat(pro, translate=False))
