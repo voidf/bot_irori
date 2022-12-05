@@ -390,10 +390,10 @@ def 跟OpenGPT聊天(ent: CoreEntity):
     字面意思，跟openai提供的openGPT聊天，如果输入带中文则会走百度翻译
     """
     pro = ent.chain.tostr()
-    if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
-        return '\n\n'.join(OpenAI.chat(pro))
-    else:
-        return '\n\n'.join(OpenAI.chat(pro, translate=False))
+    # if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
+        # return '\n\n'.join(OpenAI.chat(pro))
+    # else:
+    return '\n\n'.join(OpenAI.chat(pro, translate=False))
 
 def CloseWHU(ent: CoreEntity):
     """#openwhu [#whu]
