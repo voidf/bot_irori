@@ -387,7 +387,7 @@ def 聊天(ent: CoreEntity):
 
 def 跟ChatGPT聊天(ent: CoreEntity):
     """#chatgpt [!, ！]
-    字面意思，跟openai提供的chatgpt聊天
+    ChatRWKV, https://github.com/BlinkDL/ChatRWKV
     """
     pro = ent.chain.tostr()
     # if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
