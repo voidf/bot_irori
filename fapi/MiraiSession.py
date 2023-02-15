@@ -50,7 +50,9 @@ class MiraiSession(Session):
                                 meta={},
                                 chain=MessageChain.auto_make(j['data']['messageChain'])
                             )
-
+                        else:
+                            logger.warning('unsupported message type: {}', j['data']['type'])
+                            continue
                             # continue # debug
                         # TODO: 临时消息
                         if await self._handle_syscall(ent):

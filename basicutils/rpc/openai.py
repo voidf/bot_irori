@@ -33,7 +33,7 @@ class OpenAI:
             json={
                 "model": "text-davinci-003",
                 "prompt": prompt, 
-                "temperature": 0, 
+                "temperature": 60, 
                 "max_tokens": 4000
             }
         )

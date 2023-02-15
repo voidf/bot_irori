@@ -378,16 +378,16 @@ f"""{j['title']}
 https://www.pixiv.net/artworks/{j['id']}""")]
 
 def 聊天(ent: CoreEntity):
-    """#chat [#cc]
+    """#chat [$, ￥]
     临时起的聊天机器人，黄鸡语料手工洗至31w训练而成
     """
     inputstr = ent.chain.tostr().strip()
-    resp = requests.get(f'http://127.0.0.1:8999?word={inputstr}').json()
-    return resp['reply']
+    resp = requests.post(f'http://127.0.0.1:7007/i', json={'m': inputstr}).json()
+    return ''.join(resp)
 
-def 跟OpenGPT聊天(ent: CoreEntity):
-    """#opengpt [!, ！]
-    字面意思，跟openai提供的openGPT聊天，如果输入带中文则会走百度翻译
+def 跟ChatGPT聊天(ent: CoreEntity):
+    """#chatgpt [!, ！]
+    字面意思，跟openai提供的chatgpt聊天
     """
     pro = ent.chain.tostr()
     # if ('-n' not in ent.meta and '-no_trans' not in ent.meta) and re.compile(r'[\u4e00-\u9fa5]').search(pro):
