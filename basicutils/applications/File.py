@@ -269,7 +269,7 @@ from PIL import Image as PImage
 from basicutils.media import pimg_base64
 
 def 疯狂星期四(ent: CoreEntity):
-    """#疯狂星期四 [#KFC, #鸡]
+    """#疯狂星期四 [#KFC, #鸡, #kfc]
     随机来一条疯狂星期四文案
     """
     mount = 'Assets/疯狂星期四/'
