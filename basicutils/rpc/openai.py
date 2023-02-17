@@ -33,11 +33,12 @@ class OpenAI:
             json={
                 "model": "text-davinci-003",
                 "prompt": prompt, 
-                "temperature": 60, 
+                "temperature": 0.6, 
                 "max_tokens": 4000
             }
         )
         choices = []
+        logger.debug(r.json())
         for i in r.json()['choices']:
             choices.append(i['text'].strip())
             if translate:
