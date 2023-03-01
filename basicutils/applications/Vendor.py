@@ -77,9 +77,9 @@ def 约稿(ent: CoreEntity):
 
     def parser(src):
         pm = [
-            'negative prompt:', 'prompt:', 'steps:', 'sampler:', 'cfg scale:',
-            'seed:', 'size:', 'model hash:', 'denoising strength:', 'clip skip:',
-            'variation seed:', 'variation seed strength:', 'seed resize from:', 'ensd:',
+            'Negative prompt: ', 'Prompt: ', 'Steps: ', 'Sampler: ', 'CFG scale: ',
+            'Seed:', 'size:', 'Model hash: ', 'denoising strength:', 'Clip skip: ',
+            'variation seed:', 'variation seed strength:', 'seed resize from:', 'ENSD: ',
             'mask blur:', 'hypernet:'
         ]
         b = [[] for i in pm]
@@ -91,7 +91,7 @@ def 约稿(ent: CoreEntity):
             nonlocal p
             nonlocal cur
             for ind, token in enumerate(pm):
-                if src[p:p+len(token)].lower() == token:
+                if src[p:p+len(token)] == token:
                     p += len(token)
                     cur = b[ind]
                     return False
@@ -103,7 +103,7 @@ def 约稿(ent: CoreEntity):
                 p += 1
         for p, i in enumerate(b):
             b[p] = ''.join(i).strip().removesuffix(',')
-        return {j:i for i, j in zip(b, pm) if i}
+        return {j.lower().strip():i for i, j in zip(b, pm) if i}
 
     rawinputs = ent.chain.onlyplain()
     if rawinputs == '样例':
