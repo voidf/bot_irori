@@ -165,7 +165,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "Euler a", False, False, 1, 1,
             7, -1, -1, 0, 0,
             0, False, 512, 512, False,
-            0.8,0,0, "None", None
+            0.8,0,0, "None", "None"
         ])
 
     def nums(src):
@@ -356,7 +356,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "s_tmax": 0,
             "s_tmin": 0,
             "s_noise": 1,
-            "override_settings": {} if args.model_hash is None else {'Model hash': args.model_hash},
+            "override_settings": {} if args.model_hash == "None" else {'Model hash': args.model_hash},
             "override_settings_restore_afterwards": True,
             # "script_args": [],
             # "sampler_index": "Euler",
