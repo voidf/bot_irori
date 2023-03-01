@@ -43,7 +43,7 @@ class DiffusionGlossary(RefPlayerBase, Document):
     wordmap = DictField()
 
 def 约稿(ent: CoreEntity):
-    """#约稿 [#waifu, #召唤, #产粮]
+    """#约稿 [#waifu, #召唤, #产粮, #SD]
     ai画图，txt2img，容易被封所以还是建议优先直接用网页
     """
     ses = requests.session()
@@ -159,13 +159,13 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "sampler", "restore_faces", "tiling", "batch_count", "batch_size",
             "cfg_scale", "seed", "sub_seed", "subseed_strength", "seed_resize_from_h",
             "seed_resize_from_w", "unk_1", "height", "width", "highres_fix",
-            "denoising_strength","firstpass_width","firstpass_height","script",
+            "denoising_strength","firstpass_width","firstpass_height","script", "model_hash"
         ], defaults=[
             "loli", "nsfw", "None", "None", 80,
             "Euler a", False, False, 1, 1,
             7, -1, -1, 0, 0,
             0, False, 512, 512, False,
-            0.8,0,0, "None",
+            0.8,0,0, "None", None
         ])
 
     def nums(src):
@@ -321,14 +321,53 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             break
 
     if not img2img_flag:
-        args = txt2img_inputs(**dict_intersect(modify, txt2img_inputs._field_defaults)) + (
-            False, False, None, "", "Seed",
-            "", "Nothing", "", True, False,
-            False, None,
-            "", # json like object
-            ""  # html like object
-        )
-        req_json = {'fn_index':13, 'data':args}
+        args = txt2img_inputs(**dict_intersect(modify, txt2img_inputs._field_defaults))
+        req_json =  {
+            "enable_hr": False,
+            "denoising_strength": args.denoising_strength,
+            "firstphase_width": args.firstpass_width,
+            "firstphase_height": args.firstpass_height,
+            "hr_scale": 2,
+            "hr_upscaler": "string",
+            "hr_second_pass_steps": 0,
+            "hr_resize_x": 0,
+            "hr_resize_y": 0,
+            "prompt": args.prompt,
+            # "styles": [
+            #     "string"
+            # ],
+            "seed": args.seed,
+            "subseed": args.sub_seed,
+            "subseed_strength": args.subseed_strength,
+            "seed_resize_from_h": args.seed_resize_from_h,
+            "seed_resize_from_w": args.seed_resize_from_w,
+            "sampler_name": args.sampler,
+            "batch_size": args.batch_size,
+            "n_iter": 1,
+            "steps": args.steps,
+            "cfg_scale": args.cfg_scale,
+            "width": args.width,
+            "height": args.height,
+            "restore_faces": args.restore_faces,
+            "tiling": args.tiling,
+            "negative_prompt": args.negative_prompt,
+            "eta": 0,
+            "s_churn": 0,
+            "s_tmax": 0,
+            "s_tmin": 0,
+            "s_noise": 1,
+            "override_settings": {} if args.model_hash is None else {'Model hash': args.model_hash},
+            "override_settings_restore_afterwards": True,
+            # "script_args": [],
+            # "sampler_index": "Euler",
+            # "script_name": "string"
+        }
+        req = ses.post(f"{apibase}/sdapi/v1/txt2img", json=req_json)
+        j = req.json()
+        ret = [Image(base64=x) for x in j.pop('images')]
+        logger.info(j)
+        return reply + ret
+
 
     req = ses.post(f"{apibase}/api/predict", json=req_json)
     j = req.json()['data']
