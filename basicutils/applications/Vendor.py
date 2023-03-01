@@ -356,8 +356,8 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "s_tmax": 0,
             "s_tmin": 0,
             "s_noise": 1,
-            "override_settings": {} if args.model_hash == "None" else {'Model hash': args.model_hash},
-            "override_settings_restore_afterwards": True,
+            # "override_settings": {} if args.model_hash == "None" else {'Model hash': args.model_hash},
+            # "override_settings_restore_afterwards": True,
             # "script_args": [],
             # "sampler_index": "Euler",
             # "script_name": "string"
