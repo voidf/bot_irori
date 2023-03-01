@@ -356,7 +356,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
             "s_tmax": 0,
             "s_tmin": 0,
             "s_noise": 1,
-            # "override_settings": {} if args.model_hash == "None" else {'Model hash': args.model_hash},
+            "override_settings": {} if args.model_hash == "None" else {'sd_model_hash': args.model_hash},
             # "override_settings_restore_afterwards": True,
             # "script_args": [],
             # "sampler_index": "Euler",
@@ -366,7 +366,7 @@ Steps: 75, Sampler: DDIM, CFG scale: 11, Seed: 3323485853, Size: 512x768, Model 
         j = req.json()
         ret = [Image(base64=x) for x in j.pop('images')]
         logger.info(j)
-        return reply + ret
+        return reply + ret + [Plain(j['info'])]
 
 
     req = ses.post(f"{apibase}/api/predict", json=req_json)
