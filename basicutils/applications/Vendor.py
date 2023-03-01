@@ -84,7 +84,7 @@ def 约稿(ent: CoreEntity):
         ]
         b = [[] for i in pm]
 
-        cur = b[0]
+        cur = b[1]
         p = 0
 
         def chk():
