@@ -78,7 +78,7 @@ def 约稿(ent: CoreEntity):
     def parser(src):
         pm = [
             'Negative prompt: ', 'Prompt: ', 'Steps: ', 'Sampler: ', 'CFG scale: ',
-            'Seed:', 'size:', 'Model hash: ', 'denoising strength:', 'Clip skip: ',
+            'Seed:', 'Size:', 'Model hash: ', 'denoising strength:', 'Clip skip: ',
             'variation seed:', 'variation seed strength:', 'seed resize from:', 'ENSD: ',
             'mask blur:', 'hypernet:'
         ]
