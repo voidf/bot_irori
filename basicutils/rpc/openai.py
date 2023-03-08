@@ -31,7 +31,8 @@ class OpenAI:
                 "Authorization": "Bearer " + k
             },
             json={
-                "model": "text-davinci-003",
+                # "model": "text-davinci-003",
+                "model": "gpt-3.5-turbo",
                 "prompt": prompt, 
                 "temperature": 0.6, 
                 "max_tokens": 4000
