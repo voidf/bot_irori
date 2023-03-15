@@ -20,12 +20,12 @@ class OpenAI:
         return cls.api_key
 
     @classmethod
-    def chat(cls, prompt: str, translate=True) -> List[str]:
+    def chat(cls, prompt: str, translate=False) -> List[str]:
         k = cls.get_cred()
         if translate:
             prompt = Baidu.trans('zh', 'en', prompt)
             logger.debug(f'translated: {prompt}')
-        r = requests.post("https://api.openai.com/v1/completions",
+        r = requests.post("https://api.openai.com/v1/chat/completions",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + k
@@ -33,7 +33,7 @@ class OpenAI:
             json={
                 # "model": "text-davinci-003",
                 "model": "gpt-3.5-turbo",
-                "prompt": prompt, 
+                "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.6, 
                 "max_tokens": 4000
             }
@@ -41,7 +41,7 @@ class OpenAI:
         choices = []
         logger.debug(r.json())
         for i in r.json()['choices']:
-            choices.append(i['text'].strip())
+            choices.append(i['message']['content'].strip())
             if translate:
                 logger.debug(f'before translation: {choices[-1]}')
                 choices[-1] = Baidu.trans('en', 'zh', choices[-1])
