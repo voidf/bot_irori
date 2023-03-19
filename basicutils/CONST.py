@@ -1,61 +1,19 @@
 py_mirai_version = 4 # 在这里改版本号哦！3或者4
-# from graia.application.message.elements.internal
-# from graia.application import GraiaMiraiApplication
-# from graia.application.event.messages import GroupMessage
-# from graia.application.message.chain import MessageChain
-import logging
 
-# logging.basicConfig(
-# 	level=logging.DEBUG,  
-# 	format='%(asctime)s[line:%(lineno)d] %(levelname)s %(message)s',
-# 	datefmt='%A, %d %B %Y %H:%M:%S', 
-# 	filename='irori.log',  
-# 	filemode='w', 
-# )
-
-# print = logging.debug()
-
-import asyncio, importlib, traceback
-
-import json
-
-CFRenderFlag=set()
-ddlQueuerGlobal = {}
-CFNoticeQueueGlobal={}
-OTNoticeQueueGlobal={}
-QuickCalls = {}
-proxy = {}
-DEKnowledge = {}
-JRRP_map = {}
-JRRP_words=[
-	#游戏和娱乐
-	"抽卡","推旮","跳车","看番","开车","摸鱼","射击","挑战","吹水","打邦","打$","切歌",
-	#学习
-	"做题","看书","补题",
-	#生理需求
-	"奶茶","KFC","McDonald","螺蛳粉",
-	"睡眠","冲",
-	#购物
-	"付费","买物","白嫖","拼车",
-	#运动
-	"跑步","击剑","飞行",
-	#社会行为
-	"拒绝","表白","沟通","调情","搞基",
-	#编程
-	"抓虫","重构","搞irori",
+ASK_TRIGGER = [
+	r'\?',
+	r'\？',
+	r'\¿',
+	r'吗',
+	r'啥',
+	r'怎么',
+	r'如何',
+	r'i宝',
+	r'为什么',
 ]
 
-RUSHRATE = {}
-
-cfgs={}
-
 randomStrLength = 4
-webPngLimit = int(1e6)
-CaLimit = 1e13
-CbLimit = 1e5
-revTag = chr(8238)
 pingCtr = 0
-sudo_su = {}
 
 
 AtCoderHeaders = {
@@ -67,30 +25,6 @@ AtCoderHeaders = {
 	"pragma":"no-cache",
 	"upgrade-insecure-requests":"1",
 	"user-agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
-}
-
-moeGirlHeaders={
-	"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
-	"accept-encoding":"gzip, deflate, br",
-	"accept-language":"zh-CN,zh;q=0.9",
-	"cookie":"ztdh-touhou=hide",
-	"dnt":"1",
-	"referer":"https://zh.moegirl.org.cn/index.php?search=%E4%BD%A0%E4%BB%AC%E8%BF%99%E4%B8%AA%E6%98%AF%E4%BB%80%E4%B9%88%E7%BE%A4%E5%95%8A&title=Special:%E6%90%9C%E7%B4%A2&profile=default&fulltext=1&searchToken=azim03dx52gd943sdeji1njgr",
-	"sec-fetch-mode":"navigate",
-	"sec-fetch-site":"same-origin",
-	"sec-fetch-user":"?1",
-	"upgrade-insecure-requests":"1",
-	"user-agent":"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
-
-}
-
-OIWikiHeaders ={
-	"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-	"accept-language": "zh-CN,zh;q=0.9",
-	"cache-control": "max-age=0",
-	"dnt": "1",
-	"upgrade-insecure-requests": "1",
-	"user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 }
 
 
