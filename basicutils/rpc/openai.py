@@ -32,10 +32,10 @@ class OpenAI:
             },
             json={
                 # "model": "text-davinci-003",
-                "model": "gpt-3.5-turbo",
+                "model": "gpt-4",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.6, 
-                "max_tokens": 4000
+                "max_tokens": 7000
             }
         )
         choices = []
