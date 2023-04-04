@@ -36,7 +36,7 @@ class OpenAI:
                 # "model": "gpt-4",
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.6, 
-                "max_tokens": 7000
+                "max_tokens": 3600
             }
         )
         choices = []
