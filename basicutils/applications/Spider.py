@@ -291,34 +291,6 @@ def 爬歌(ent: CoreEntity):
     keyword = urllib.parse.quote(ent.chain.tostr())
     ans = []
     lnks = []
-    try:
-        kuwolnk = f'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord?key={keyword}&pn=1&rn=30'
-
-        ses = requests.session()
-
-        r = ses.get(f'http://kuwo.cn/search/list?key={keyword}')
-
-        r = ses.get(kuwolnk, headers={
-            'referer': f'http://www.kuwo.cn/search/list?key={keyword}',
-            'csrf': f"{ses.cookies.get('kw_token')}"
-        })
-
-        j = json.loads(r.text)
-        mid = j['data']['list'][0]['musicrid']
-
-        url = f'http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url&rid={mid}'
-        r = requests.get(url,headers = {
-            'user-agent': 'okhttp/3.10.0'
-        })
-        print(r.text)
-        ans.append('酷我：')
-        ans.append(j['data']['list'][0]['name']+' '+j['data']['list'][0]['artist'])
-        ans.append(r.text)
-        lnks.append(ans[-1])
-        ans.append('')
-    except:
-        ans.append('酷我炸了')
-        print(traceback.format_exc())
 
     try:
         kugoulnk = f'http://songsearch.kugou.com/song_search_v2?keyword={keyword}&page=1'
