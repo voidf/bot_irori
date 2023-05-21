@@ -8,14 +8,14 @@ app = FastAPI()
 md = {}
 
 class Msg(BaseModel):
-    s: str
+    m: str
 
-@app.post('/')
+@app.post('/i')
 async def _(m: Msg):
     model = md['model']
     tk = md['tk']
     his = md['his'][:100]
-    resp, nhis = model.chat(tk, m.s, history=his)
+    resp, nhis = model.chat(tk, m.m, history=his)
     print(resp)
     print(nhis)
     md['his'] = nhis
