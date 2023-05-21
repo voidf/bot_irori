@@ -420,7 +420,9 @@ https://www.pixiv.net/artworks/{j['id']}""")]
 
 def 聊天(ent: CoreEntity):
     """#chat [$, ￥]
+    感谢以下这些中文LLM项目：
     ChatRWKV, https://github.com/BlinkDL/ChatRWKV
+    ChatGLM, https://github.com/THUDM/ChatGLM-6B
     """
     attrs = ent.chain.tostr()
     if attrs in CONST.subscribes:
@@ -430,10 +432,10 @@ def 聊天(ent: CoreEntity):
                 TriggerRule(r'.*'),
             ]
         )
-        return '【RWKV】已激活'
+        return '【Chat】已激活'
     elif attrs in CONST.unsubscribes:
         Sniffer.clear(ent.pid, '#chat')
-        return '【RWKV】已禁用'
+        return '【Chat】已禁用'
         
 
     inputstr = ent.chain.tostr().strip()
