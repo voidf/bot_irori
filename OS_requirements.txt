@@ -8,6 +8,8 @@
 # server
 brotlipy
 aiohttp
+python-multipart
+uvicorn
 
 # worker
 jieba

@@ -354,7 +354,7 @@ class CreditInfoRoutiner(Routiner):
         app_fun, app_doc, tot_funcs, tot_alias = import_applications()
         tot = len(tot_funcs)
         ctr = random.randint(min(3, tot), min(9, tot))
-        fs = random.sample(tot_funcs.keys(), k=ctr)
+        fs = random.sample(list(tot_funcs.keys()), k=ctr)
         op = random.choices(CONST.credit_operators, CONST.credit_operators_weight, k=ctr)
         vl = random.choices(range(1,5), k=ctr)
         cls.credit_cmds = {k:v for k, *v in zip(fs, op, vl)}
