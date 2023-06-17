@@ -394,10 +394,10 @@ def generate_sign_log(fortune_word_count: int) -> SignLog:
     fortune = gen_fortune(rp)
 
     # fortune = random.choice(运势)
-    y = random.sample(宜.items(),fortune_word_count)
+    y = random.sample(list(宜.items()), fortune_word_count)
     t忌 = copy.deepcopy(忌)
     for yi in y: t忌.pop(yi[0],(0,False))
-    j = random.sample(t忌.items(),fortune_word_count) # 防重
+    j = random.sample(list(t忌.items()),fortune_word_count) # 防重
     if fortune in ('大吉','特大吉'): j = [('万事皆宜','')]
     if fortune in ('大凶','危'): y = [('诸事不宜','')]
     for p,i in enumerate(y): y[p] ='\t' + '\t'.join(i)
