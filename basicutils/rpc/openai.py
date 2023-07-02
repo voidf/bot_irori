@@ -37,7 +37,8 @@ class OpenAI:
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.6, 
                 "max_tokens": 3600
-            }
+            },
+            verify=False
         )
         choices = []
         logger.debug(r.json())
