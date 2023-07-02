@@ -41,7 +41,7 @@ class OpenAI:
             verify=False
         )
         choices = []
-        logger.debug(r.json())
+        logger.debug(r.text)
         for i in r.json()['choices']:
             choices.append(i['message']['content'].strip())
             if translate:
