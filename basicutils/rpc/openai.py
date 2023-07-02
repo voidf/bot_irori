@@ -25,7 +25,9 @@ class OpenAI:
         if translate:
             prompt = Baidu.trans('zh', 'en', prompt)
             logger.debug(f'translated: {prompt}')
-        r = requests.post("https://openai-proxy-syhien.pages.dev/v1/chat/completions",
+        r = requests.post(
+            # "https://openai-proxy-syhien.pages.dev/v1/chat/completions",
+            "https://api.openai.com/v1/chat/completions",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + k
