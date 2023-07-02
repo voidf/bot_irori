@@ -40,7 +40,7 @@ class OpenAI:
                 "temperature": 0.6, 
                 "max_tokens": 3600
             },
-            verify=False
+            # verify=False
         )
         choices = []
         logger.debug(r.text)
