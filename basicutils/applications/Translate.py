@@ -398,6 +398,46 @@ def 百度翻译(ent: CoreEntity):
     else:
         return [Plain(text='原谅我不知道你在说什么（\n')]
 
+def 必应翻译(ent: CoreEntity):
+    """#bingkr [#translate]
+    微软必应烤肉，最简单的网页白嫖，不用给apikey
+    格式：
+        #bingkr <源语言> <目标语言> <待翻译部分>
+    注意：简中语言码为zh-Hans
+    订阅智能翻译(不带等号指定语言时默认翻成中文)：
+        #bingkr --q=[目标语言]
+    或：
+        #bingkr --q
+    一般用例：
+        #bingkr ja zh-Hans 自分で百度しろ
+    """
+    player = ent.pid
+    attrs = ent.chain.tostr().split(' ')
+    if ' '.join(attrs) in GLOBAL.unsubscribes or ' '.join(attrs[2:]) in GLOBAL.unsubscribes:
+        Sniffer.clear(player, '#bingkr')
+        return [Plain('我住嘴了')]
+    if '-q' in ent.meta or '-quick' in ent.meta:
+        tr = ent.meta.get('-q', ent.meta.get('-quick', 'zh-Hans'))
+        if not tr: tr = 'zh-Hans'
+        sni: Sniffer = Sniffer.overwrite(player, '#bingkr')
+        sni.add(
+            '#bingkr',
+            [
+                TriggerRule(r'^[.0-9\s+-/*&^<>~=|%\(\)]+$', 99, False),
+                TriggerRule(r'https{0,1}://', 99, False),
+                TriggerRule(r'''^((?![^\x00-\xff]).)*[a-zA-Z]+((?![^\x00-\xff]).)*$''', args=('en', tr))
+            ]
+        )
+        return [Plain(f'快速翻译启动，结束打E')]
+    if len(attrs) > 2:
+        _text = ' '.join(attrs[2:]).strip()
+        from basicutils.rpc.translate import Bing
+        translated = Bing.trans(attrs[0], attrs[1], _text).strip()
+        if 'sniffer_invoke' in ent.meta and translated == _text:
+            return []
+        return [Plain(text=translated)]
+    else:
+        return [Plain(text='原谅我不知道你在说什么（\n')]
 
 if __name__ == '__main__':
     req = []
