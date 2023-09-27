@@ -43,6 +43,15 @@ class Bing:
             'token': cls.token,
             'text': _text,
         })
+        logger.debug({
+            'fromLang': _from,
+            'to': _to,
+            'key': cls.timestamp_key,
+            'token': cls.token,
+            'text': _text,
+        })
+        logger.debug(resp)
+        logger.debug(resp.request.headers)
         logger.debug(resp.text)
         return ''.join(map(lambda x: x['text'], resp.json()[0]['translations']))
 
