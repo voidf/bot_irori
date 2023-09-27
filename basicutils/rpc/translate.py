@@ -52,6 +52,8 @@ class Bing:
         })
         logger.debug(resp)
         logger.debug(resp.request.headers)
+        logger.debug(resp.headers)
+        logger.debug(resp.content)
         logger.debug(resp.text)
         return ''.join(map(lambda x: x['text'], resp.json()[0]['translations']))
 
