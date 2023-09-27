@@ -6,6 +6,8 @@ import urllib
 import requests
 import re
 import time
+from loguru import logger
+
 
 # 网页白嫖
 class Bing:
@@ -41,7 +43,7 @@ class Bing:
             'token': cls.token,
             'text': _text,
         })
-        print(resp.text)
+        logger.debug(resp.text)
         return ''.join(map(lambda x: x['text'], resp.json()[0]['translations']))
 
 
