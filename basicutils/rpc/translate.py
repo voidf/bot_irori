@@ -19,8 +19,8 @@ class Bing:
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
         'accept-encoding': 'gzip, deflate, br',
     }
-    translator_url = 'https://cn.bing.com/translator'
-    translate_url = 'https://cn.bing.com/ttranslatev3?isVertical=1&&IG=C14796C62F544E239E123D9292F50339&IID=translator.5026'
+    translator_url = 'https://www.bing.com/translator'
+    translate_url = 'https://www.bing.com/ttranslatev3?isVertical=1&&IG=C14796C62F544E239E123D9292F50339&IID=translator.5026'
     cred_pat = re.compile(r"""var params_AbusePreventionHelper = \[(\d+),"([\w\-]+)",(\d+)\];""")
     @classmethod
     def get_cred(cls):
@@ -50,11 +50,11 @@ class Bing:
             'token': cls.token,
             'text': _text,
         })
-        logger.debug(resp)
-        logger.debug(resp.request.headers)
-        logger.debug(resp.headers)
-        logger.debug(resp.content)
-        logger.debug(resp.text)
+        # logger.debug(resp)
+        # logger.debug(resp.request.headers)
+        # logger.debug(resp.headers)
+        # logger.debug(resp.content)
+        # logger.debug(resp.text)
         return ''.join(map(lambda x: x['text'], resp.json()[0]['translations']))
 
 
