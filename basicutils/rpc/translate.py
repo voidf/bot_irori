@@ -33,6 +33,7 @@ class Bing:
     def trans(cls, _from, _to, _text):
         # zh-Hans
         # en
+        cls.get_cred()
         resp = cls.session.post(cls.translate_url, data={
             'fromLang': _from,
             'to': _to,
