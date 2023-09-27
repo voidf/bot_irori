@@ -41,6 +41,7 @@ class Bing:
             'token': cls.token,
             'text': _text,
         })
+        print(resp.text)
         return ''.join(map(lambda x: x['text'], resp.json()[0]['translations']))
 
 
