@@ -50,11 +50,12 @@ class WebsocketSessionJson(WebsocketSessionBase):
     async def _recv_ent(self) -> CoreEntity:
         message = await self.ws.receive_json()
         j = message['chain'] # chain: 消息链
+        custom_pid = (message.get('pid') or self.pid)
         return CoreEntity(
             jwt=generate_session_jwt(self.sid),
-            pid=self.pid,
+            pid=custom_pid,
             source=self.sid,
-            member=self.pid,
+            member=custom_pid,
             meta={},
             chain=MessageChain.auto_make(j)
         )
