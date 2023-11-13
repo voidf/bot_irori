@@ -116,6 +116,7 @@ async def ws_connectin(websocket: WebSocket, token: str = Query(''), typ: str=Qu
     elif typ.startswith('3rd'):
         routiner_reg_player_id = typ.removeprefix('3rd')
         if token != IroriUUID.get().uuid:
+            print(IroriUUID.get().uuid, token)
             await websocket.close(status.WS_1008_POLICY_VIOLATION)
         await SessionManager.hangon(await SessionManager.new(WebsocketSessionJson, websocket, routiner_reg_player_id))
     else:
