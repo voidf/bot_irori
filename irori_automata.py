@@ -3,9 +3,12 @@ import os
 import sys
 import aiohttp
 import asyncio
+import keyboard
+import pyperclip
 from pywinauto.findwindows import find_elements
 from pywinauto import Application
 import tkinter as tk
+import win32clipboard as wcb
 from collections import deque
 from dotenv import load_dotenv
 
@@ -35,6 +38,26 @@ def draw_rectangle(x, y, width, height):
     root.after(3000, root.destroy)  # 5秒后销毁窗口
     root.mainloop()
 
+
+def get_clipboard_data():
+    wcb.OpenClipboard()
+    # 枚举剪贴板中的所有格式
+    format = 0
+    data_map = {}
+    while True:
+        format = wcb.EnumClipboardFormats(format)
+        if not format:
+            break
+
+        try:
+            data = wcb.GetClipboardData(format)
+            data_map[format] = data
+        except Exception as e:
+            print(f"Error getting data for format {format}: {e}")
+
+    wcb.CloseClipboard()
+    return data_map
+
 elements = find_elements(title='QQ', class_name=None)
 print(elements)
 print('connect to', elements[0].process_id)
@@ -45,7 +68,7 @@ w = app.window(title_re="消息管理器")
 
 def get_child(w, idx):
     chl = w.children()
-    print(chl)
+    # print(chl)
     return chl[idx]
 
 def get_sub(w):
@@ -71,10 +94,9 @@ pat_email = re.compile(r'<(\w+@\w+\.\w+)>$')
 msg_queue = deque()
 msg_set = set()
 
-QUEUE_LIMIT = 50
+QUEUE_LIMIT = 100
 
 def insert_msg(msg: str) -> bool:
-    print('key:', msg)
     if msg in msg_set:
         return False
     msg_set.add(msg)
@@ -105,7 +127,7 @@ def fetch_msg(w):
             if not sender:
                 print('not found sender id:', p, content)
             else:
-                if insert_msg(sender + ':'.join(groups[1:4])):
+                if insert_msg(sender + '-' + ':'.join(groups[1:4])):
                     pending_msg.append((sender, groups[4]))
         else:
             print('not found', p, content)
@@ -116,7 +138,9 @@ def send_msg(app, t: str = 'test'):
     w = app.window(title_re=read_secret('WINDOW_TITLE'))
     edit_ctrl = w.child_window(title="输入", control_type="Edit")
     edit_ctrl.click_input()
-    edit_ctrl.type_keys(t, with_spaces=True, with_newlines=True)
+    pyperclip.copy(t)
+    keyboard.send_keys("^v")
+    # edit_ctrl.type_keys(t, with_spaces=True, with_newlines=True)
     w.child_window(title="发送(&S)", control_type="Button").click_input()
 
 async def main():
@@ -129,7 +153,7 @@ async def main():
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         print(f"Received message: {msg.json()}")
-
+                        send_msg(app, msg.data)
                     elif msg.type == aiohttp.WSMsgType.CLOSED:
                         print('ws closed', msg)
                         break
