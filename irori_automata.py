@@ -4,13 +4,13 @@ import sys
 import aiohttp
 import asyncio
 import keyboard
-import pyperclip
 from pywinauto.findwindows import find_elements
 from pywinauto import Application
 import tkinter as tk
 import win32clipboard as wcb
 from collections import deque
 from dotenv import load_dotenv
+import win32con
 
 load_dotenv()
 
@@ -127,8 +127,9 @@ def fetch_msg(w):
             if not sender:
                 print('not found sender id:', p, content)
             else:
-                if insert_msg(sender + '-' + ':'.join(groups[1:4])):
-                    pending_msg.append((sender, groups[4]))
+                if sender != read_secret("BOT_ID"): # 屏蔽自己
+                    if insert_msg(sender + '-' + ':'.join(groups[1:4])):
+                        pending_msg.append((sender, groups[4]))
         else:
             print('not found', p, content)
     return pending_msg
@@ -138,8 +139,12 @@ def send_msg(app, t: str = 'test'):
     w = app.window(title_re=read_secret('WINDOW_TITLE'))
     edit_ctrl = w.child_window(title="输入", control_type="Edit")
     edit_ctrl.click_input()
-    pyperclip.copy(t)
-    keyboard.send_keys("^v")
+    wcb.OpenClipboard()  # 打开剪贴板
+    wcb.EmptyClipboard()  # 清空剪贴板
+    wcb.SetClipboardData(win32con.CF_UNICODETEXT, t)  # 设置剪贴板数据
+    wcb.CloseClipboard()  # 关闭剪贴板
+    # pyperclip.copy(t)
+    edit_ctrl.type_keys("^v")
     # edit_ctrl.type_keys(t, with_spaces=True, with_newlines=True)
     w.child_window(title="发送(&S)", control_type="Button").click_input()
 
@@ -160,9 +165,11 @@ async def main():
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         print('ws error', msg)
                         break
+                    else:
+                        print("?", msg.type, msg.data)
             async def loop_scan_msg():
                 while 1:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
                     pending_msg = fetch_msg(w)
                     for sender, msg in pending_msg:
                         await ws.send_json({
