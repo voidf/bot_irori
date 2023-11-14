@@ -1,9 +1,11 @@
 import re
 import os
 import sys
+from typing import List, Tuple
 import aiohttp
 import asyncio
 import keyboard
+import xml.etree.ElementTree as ET
 from pywinauto.findwindows import find_elements
 from pywinauto import Application
 import tkinter as tk
@@ -11,6 +13,9 @@ import win32clipboard as wcb
 from collections import deque
 from dotenv import load_dotenv
 import win32con
+
+from basicutils.network import CoreEntity
+from basicutils.chain import MessageChain, Plain, Image
 
 load_dotenv()
 
@@ -105,35 +110,33 @@ def insert_msg(msg: str) -> bool:
         msg_set.remove(msg_queue.popleft())
     return True
 
-def fetch_msg(w):
-    click_refresh_btn(w)
-    li = w.child_window(title="IEMsgView", control_type="List")
-    list_items = li.children(control_type="ListItem")
-    pending_msg = []
-    for p, item in enumerate(list_items):
-        content = item.window_text()
-        r = pat.match(content)
-        if r:
-            groups = r.groups()
-            sender_qid_found = pat_qid.search(groups[0])
-            sender = ''
-            if sender_qid_found:
-                sender = sender_qid_found.group(1)
-            else:
-                sender_email_found = pat_email.search(groups[0])
-                if sender_email_found:
-                    sender = sender_email_found.group(1)
+def extract_sender_id(sender_str: str):
+    sender_qid_found = pat_qid.search(sender_str)
+    sender = ''
+    if sender_qid_found:
+        sender = sender_qid_found.group(1)
+    else:
+        sender_email_found = pat_email.search(sender_str)
+        if sender_email_found:
+            sender = sender_email_found.group(1)
+    return sender
 
-            if not sender:
-                print('not found sender id:', p, content)
-            else:
-                if sender != read_secret("BOT_ID"): # 屏蔽自己
-                    if insert_msg(sender + '-' + ':'.join(groups[1:4])):
-                        pending_msg.append((sender, groups[4]))
-        else:
-            print('not found', p, content)
+def fetch_msg(app):
+    w = app.window(title_re=read_secret('WINDOW_TITLE'))
+    li = w.child_window(title_re='消息', control_type='List')
+    li.click_input()
+    li.type_keys('^a')
+    li.type_keys('^c')
+    data_map = get_clipboard_data()
+    pending_msg = []
+
+    for sender, sender_time_str, msgchain in parse_rtf(data_map[49769].decode('utf-8')):
+        sender_id = extract_sender_id(sender)
+        if sender_id != read_secret("BOT_ID"): # 屏蔽自己
+            if insert_msg(sender_id + '-' + sender_time_str):
+                pending_msg.append((sender_id, msgchain))
     return pending_msg
-        # print(p, item.window_text())
+
 
 def send_msg(app, t: str = 'test'):
     w = app.window(title_re=read_secret('WINDOW_TITLE'))
@@ -181,5 +184,34 @@ async def main():
             scan_task.cancel()
             exit(1)
 
+sender_pat = re.compile(r'(.*?) (20\d{2}/\d{1,2}/\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})$')
+
+def parse_rtf(data: str) -> List[Tuple[str, str, MessageChain]]:
+    root = ET.fromstring(data)
+    ret = []
+    current_sender = None
+    current_send_time = None
+    buf = []
+    for element in root.findall('.//EditElement'):
+        element_type = element.get('type')
+        if element_type == '0':  # 文本消息
+            text = element.text.strip() if element.text else ''
+            for line in text.splitlines():
+                sender_match = sender_pat.search(line)
+                if sender_match:
+                    if current_sender and buf:
+                        ret.append((current_sender, current_send_time, MessageChain.auto_make(buf)))
+                    current_sender, current_send_time = sender_match.groups()
+                    buf.clear()
+                else:
+                    buf.append(Plain(text=line + '\n'))
+        elif element_type == '1':  # 图片
+            buf.append(Image(path=element.get('filepath')))
+    if current_sender and buf:
+        ret.append((current_sender, current_send_time, buf))
+    return ret
+
+# from pathlib import Path
+# {"chain":[{"type":"Plain","meta":{"delay":0},"text":"[4, 12, '*']\n(4*12) = 48"}]}
 if __name__ == "__main__":
     asyncio.run(main())
