@@ -84,6 +84,9 @@ class MessageChain(RootModel):
         return self.root.__iter__()
     def __str__(self) -> str:
         return self.tostr()
+    def to_str_list(self) -> list[dict]:
+        """序列化自己为可json的dict列表"""
+        return [i.model_dump() for i in self.root]
     def tostr(self) -> str:
         """调用所有消息元素的tostr方法然后不分隔的拼成一个字符串返回"""
         output = []
