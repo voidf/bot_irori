@@ -1,0 +1,4 @@
+aiohttp
+pywinauto
+python-dotenv
+psutil
