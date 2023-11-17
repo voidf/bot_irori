@@ -2,3 +2,5 @@ aiohttp
 pywinauto
 python-dotenv
 psutil
+keyboard
+pydantic

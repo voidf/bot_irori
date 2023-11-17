@@ -6,7 +6,7 @@ import time
 from typing import List, Tuple
 import aiohttp
 import asyncio
-import keyboard
+import traceback
 import xml.etree.ElementTree as ET
 from pywinauto.findwindows import find_elements
 from pywinauto import Application
@@ -14,7 +14,7 @@ import tkinter as tk
 import win32clipboard as wcb
 from collections import deque
 from dotenv import load_dotenv
-import win32con
+import win32api
 import psutil
 
 from basicutils.network import CoreEntity
@@ -23,12 +23,14 @@ from basicutils.chain import MessageChain, Plain, Image
 load_dotenv()
 
 QQRichEditFormat = 49769
+CLICK_POS = (0, 0)
 
 def read_secret(key: str) -> str:
     v = os.environ[key] = os.environ.get(key) or input(f"Please input {key}:")    
     return v
 
 def draw_rectangle(x, y, width, height):
+    """可视化用"""
     width = width - x
     height = height - y
     # 创建 Tkinter 窗口
@@ -48,6 +50,14 @@ def draw_rectangle(x, y, width, height):
     root.after(3000, root.destroy)  # 5秒后销毁窗口
     root.mainloop()
 
+def get_mouse_pos():
+    before = (-1, -1)
+    while 1:
+        x, y = win32api.GetCursorPos()
+        if before != (x, y):
+            before = (x, y)
+            print(x, y)
+        time.sleep(0.1)
 
 def get_clipboard_data():
     wcb.OpenClipboard()
@@ -121,32 +131,36 @@ def extract_sender_id(sender_str: str):
 
 async def fetch_msg(app) -> List[Tuple[str, MessageChain]]:
     global QQRichEditFormat
-    w = app.window(title_re=read_secret('WINDOW_TITLE'))
-    li = w.child_window(title_re='消息', control_type='List')
-    li.click_input()
-    await asyncio.sleep(0.3)
-    li.click_input()
-    await asyncio.sleep(0.3)
-    li.type_keys('^a')
-    await asyncio.sleep(0.3)
-    li.type_keys('^c')
-    await asyncio.sleep(0.3)
-    data_map = get_clipboard_data()
-    for k, v in data_map.items():
-        if isinstance(v, bytes) and v.startswith(b'<QQRichEditFormat>'):
-            if QQRichEditFormat != k:
-                print('detected QQRichEditFormat:',QQRichEditFormat)
-            QQRichEditFormat = k
-            clipboard_data = v
-            break
-    pending_msg = []
+    try:    
+        w = app.window(title_re=read_secret('WINDOW_TITLE'))
+        li = w.child_window(title_re='消息', control_type='List')
+        li.click_input()
+        await asyncio.sleep(0.3)
+        li.click_input()
+        await asyncio.sleep(0.3)
+        li.type_keys('^a')
+        await asyncio.sleep(0.3)
+        li.type_keys('^c')
+        await asyncio.sleep(0.3)
+        data_map = get_clipboard_data()
+        for k, v in data_map.items():
+            if isinstance(v, bytes) and v.startswith(b'<QQRichEditFormat>'):
+                if QQRichEditFormat != k:
+                    print('detected QQRichEditFormat:',QQRichEditFormat)
+                QQRichEditFormat = k
+                clipboard_data = v
+                break
+        pending_msg = []
 
-    for sender, sender_time_str, msgchain in parse_rtf(clipboard_data.decode('utf-8')):
-        sender_id = extract_sender_id(sender)
-        if sender_id != read_secret("BOT_ID"): # 屏蔽自己
-            if insert_msg(sender_id + '-' + sender_time_str):
-                pending_msg.append((sender_id, msgchain))
-    return pending_msg
+        for sender, sender_time_str, msgchain in parse_rtf(clipboard_data.decode('utf-8')):
+            sender_id = extract_sender_id(sender)
+            if sender_id != read_secret("BOT_ID"): # 屏蔽自己
+                if insert_msg(sender_id + '-' + sender_time_str):
+                    pending_msg.append((sender_id, msgchain))
+        return pending_msg
+    except:
+        traceback.print_exc()
+        return []
 
 
 sender_pat = re.compile(r'(.*?) (20\d{2}/\d{1,2}/\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})$')
@@ -245,7 +259,8 @@ async def main():
 
 # from pathlib import Path
 if __name__ == "__main__":
-    asyncio.run(main())
+    get_mouse_pos()
+    # asyncio.run(main())
     # dump_rtf(MessageChain.auto_make([Image(path=r'C:\Users\ATRI\Desktop\B.jpg'),'114514','helloworld']), key=49315)
     # dm = get_clipboard_data()
     # print(dm)
