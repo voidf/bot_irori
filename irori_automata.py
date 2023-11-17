@@ -2,7 +2,10 @@ import re
 import os
 import sys
 import datetime
+import keyboard
+import pyautogui
 import time
+import loguru
 from typing import List, Tuple
 import aiohttp
 import asyncio
@@ -22,8 +25,10 @@ from basicutils.chain import MessageChain, Plain, Image
 
 load_dotenv()
 
+logger = loguru.logger
+logger.add(open('irori_automata.log','w',encoding='utf-8'),level='DEBUG')
 QQRichEditFormat = 49769
-CLICK_POS = (0, 0)
+CLICK_POS = (684, 583)
 
 def read_secret(key: str) -> str:
     v = os.environ[key] = os.environ.get(key) or input(f"Please input {key}:")    
@@ -68,37 +73,21 @@ def get_clipboard_data():
         format = wcb.EnumClipboardFormats(format)
         if not format:
             break
-
         try:
             data = wcb.GetClipboardData(format)
             data_map[format] = data
         except Exception as e:
-            print(f"Error getting data for format {format}: {e}")
-
+            logger.error(f"Error getting data for format {format}: {e}")
     wcb.CloseClipboard()
     return data_map
 
 for process in psutil.process_iter(['pid', 'name']):
     if process.info['name'] == 'QQ.exe':
-        print(process.info['pid'])
+        logger.debug(f"process id:{process.info['pid']}")
         process_id = process.info['pid']
         break
 # elements = find_elements(title=read_secret('WINDOW_TITLE'))
 app = Application(backend="uia").connect(process=process_id)
-
-def get_child(w, idx):
-    chl = w.children()
-    # print(chl)
-    return chl[idx]
-
-def get_sub(w):
-    child = get_child(w, 2)
-    # print(child, child.automation_id())
-    # child_spec = w.child_window(auto_id=child.automation_id(),)
-    # child_spec.draw_outline()
-    # child_spec.print_control_identifiers()
-    child.click_input() # 模拟鼠标点击
-    return child
 
 pat = re.compile(r'^(.*?)(\d{1,2}):(\d{1,2}):(\d{1,2})(.*)$', re.M | re.S)
 pat_qid = re.compile(r'\((\d{1,10})\)$')
@@ -129,26 +118,31 @@ def extract_sender_id(sender_str: str):
             sender = sender_email_found.group(1)
     return sender
 
+PRV_MSG_CACHE = b""
 async def fetch_msg(app) -> List[Tuple[str, MessageChain]]:
-    global QQRichEditFormat
+    global QQRichEditFormat, PRV_MSG_CACHE
     try:    
-        w = app.window(title_re=read_secret('WINDOW_TITLE'))
-        li = w.child_window(title_re='消息', control_type='List')
-        li.click_input()
+        # w = app.window(title_re=read_secret('WINDOW_TITLE'))
+        # li = w.child_window(title_re='消息', control_type='List')
+        # li.click_input()
+        # await asyncio.sleep(0.3)
+        # li.click_input()
+        pyautogui.click(CLICK_POS)
         await asyncio.sleep(0.3)
-        li.click_input()
+        keyboard.press_and_release('ctrl+a')
         await asyncio.sleep(0.3)
-        li.type_keys('^a')
-        await asyncio.sleep(0.3)
-        li.type_keys('^c')
+        keyboard.press_and_release('ctrl+c')
         await asyncio.sleep(0.3)
         data_map = get_clipboard_data()
         for k, v in data_map.items():
             if isinstance(v, bytes) and v.startswith(b'<QQRichEditFormat>'):
                 if QQRichEditFormat != k:
-                    print('detected QQRichEditFormat:',QQRichEditFormat)
+                    logger.debug('detected QQRichEditFormat:',QQRichEditFormat)
                 QQRichEditFormat = k
                 clipboard_data = v
+                if PRV_MSG_CACHE == clipboard_data:
+                    return []
+                PRV_MSG_CACHE = clipboard_data
                 break
         pending_msg = []
 
@@ -159,7 +153,7 @@ async def fetch_msg(app) -> List[Tuple[str, MessageChain]]:
                     pending_msg.append((sender_id, msgchain))
         return pending_msg
     except:
-        traceback.print_exc()
+        logger.critical(traceback.format_exc())
         return []
 
 
@@ -167,7 +161,7 @@ sender_pat = re.compile(r'(.*?) (20\d{2}/\d{1,2}/\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}
 sender_pat_no_date = re.compile(r'(.*?) (\d{1,2}:\d{1,2}:\d{1,2})$')
 
 def parse_rtf(data: str) -> List[Tuple[str, str, MessageChain]]:
-    print(datetime.datetime.now(), 'bytes:', len(data))
+    logger.debug("{} bytes: {}", datetime.datetime.now(), len(data))
     root = ET.fromstring(data)
     ret = []
     current_sender = None
@@ -191,7 +185,7 @@ def parse_rtf(data: str) -> List[Tuple[str, str, MessageChain]]:
         elif element_type == '1':  # 图片
             buf.append(Image(path=element.get('filepath')))
         else:
-            print('unknown type:', element_type, element.text)
+            logger.warning('unknown type:{} {}', element_type, element.text)
     if current_sender and buf:
         ret.append((current_sender, current_send_time, MessageChain.auto_make(buf)))
     return ret
@@ -231,23 +225,23 @@ async def main():
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         j = msg.json()
-                        print(f"Received message: {j}")
+                        logger.debug(f"Received message: {j}")
                         msgchain = MessageChain.parse_obj(j['chain'])
                         send_msg(app, msgchain)
                     elif msg.type == aiohttp.WSMsgType.CLOSED:
-                        print('ws closed', msg)
+                        logger.critical('ws closed {}', msg)
                         break
                     elif msg.type == aiohttp.WSMsgType.ERROR:
-                        print('ws error', msg)
+                        logger.critical('ws error {}', msg)
                         break
                     else:
-                        print("?", msg.type, msg.data)
+                        logger.critical("? {} {}", msg.type, msg.data)
             async def loop_scan_msg():
                 while 1:
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(1)
                     pending_msg = await fetch_msg(app)
                     for sender, msg in pending_msg:
-                        print('sender:', sender, "message:", msg, 'to_str_list:',msg.to_str_list())
+                        logger.debug(f'sender:{sender} message:{msg} to_str_list:{msg.to_str_list()}')
                         asyncio.create_task(ws.send_json({
                             'chain':msg.to_str_list(),
                             'mid':sender

@@ -4,3 +4,4 @@ python-dotenv
 psutil
 keyboard
 pydantic
+loguru
