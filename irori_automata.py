@@ -28,7 +28,8 @@ load_dotenv()
 logger = loguru.logger
 logger.add(open('irori_automata.log','w',encoding='utf-8'),level='DEBUG')
 QQRichEditFormat = 49769
-CLICK_POS = (684, 583)
+# CLICK_POS = (684, 583)
+CLICK_POS = (1303, 578)
 
 def read_secret(key: str) -> str:
     v = os.environ[key] = os.environ.get(key) or input(f"Please input {key}:")    
@@ -90,8 +91,8 @@ for process in psutil.process_iter(['pid', 'name']):
 app = Application(backend="uia").connect(process=process_id)
 
 pat = re.compile(r'^(.*?)(\d{1,2}):(\d{1,2}):(\d{1,2})(.*)$', re.M | re.S)
-pat_qid = re.compile(r'\((\d{1,10})\)$')
-pat_email = re.compile(r'<(\w+@\w+\.\w+)>$')
+pat_qid = re.compile(r'\((\d{1,10})\)\s*$')
+pat_email = re.compile(r'<(\w+@\w+\.\w+)>\s*$')
 
 msg_queue = deque()
 msg_set = set()
@@ -116,6 +117,7 @@ def extract_sender_id(sender_str: str):
         sender_email_found = pat_email.search(sender_str)
         if sender_email_found:
             sender = sender_email_found.group(1)
+    logger.debug("senderstr:<{}> sender:{}", sender_str, sender)
     return sender
 
 PRV_MSG_CACHE = b""
@@ -253,8 +255,8 @@ async def main():
 
 # from pathlib import Path
 if __name__ == "__main__":
-    get_mouse_pos()
-    # asyncio.run(main())
+    # get_mouse_pos()
+    asyncio.run(main())
     # dump_rtf(MessageChain.auto_make([Image(path=r'C:\Users\ATRI\Desktop\B.jpg'),'114514','helloworld']), key=49315)
     # dm = get_clipboard_data()
     # print(dm)
