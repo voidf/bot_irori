@@ -125,7 +125,7 @@ class MessageChain(RootModel):
     def onebot_sendable(self):
         ret = []
         for i in self.root:
-            if i in mirai2onebot_converter:
+            if i.type in mirai2onebot_converter:
                 ret.append(mirai2onebot_converter[i.type](i))
             else:
                 ret.append(i.model_dump())
