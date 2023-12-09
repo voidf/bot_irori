@@ -2,10 +2,10 @@ from pydantic import BaseModel, RootModel # 为了用json
 from pydantic import Field
 from typing import *
 import datetime
-import logging
 import json
 from io import BytesIO
 
+from loguru import logger
 
 class Element(BaseModel):
     type: str = None
@@ -68,6 +68,7 @@ class MessageChain(RootModel):
         return MessageChain.auto_make(li)
     @classmethod
     def auto_make(cls, obj: Union[str, Element, list, tuple, "MessageChain"]) -> "MessageChain":
+        logger.debug(f"automake:{obj}")
         if isinstance(obj, str):
             if not obj:
                 return cls(root=[])

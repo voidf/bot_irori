@@ -120,6 +120,8 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
 
     async def _recv_ent(self) -> CoreEntity:
         message = await self.ws.receive_json()
+        if message.get("meta_event_type") == "heartbeat":
+            return
         logger.debug(message)
         if message.get("post_type") != "message":
             return
