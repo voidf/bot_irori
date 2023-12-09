@@ -18,7 +18,6 @@ class CoreEntity(BaseModel):
     def handle_json(cls, j):
         d = json.loads(j)
         d['chain'] = MessageChain.auto_make(d['chain'])
-        logger.debug(f"in: {j}, out:{d}")
         return cls(**d)
     @classmethod
     def wrap_rawstring(cls, msg: str):
