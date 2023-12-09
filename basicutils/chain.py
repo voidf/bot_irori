@@ -17,6 +17,16 @@ class Element(BaseModel):
     def __str__(self) -> str:
         return self.tostr()
 
+def convert_text(x: dict):
+    return {
+        'type': "Plain",
+        'text': x['text']
+    }
+
+onebot2mirai_converter = {
+    "text": convert_text
+}
+
 class MessageChain(RootModel):
     root: List[Element]
     @classmethod
@@ -29,11 +39,14 @@ class MessageChain(RootModel):
                     continue
                 else:
                     tobeappend = i
-            elif isinstance(i, dict) and "type" in i: # 目前为dict，但可以转换成Element
-                for ii in Element.__subclasses__():
-                    if ii.__name__ == i["type"]:
-                        tobeappend = ii.parse_obj(i)
-                        break
+            elif isinstance(i, dict):
+                if "type" in i: # 目前为dict，但可以转换成Element
+                    if i["type"] in onebot2mirai_converter:
+                        i = onebot2mirai_converter[i["type"]](i)
+                    for ii in Element.__subclasses__():
+                        if ii.__name__ == i["type"]:
+                            tobeappend = ii.parse_obj(i)
+                            break
             elif isinstance(i, (tuple, list)):
                 newchain = cls.parse_obj(i)
                 for j in newchain:
