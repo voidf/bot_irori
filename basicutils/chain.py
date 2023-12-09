@@ -23,8 +23,15 @@ def convert_text(x: dict):
         'text': x['data']['text']
     }
 
+def convert_image(x: dict):
+    return {
+        'type': 'Image',
+        'url': x['data']['url']
+    }
+
 onebot2mirai_converter = {
-    "text": convert_text
+    "text": convert_text,
+    "image": convert_image
 }
 
 class MessageChain(RootModel):
