@@ -2,6 +2,8 @@ from pydantic import BaseModel # 为了用json
 import json
 from basicutils.chain import MessageChain
 
+from loguru import logger
+
 # Core内部传输用
 class CoreEntity(BaseModel):
     """irori系统内部的消息传输形式"""
@@ -16,6 +18,7 @@ class CoreEntity(BaseModel):
     def handle_json(cls, j):
         d = json.loads(j)
         d['chain'] = MessageChain.auto_make(d['chain'])
+        logger.debug(f"in: {j}, out:{d}")
         return cls(**d)
     @classmethod
     def wrap_rawstring(cls, msg: str):

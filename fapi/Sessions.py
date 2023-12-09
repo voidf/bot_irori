@@ -104,10 +104,10 @@ class Session(ABC):
             t.content.put(BytesIO(bytes(html, 'utf-8')))
             t.save()
             asyncio.ensure_future(t.deleter())
-            ent.chain.__root__ = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
+            ent.chain.root = [Plain(server_api(f'/worker/oss/{t.pk!s}'))]
         elif '-tts' in ent.meta:
             from basicutils.media import BaiduTTS
-            ent.chain.__root__ = [Voice(
+            ent.chain.root = [Voice(
                 url=server_api('/worker/oss/' + 
                 (await to_amr(lnk=BaiduTTS(ent.chain.tostr())))['url'])
             )]
@@ -123,21 +123,21 @@ class Session(ABC):
             ent.chain = MessageChain.get_empty()
             for i in chain:
                 if i.meta and 'delay' in i.meta:
-                    if ent.chain.__root__:
+                    if ent.chain.root:
                         await self._package(ent)
                     await asyncio.sleep(float(i.meta['delay']))
-                    ent.chain.__root__.clear()
+                    ent.chain.root.clear()
                 elif isinstance(i, Voice):
                     i = Voice(url=server_api('/worker/oss/' + (await to_amr(
                         ent.meta.get('-vmode', 0),
                         lnk=i.url if i.url else '',
                         b64=i.base64 if i.base64 else ''
                     ))['url']))
-                    if ent.chain.__root__:
+                    if ent.chain.root:
                         await self._package(ent)
-                    ent.chain.__root__.clear()
-                ent.chain.__root__.append(i)
-            if ent.chain.__root__:
+                    ent.chain.root.clear()
+                ent.chain.root.append(i)
+            if ent.chain.root:
                 await self._package(ent)
         except ValueError:
             return "not mirai"
