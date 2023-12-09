@@ -21,7 +21,6 @@ class WebsocketSessionBase(Session):
                 if await self._handle_syscall(ent):
                     continue
                 try:
-                    logger.debug(f"ent:{ent} | {ent.model_dump()} | {ent.old_style_json()}")
                     task.delay(ent.old_style_json()) # 向Worker发布任务
                 except:
                     logger.critical(traceback.format_exc())
@@ -136,7 +135,6 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
             pid = message['user_id']
             mid = message['user_id']
         c = MessageChain.auto_make(j)
-        logger.debug(f"chain:{c} {c.model_dump()}")
         return CoreEntity(
             jwt=generate_session_jwt(self.sid),
             pid=str(pid),

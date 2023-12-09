@@ -50,10 +50,8 @@ class MessageChain(RootModel):
                 if "type" in i: # 目前为dict，但可以转换成Element
                     if i["type"] in onebot2mirai_converter:
                         i = onebot2mirai_converter[i["type"]](i)
-                    logger.debug(f"converted: {i}")
                     for ii in Element.__subclasses__():
                         if ii.__name__ == i["type"]:
-                            logger.debug(f"in: {i}")
                             tobeappend = ii.model_validate(i)
                             break
             elif isinstance(i, (tuple, list)):
@@ -75,7 +73,6 @@ class MessageChain(RootModel):
                     handled_elements[-1].text += tobeappend.text
                     continue
             handled_elements.append(tobeappend)
-        logger.debug(f"out:{handled_elements} | {cls(root=handled_elements)}")
         return cls(root=handled_elements)
     @classmethod
     def get_empty(cls) -> "MessageChain":
@@ -91,7 +88,6 @@ class MessageChain(RootModel):
         return MessageChain.auto_make(li)
     @classmethod
     def auto_make(cls, obj: Union[str, Element, list, tuple, "MessageChain"]) -> "MessageChain":
-        logger.debug(f"automake:{obj}")
         if isinstance(obj, str):
             if not obj:
                 return cls(root=[])
@@ -110,7 +106,6 @@ class MessageChain(RootModel):
         return self.tostr()
     def to_str_list(self) -> list[dict]:
         """序列化自己为可json的dict列表"""
-        logger.debug(f"model dump:{[i.model_dump() for i in self.root]}")
         return [i.model_dump() for i in self.root]
     def tostr(self) -> str:
         """调用所有消息元素的tostr方法然后不分隔的拼成一个字符串返回"""

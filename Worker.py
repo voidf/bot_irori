@@ -38,7 +38,7 @@ def task(s: str):
     # TODO: 在服务端Adapter实现
     logger.critical(f"{res}"[:300])
     ent.chain = MessageChain.auto_make(res)
-    if ent.chain.__root__:
+    if ent.chain.root:
         resp = requests.post(
             internal_api("/worker/submit"),
             json={"ents": ent.old_style_json()}
