@@ -41,7 +41,7 @@ def task(s: str):
     if ent.chain.__root__:
         resp = requests.post(
             internal_api("/worker/submit"),
-            json={"ents": ent.json()}
+            json={"ents": ent.old_style_json()}
         )
         if resp.status_code!=200:
             logger.critical(resp.text[:300])
