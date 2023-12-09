@@ -45,10 +45,10 @@ class MessageChain(RootModel):
                         i = onebot2mirai_converter[i["type"]](i)
                     for ii in Element.__subclasses__():
                         if ii.__name__ == i["type"]:
-                            tobeappend = ii.parse_obj(i)
+                            tobeappend = ii.model_validate(i)
                             break
             elif isinstance(i, (tuple, list)):
-                newchain = cls.parse_obj(i)
+                newchain = cls.model_validate(i)
                 for j in newchain:
                     if not j.meta and handled_elements and handled_elements[-1].type == 'Plain' and j.type == 'Plain':
                         handled_elements[-1].text += j.text
@@ -128,8 +128,8 @@ class MessageChain(RootModel):
 class Plain(Element):
     type: str = "Plain"
     text: str
-    def __init__(self, text: str, *_, **__):
-        super().__init__(text=text, **__)
+    # def __init__(self, text: str, *_, **__):
+    #     super().__init__(text=text, **__)
     def tostr(self) -> str:
         return self.text
 
