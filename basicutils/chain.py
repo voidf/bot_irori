@@ -50,6 +50,7 @@ class MessageChain(RootModel):
                 if "type" in i: # 目前为dict，但可以转换成Element
                     if i["type"] in onebot2mirai_converter:
                         i = onebot2mirai_converter[i["type"]](i)
+                    logger.debug(f"converted: {i}")
                     for ii in Element.__subclasses__():
                         if ii.__name__ == i["type"]:
                             logger.debug(f"in: {i}")
