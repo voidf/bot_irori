@@ -90,28 +90,66 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         self.ws = ws
         await self.ws.accept()
         self.receiver = asyncio.ensure_future(self._receive_loop())
-        return []
+        await self.ws.send_json({
+            "action": "get_friend_list"
+        })
+        ret = await self.ws.receive_json()
+        logger.debug(ret)
+        myplayers = []
+        for i in ret['data']:
+            pid = i['user_id']
+            myplayers.append(str(pid))
+
+        await self.ws.send_json({
+            "action": "get_group_list"
+        })
+
+        ret = await self.ws.receive_json()
+        logger.debug(ret)
+        for i in ret['data']:
+            pid = i['group_id']
+            myplayers.append(str(pid + (1 << 39)))
+
+        return myplayers
 
 
     async def _recv_ent(self) -> CoreEntity:
         message = await self.ws.receive_json()
         logger.debug(message)
-        j = message['chain'] # chain: 消息链
-        # custom_pid = (message.get('pid') or self.pid)
-        # custom_mid = (message.get('mid') or self.pid)
-        # return CoreEntity(
-        #     jwt=generate_session_jwt(self.sid),
-        #     pid=custom_pid,
-        #     source=self.sid,
-        #     member=custom_mid,
-        #     meta={},
-        #     chain=MessageChain.auto_make(j)
-        # )
+        if message.get("post_type") != "message":
+            return
+
+        j = message['message'] # chain: 消息链
+        if group_id := message.get('group_id'):
+            pid = int(group_id) + (1<<39)
+            mid = int(message['user_id'])
+        else:
+            pid = int(message['user_id'])
+            mid = int(message['user_id'])
+        return CoreEntity(
+            jwt=generate_session_jwt(self.sid),
+            pid=int(pid),
+            source=int(self.sid),
+            member=int(mid),
+            meta={},
+            chain=MessageChain.auto_make(j)
+        )
 
     async def _deliver(self, ent: CoreEntity):
         """向ws送ent序列化后的json"""
-        payload = {
-            "chain": ent.chain.dict()["__root__"]
-        }
+        pi = int(ent.pid)
+        if pi & (1<<39):
+            payload['group_id'] = str(pi - (1<<39))
+            payload = {
+                "action": "send_group_msg",
+                "group_id": pi,
+                "message": ent.chain.dict()["__root__"]
+            }
+        else:
+            payload = {
+                "action": "send_private_msg",
+                "user_id": pi,
+                "message": ent.chain.dict()["__root__"]
+            }
         await self.ws.send_json(payload)
 
