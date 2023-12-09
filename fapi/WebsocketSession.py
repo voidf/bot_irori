@@ -165,5 +165,6 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                     "message": ent.chain.onebot_sendable()
                 }
             }
+        logger.debug(f"onebot send:{payload}")
         await self.ws.send_json(payload)
 
