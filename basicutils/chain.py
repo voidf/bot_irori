@@ -31,7 +31,9 @@ def Image2url(x):
         # tf = NamedTemporaryFile(mode='w+b', delete=True)
         # tf.write(base64.b64decode(x.base64))
         # tf.flush()
+        logger.debug("save to mongo")
         k = save_file_to_mongo(delays=300, fileobj=UploadFile(file=BytesIO(base64.b64decode(x.base64)))).pk
+        logger.debug(f"save to mongo done:{k}")
         # tf.close()
         return {"type": "image", "data": {"url": server_api(f'/worker/oss/{k}')}} # 5分钟后删除
 
