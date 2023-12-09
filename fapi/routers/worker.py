@@ -29,7 +29,7 @@ class CoreEntityJson(BaseModel):
     ents: str
 
 
-async def parse_session_jwt(f: CoreEntityJson) -> CoreEntity:
+def parse_session_jwt(f: CoreEntityJson) -> CoreEntity:
     # logger.critical(f)
     ent = CoreEntity.handle_json(f.ents)
     # logger.debug(ent)
@@ -53,15 +53,7 @@ oss_route = APIRouter(
     tags=["oss - 内置对象储存模块"],
 )
 
-
-@oss_route.post('')
-async def upload_oss(delays: int = -1, fileobj: UploadFile = fastapi.File(...), ents: str = Form(...)):
-    ent: CoreEntity = await parse_session_jwt(CoreEntityJson(ents=ents))
-    # delays = ent.get('delays', -1)
-    logger.debug('file name: {}', fileobj.filename)
-    logger.debug('file type: {}', fileobj.content_type)
-    # buf = BytesIO(fileobj.file.read())
-    # magic.from_descriptor(fileobj.file.fileno())
+def save_file_to_mongo(delays: int, fileobj: UploadFile):
     typ = magic.from_descriptor(fileobj.file.fileno(), mime=True)
     fileobj.file.seek(0)
     logger.debug('guessed type: {}', typ)
@@ -79,7 +71,14 @@ async def upload_oss(delays: int = -1, fileobj: UploadFile = fastapi.File(...), 
         )
     fs.content.put(fileobj.file)
     fs.save()
-    return {'url': str(fs.pk)}
+    return fs
+
+@oss_route.post('')
+async def upload_oss(delays: int = -1, fileobj: UploadFile = fastapi.File(...), ents: str = Form(...)):
+    parse_session_jwt(CoreEntityJson(ents=ents))
+    logger.debug('file name: {}', fileobj.filename)
+    logger.debug('file type: {}', fileobj.content_type)
+    return {'url': str(save_file_to_mongo(delays, fileobj).pk)}
 
 
 @oss_route.get('/{fspk}')

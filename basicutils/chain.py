@@ -1,8 +1,7 @@
 from pydantic import BaseModel, RootModel # 为了用json
 from pydantic import Field
 from typing import *
-import datetime
-import json
+import base64
 from io import BytesIO
 
 from loguru import logger
@@ -22,9 +21,18 @@ onebot2mirai_converter = {
     "image": lambda x: {'type': 'Image', 'url': x['data']['url']}
 }
 
+def Image2url(x):
+    if x['url']:
+        return {"type": "image", "url": x["url"]}
+    elif x['base64']:
+        from fapi.routers.worker import server_api, save_file_to_mongo
+        k = save_file_to_mongo(delays=300, fileobj=BytesIO(base64.b64decode(x['base64']))).pk
+        return {"type": "image", "data": {"url": server_api(f'/worker/oss/{k}')}} # 5分钟后删除
+
+
 mirai2onebot_converter = {
-    "Plain": lambda x: {"type": "text", "data": {"text": x.text}},
-    "Image": lambda x: {"type": "image", "data": {"url": x.url}}
+    "Plain": lambda x: {"type": "text", "data": {"text": x["text"]}},
+    "Image": Image2url
 }
 
 class MessageChain(RootModel):
