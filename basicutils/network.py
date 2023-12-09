@@ -1,7 +1,6 @@
 from pydantic import BaseModel # 为了用json
-from typing import *
 import json
-from basicutils.chain import *
+from basicutils.chain import MessageChain
 
 # Core内部传输用
 class CoreEntity(BaseModel):

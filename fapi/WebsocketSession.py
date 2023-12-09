@@ -1,3 +1,4 @@
+from calendar import c
 import starlette
 from fapi.Sessions import *
 from fapi import *
@@ -134,13 +135,15 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         else:
             pid = message['user_id']
             mid = message['user_id']
+        c = MessageChain.auto_make(j)
+        logger.debug(f"chain:{c} {c.model_dump()}")
         return CoreEntity(
             jwt=generate_session_jwt(self.sid),
             pid=str(pid),
             source=str(self.sid),
             member=str(mid),
             meta={},
-            chain=MessageChain.auto_make(j).to_str_list()
+            chain=c
         )
 
     async def _deliver(self, ent: CoreEntity):
