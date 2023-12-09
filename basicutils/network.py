@@ -43,5 +43,5 @@ class CoreEntity(BaseModel):
     # 更pydantic2.0后，MessageChain不能直接输出子元素的field，所以这里要手动处理
     def old_style_json(self):
         j = self.model_dump()
-        j['chain'] = json.dumps(self.chain.to_str_list())
+        j['chain'] = self.chain.to_str_list()
         return json.dumps(j)
