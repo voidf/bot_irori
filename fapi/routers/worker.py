@@ -63,7 +63,7 @@ def save_file_to_mongo(delays: int, fileobj: UploadFile):
             content_type=typ,
             expires=datetime.datetime.now()+datetime.timedelta(seconds=delays)
         )
-        asyncio.ensure_future(fs.deleter())
+        # asyncio.ensure_future(fs.deleter())
     else:
         fs = FileStorage(
             filename=fileobj.filename,
