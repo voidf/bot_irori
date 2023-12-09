@@ -41,4 +41,4 @@ class CoreEntity(BaseModel):
     def old_style_json(self):
         j = self.model_dump()
         j['chain'] = json.dumps(self.chain.to_str_list())
-        return j
+        return json.dumps(j)
