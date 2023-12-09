@@ -92,23 +92,30 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         await self.ws.send_json({
             "action": "get_friend_list"
         })
-        ret = await self.ws.receive_json()
-        logger.debug(ret)
-        myplayers = []
-        for i in ret['data']:
-            pid = i['user_id']
-            myplayers.append(str(pid))
+        while 1:
+            try:
+                ret = await self.ws.receive_json()
+                logger.debug(ret)
+                myplayers = []
+                for i in ret['data']:
+                    pid = i['user_id']
+                    myplayers.append(str(pid))
+                break
+            except:
+                logger.error(traceback.format_exc())
 
         await self.ws.send_json({
             "action": "get_group_list"
         })
-
-        ret = await self.ws.receive_json()
-        logger.debug(ret)
-        for i in ret['data']:
-            pid = i['group_id']
-            myplayers.append(str(pid + (1 << 39)))
-
+        while 1:
+            try:
+                ret = await self.ws.receive_json()
+                logger.debug(ret)
+                for i in ret['data']:
+                    pid = i['group_id']
+                    myplayers.append(str(pid + (1 << 39)))
+            except:
+                logger.error(traceback.format_exc())
         self.receiver = asyncio.ensure_future(self._receive_loop())
         return myplayers
 
