@@ -24,18 +24,20 @@ onebot2mirai_converter = {
 
 def Image2url(x):
     if x.url:
-        return {"type": "image", "url": x.url}
+        return {"type": "image", "data":{"url": x.url}}
     elif x.base64:
-        from fapi.routers.worker import server_api, save_file_to_mongo
-        from fastapi import UploadFile
-        # tf = NamedTemporaryFile(mode='w+b', delete=True)
-        # tf.write(base64.b64decode(x.base64))
-        # tf.flush()
-        logger.debug("save to mongo")
-        k = save_file_to_mongo(delays=300, fileobj=UploadFile(file=BytesIO(base64.b64decode(x.base64)))).pk
-        logger.debug(f"save to mongo done:{k}")
-        # tf.close()
-        return {"type": "image", "data": {"url": server_api(f'/worker/oss/{k}')}} # 5分钟后删除
+        return {"type": "image", "data":{"file": f"base64://{x.base64}"}}
+
+        # from fapi.routers.worker import server_api, save_file_to_mongo
+        # from fastapi import UploadFile
+        # # tf = NamedTemporaryFile(mode='w+b', delete=True)
+        # # tf.write(base64.b64decode(x.base64))
+        # # tf.flush()
+        # logger.debug("save to mongo")
+        # k = save_file_to_mongo(delays=300, fileobj=UploadFile(file=BytesIO(base64.b64decode(x.base64)))).pk
+        # logger.debug(f"save to mongo done:{k}")
+        # # tf.close()
+        # return {"type": "image", "data": {"url": server_api(f'/worker/oss/{k}')}} # 5分钟后删除
 
 
 mirai2onebot_converter = {
