@@ -129,15 +129,15 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         j = message['message'] # chain: 消息链
         if group_id := message.get('group_id'):
             pid = int(group_id) + (1<<39)
-            mid = int(message['user_id'])
+            mid = message['user_id']
         else:
-            pid = int(message['user_id'])
-            mid = int(message['user_id'])
+            pid = message['user_id']
+            mid = message['user_id']
         return CoreEntity(
             jwt=generate_session_jwt(self.sid),
-            pid=int(pid),
-            source=int(self.sid),
-            member=int(mid),
+            pid=str(pid),
+            source=str(self.sid),
+            member=str(mid),
             meta={},
             chain=MessageChain.auto_make(j)
         )
