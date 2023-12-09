@@ -147,7 +147,6 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
     async def _deliver(self, ent: CoreEntity):
         """向ws送ent序列化后的json"""
         pi = int(ent.pid)
-        logger.debug(f"onebot:{ent.chain.onebot_sendable()}")
         if pi & (1<<39):
             pi = str(pi - (1<<39))
             payload = {
@@ -165,6 +164,5 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                     "message": ent.chain.onebot_sendable()
                 }
             }
-        logger.debug(f"onebot send:{payload}")
         await self.ws.send_json(payload)
 
