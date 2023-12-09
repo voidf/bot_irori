@@ -20,6 +20,7 @@ class WebsocketSessionBase(Session):
                 if await self._handle_syscall(ent):
                     continue
                 try:
+                    logger.debug(f"ent.json:{ent.json()}")
                     task.delay(ent.json()) # 向Worker发布任务
                 except:
                     logger.critical(traceback.format_exc())

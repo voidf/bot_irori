@@ -32,7 +32,6 @@ import re
 @app.task
 def task(s: str):
     """热更新测试通过"""
-    
     ent = CoreEntity.handle_json(s)
     res = sub_task(ent)
     # TODO: 压为图片，分段上传，延时上传(x)
