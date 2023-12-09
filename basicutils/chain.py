@@ -66,6 +66,7 @@ class MessageChain(RootModel):
                     handled_elements[-1].text += tobeappend.text
                     continue
             handled_elements.append(tobeappend)
+        logger.debug(f"out:{handled_elements} | {cls(root=handled_elements)}")
         return cls(root=handled_elements)
     @classmethod
     def get_empty(cls) -> "MessageChain":
