@@ -1,0 +1,8 @@
+aiohttp
+pywinauto
+python-dotenv
+psutil
+keyboard
+pydantic
+loguru
+pyautogui

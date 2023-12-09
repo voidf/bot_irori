@@ -1,5 +1,4 @@
-from loguru import logger
-from pydantic import BaseModel # 为了用json
+from pydantic import BaseModel, RootModel # 为了用json
 from pydantic import Field
 from typing import *
 import datetime
@@ -18,13 +17,12 @@ class Element(BaseModel):
     def __str__(self) -> str:
         return self.tostr()
 
-class MessageChain(BaseModel):
-    __root__: List[Element]
+class MessageChain(RootModel):
+    root: List[Element]
     @classmethod
     def parse_obj(cls, obj: List[Element]) -> "MessageChain":
         handled_elements = []
         for i in obj:
-            # logger.warning(i)
             if isinstance(i, Element): # 已经是Element
                 if i.meta:
                     handled_elements.append(i)
@@ -46,8 +44,6 @@ class MessageChain(BaseModel):
                 continue
             elif isinstance(i, str):
                 tobeappend = Plain(text=i)
-            # logger.debug(tobeappend)
-            # logger.debug(tobeappend.json())
 
                 
             if tobeappend.type == "Plain": # 转换后的Element
@@ -57,58 +53,59 @@ class MessageChain(BaseModel):
                     handled_elements[-1].text += tobeappend.text
                     continue
             handled_elements.append(tobeappend)
-        return cls(__root__=handled_elements)
+        return cls(root=handled_elements)
     @classmethod
     def get_empty(cls) -> "MessageChain":
-        return MessageChain(__root__=[])
+        return MessageChain(root=[])
     @classmethod
     def auto_merge(cls, *iterables: Iterable, attach_kwargs: dict={}) -> "MessageChain":
         li = []
         for i in iterables:
             chain = MessageChain.auto_make(i)
-            if chain.__root__:
-                chain.__root__[0].meta.update(attach_kwargs)
-                li.extend(chain.__root__)
+            if chain.root:
+                chain.root[0].meta.update(attach_kwargs)
+                li.extend(chain.root)
         return MessageChain.auto_make(li)
     @classmethod
     def auto_make(cls, obj: Union[str, Element, list, tuple, "MessageChain"]) -> "MessageChain":
-        # logger.warning(obj)
-        # logger.warning(type(obj))
         if isinstance(obj, str):
             if not obj:
-                return cls(__root__=[])
-            return cls(__root__=[Plain(obj)])
+                return cls(root=[])
+            return cls(root=[Plain(obj)])
         if isinstance(obj, Element):
-            return cls(__root__=[obj])
+            return cls(root=[obj])
         if isinstance(obj, (list, tuple)):
             return MessageChain.parse_obj(obj)
         if isinstance(obj, MessageChain):
             return obj
         logging.error(f'转换错误：不可转换的实体{obj}')
-        return cls(__root__=[Plain(str(obj))])
+        return cls(root=[Plain(str(obj))])
     def __iter__(self):
-        return self.__root__.__iter__()
+        return self.root.__iter__()
     def __str__(self) -> str:
         return self.tostr()
+    def to_str_list(self) -> list[dict]:
+        """序列化自己为可json的dict列表"""
+        return [i.model_dump() for i in self.root]
     def tostr(self) -> str:
         """调用所有消息元素的tostr方法然后不分隔的拼成一个字符串返回"""
         output = []
-        for i in self.__root__:
+        for i in self.root:
             output.append(i.tostr())
         return ''.join(output)
     def onlyplain(self) -> str:
         """只将Plain文本元素空格隔开拼成一个字符串返回"""
         output = []
-        for i in self.__root__:
+        for i in self.root:
             if i.type == "Plain":
                 output.append(i.tostr())
         return ' '.join(output)
     def pop_first_cmd(self) -> str:
-        for p, i in enumerate(self.__root__):
+        for p, i in enumerate(self.root):
             if i.type == 'Plain':
                 cmd, *ato = i.text.split(' ', 1)
                 if not ato:
-                    self.__root__.pop(p)
+                    self.root.pop(p)
                 i.text = ' '.join(ato)
                 return cmd.strip()
         return ''
