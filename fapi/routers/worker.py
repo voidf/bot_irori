@@ -54,6 +54,9 @@ oss_route = APIRouter(
 )
 
 def save_file_to_mongo(delays: int, fileobj: UploadFile):
+    from cfg import db
+    from mongoengine import connect
+    connect(**db)
     typ = magic.from_descriptor(fileobj.file.fileno(), mime=True)
     fileobj.file.seek(0)
     logger.debug('guessed type: {}', typ)
