@@ -152,14 +152,18 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
             pi = str(pi - (1<<39))
             payload = {
                 "action": "send_group_msg",
-                "group_id": pi,
-                "message": ent.chain.onebot_sendable()
+                "params":{
+                    "group_id": pi,
+                    "message": ent.chain.onebot_sendable()
+                }
             }
         else:
             payload = {
                 "action": "send_private_msg",
-                "user_id": pi,
-                "message": ent.chain.onebot_sendable()
+                "params": {
+                    "user_id": pi,
+                    "message": ent.chain.onebot_sendable()
+                }
             }
         await self.ws.send_json(payload)
 
