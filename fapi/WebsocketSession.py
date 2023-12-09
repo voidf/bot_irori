@@ -148,17 +148,17 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         """向ws送ent序列化后的json"""
         pi = int(ent.pid)
         if pi & (1<<39):
-            payload['group_id'] = str(pi - (1<<39))
+            pi = str(pi - (1<<39))
             payload = {
                 "action": "send_group_msg",
                 "group_id": pi,
-                "message": ent.chain.to_str_list()
+                "message": ent.chain.onebot_sendable()
             }
         else:
             payload = {
                 "action": "send_private_msg",
                 "user_id": pi,
-                "message": ent.chain.to_str_list()
+                "message": ent.chain.onebot_sendable()
             }
         await self.ws.send_json(payload)
 

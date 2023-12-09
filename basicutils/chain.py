@@ -17,21 +17,14 @@ class Element(BaseModel):
     def __str__(self) -> str:
         return self.tostr()
 
-def convert_text(x: dict):
-    return {
-        'type': "Plain",
-        'text': x['data']['text']
-    }
-
-def convert_image(x: dict):
-    return {
-        'type': 'Image',
-        'url': x['data']['url']
-    }
-
 onebot2mirai_converter = {
-    "text": convert_text,
-    "image": convert_image
+    "text": lambda x: {'type': "Plain", 'text': x['data']['text']},
+    "image": lambda x: {'type': 'Image', 'url': x['data']['url']}
+}
+
+mirai2onebot_converter = {
+    "Plain": lambda x: {"type": "text", "data": {"text": x.text}},
+    "Image": lambda x: {"type": "image", "data": {"url": x.url}}
 }
 
 class MessageChain(RootModel):
@@ -129,6 +122,14 @@ class MessageChain(RootModel):
                 i.text = ' '.join(ato)
                 return cmd.strip()
         return ''
+    def onebot_sendable(self):
+        ret = []
+        for i in self.root:
+            if i in mirai2onebot_converter:
+                ret.append(mirai2onebot_converter[i.type](i))
+            else:
+                ret.append(i.model_dump())
+        return ret
 
 class Plain(Element):
     type: str = "Plain"
