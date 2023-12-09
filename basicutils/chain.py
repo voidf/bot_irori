@@ -20,7 +20,7 @@ class Element(BaseModel):
 def convert_text(x: dict):
     return {
         'type': "Plain",
-        'text': x['text']
+        'text': x['data']['text']
     }
 
 onebot2mirai_converter = {
