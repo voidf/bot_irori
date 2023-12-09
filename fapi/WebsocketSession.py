@@ -89,7 +89,6 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
     async def enter_loop(self, ws: fastapi.WebSocket):
         self.ws = ws
         await self.ws.accept()
-        self.receiver = asyncio.ensure_future(self._receive_loop())
         await self.ws.send_json({
             "action": "get_friend_list"
         })
@@ -110,6 +109,7 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
             pid = i['group_id']
             myplayers.append(str(pid + (1 << 39)))
 
+        self.receiver = asyncio.ensure_future(self._receive_loop())
         return myplayers
 
 
