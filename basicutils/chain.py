@@ -102,7 +102,7 @@ class MessageChain(RootModel):
             return MessageChain.parse_obj(obj)
         if isinstance(obj, MessageChain):
             return obj
-        logging.error(f'转换错误：不可转换的实体{obj}')
+        logger.error(f'转换错误：不可转换的实体{obj}')
         return cls(root=[Plain(str(obj))])
     def __iter__(self):
         return self.root.__iter__()

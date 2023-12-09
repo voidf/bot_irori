@@ -139,7 +139,7 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
             source=str(self.sid),
             member=str(mid),
             meta={},
-            chain=MessageChain.auto_make(j)
+            chain=MessageChain.auto_make(j).to_str_list()
         )
 
     async def _deliver(self, ent: CoreEntity):
@@ -150,13 +150,13 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
             payload = {
                 "action": "send_group_msg",
                 "group_id": pi,
-                "message": ent.chain.dict()["__root__"]
+                "message": ent.chain.to_str_list()
             }
         else:
             payload = {
                 "action": "send_private_msg",
                 "user_id": pi,
-                "message": ent.chain.dict()["__root__"]
+                "message": ent.chain.to_str_list()
             }
         await self.ws.send_json(payload)
 
