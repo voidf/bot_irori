@@ -89,9 +89,7 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
     async def enter_loop(self, ws: fastapi.WebSocket):
         self.ws = ws
         await self.ws.accept()
-        await self.ws.send_json({
-            "action": "get_friend_list"
-        })
+        await self.ws.send_json({"action": "get_friend_list"})
         while 1:
             try:
                 ret = await self.ws.receive_json()
@@ -100,13 +98,11 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                 for i in ret['data']:
                     pid = i['user_id']
                     myplayers.append(str(pid))
+                logger.debug("pull private list done")
                 break
-            except:
-                logger.error(traceback.format_exc())
-
-        await self.ws.send_json({
-            "action": "get_group_list"
-        })
+            except KeyError: pass
+            except: logger.error(traceback.format_exc())
+        await self.ws.send_json({"action": "get_group_list"})
         while 1:
             try:
                 ret = await self.ws.receive_json()
@@ -114,8 +110,10 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                 for i in ret['data']:
                     pid = i['group_id']
                     myplayers.append(str(pid + (1 << 39)))
-            except:
-                logger.error(traceback.format_exc())
+                logger.debug("pull group list done")
+                break
+            except KeyError: pass # 心跳包
+            except: logger.error(traceback.format_exc())
         self.receiver = asyncio.ensure_future(self._receive_loop())
         return myplayers
 
