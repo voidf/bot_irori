@@ -119,5 +119,10 @@ async def ws_connectin(websocket: WebSocket, token: str = Query(''), typ: str=Qu
             print(IroriUUID.get().uuid, token)
             await websocket.close(status.WS_1008_POLICY_VIOLATION)
         await SessionManager.hangon(await SessionManager.new(WebsocketSessionJson, websocket, routiner_reg_player_id))
+    elif typ == 'onebot':
+        if token != IroriUUID.get().uuid:
+            print(IroriUUID.get().uuid, token)
+            await websocket.close(status.WS_1008_POLICY_VIOLATION)
+        await SessionManager.hangon(await SessionManager.new(WebsocketSessionOnebot, websocket))
     else:
         await websocket.close(status.WS_1008_POLICY_VIOLATION)

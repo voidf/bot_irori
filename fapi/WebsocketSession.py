@@ -4,6 +4,7 @@ from fapi import *
 from Worker import task
 from starlette.websockets import WebSocketState
 import fastapi
+import asyncio
 from fapi.utils.jwt import generate_session_jwt
 class WebsocketSessionBase(Session):
     @abstractmethod
@@ -14,6 +15,8 @@ class WebsocketSessionBase(Session):
         while self._alive and self.ws.application_state == WebSocketState.CONNECTED:
             try:
                 ent = await self._recv_ent()
+                if not ent:
+                    continue
                 if await self._handle_syscall(ent):
                     continue
                 try:
@@ -81,4 +84,34 @@ class WebsocketSessionPlain(WebsocketSessionBase):
     async def _deliver(self, ent: CoreEntity):
         """向ws送字符串"""
         await self.ws.send_text(ent.chain.tostr())
+
+class WebsocketSessionOnebot(WebsocketSessionBase):
+    async def enter_loop(self, ws: fastapi.WebSocket):
+        self.ws = ws
+        await self.ws.accept()
+        self.receiver = asyncio.ensure_future(self._receive_loop())
+        return []
+
+
+    async def _recv_ent(self) -> CoreEntity:
+        message = await self.ws.receive_json()
+        logger.debug(message)
+        j = message['chain'] # chain: 消息链
+        # custom_pid = (message.get('pid') or self.pid)
+        # custom_mid = (message.get('mid') or self.pid)
+        # return CoreEntity(
+        #     jwt=generate_session_jwt(self.sid),
+        #     pid=custom_pid,
+        #     source=self.sid,
+        #     member=custom_mid,
+        #     meta={},
+        #     chain=MessageChain.auto_make(j)
+        # )
+
+    async def _deliver(self, ent: CoreEntity):
+        """向ws送ent序列化后的json"""
+        payload = {
+            "chain": ent.chain.dict()["__root__"]
+        }
+        await self.ws.send_json(payload)
 
