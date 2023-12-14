@@ -619,17 +619,13 @@ class DailySentenceRoutiner(Routiner):
     @classmethod
     async def update_futures(cls, ses: aiohttp.ClientSession):
         try:
-            async with ses.get(
-                f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}',
-                timeout=30
-            ) as resp:
-                j = await resp.json()
-            # amr = server_api('/worker/oss/' + (await to_amr('mp3', lnk=j['tts']))['url'])
-            amr = j['tts']
+            w = datetime.datetime.now().weekday() + 1
+            with open(f'Assets/柴郡猫猫/{w}.jpg', 'rb') as f:
+                b = f.read()
             ent = CoreEntity(
                 pid='',
                 chain=MessageChain.auto_make(
-                    [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=amr)]
+                    [Image(base64=base64.b64encode(b))]
                 ),
                 source='',
                 meta={}
@@ -646,7 +642,7 @@ class DailySentenceRoutiner(Routiner):
             ent = CoreEntity(
                 pid='',
                 chain=MessageChain.auto_make(
-                    [Plain('【每日一句】网络连接错误，请检查日志')]
+                    [Plain('每日一句！寄啦！✿✿ヽ(°▽°)ノ✿')]
                 ),
                 source='',
                 meta={}
