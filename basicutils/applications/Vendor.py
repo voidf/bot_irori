@@ -419,7 +419,7 @@ f"""{j['title']}
 https://www.pixiv.net/artworks/{j['id']}""")]
 
 def 聊天(ent: CoreEntity):
-    """#chat [$, ￥]
+    """#chat [$, ￥, !, ！]
     感谢以下这些中文LLM项目：
     ChatRWKV, https://github.com/BlinkDL/ChatRWKV
     ChatGLM, https://github.com/THUDM/ChatGLM-6B
@@ -447,7 +447,7 @@ def 聊天(ent: CoreEntity):
     return ''.join(resp)
 
 def 跟ChatGPT聊天(ent: CoreEntity):
-    """#chatgpt [!, ！]
+    """#chatgpt []
     chatgpt
     """
     pro = ent.chain.tostr()
