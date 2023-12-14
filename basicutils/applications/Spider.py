@@ -355,7 +355,7 @@ def 爬天气(ent: CoreEntity):
     attrs = ent.chain.tostr().split(' ')
     if not attrs:
         return [Plain('你想问哪个城市的天气？\n')]
-    ent.chain.__root__.clear()
+    ent.chain.root.clear()
     ent.meta['routiner'] = 'WeatherReportRoutiner'
     if attrs[0] in GLOBAL.unsubscribes:
 
@@ -388,7 +388,7 @@ def 爬每日一句(ent: CoreEntity):
     如需取消，请使用：
         #每日一句 cancel"""
     attrs = ent.chain.tostr().split(' ')
-    ent.chain.__root__.clear()
+    ent.chain.root.clear()
     ent.meta['routiner'] = 'DailySentenceRoutiner'
     if attrs:
         if attrs[0] in GLOBAL.unsubscribes:

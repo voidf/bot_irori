@@ -163,7 +163,7 @@ def ddl通知姬(ent: CoreEntity):
     """
 
     attrs = ent.chain.tostr().split(' ')
-    ent.chain.__root__.clear()
+    ent.chain.root.clear()
     ent.meta['routiner'] = 'DDLNoticeRoutiner'
 
 
