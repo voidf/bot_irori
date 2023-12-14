@@ -662,7 +662,7 @@ class DailySentenceRoutiner(Routiner):
     async def mainloop(cls):
         ses = aiohttp.ClientSession()
         while 1:
-            await asyncio.sleep(sleep2(3600*17))
+            await asyncio.sleep(sleep2(3600*8))
             await cls.update_futures(ses)
 
 

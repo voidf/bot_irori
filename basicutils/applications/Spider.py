@@ -11,7 +11,7 @@ if os.getcwd() not in sys.path:
 
 import basicutils.CONST as GLOBAL
 
-
+import datetime
 from bs4 import BeautifulSoup
 import re
 import asyncio
@@ -376,7 +376,7 @@ def 爬天气(ent: CoreEntity):
             )
             output.append(f'{attrs[0]}的天气推送已订阅')
     except:
-        logging.error(traceback.format_exc())
+        logger.error(traceback.format_exc())
     return [Plain('\n'.join(output))]
 
 def 爬每日一句(ent: CoreEntity):
@@ -397,12 +397,12 @@ def 爬每日一句(ent: CoreEntity):
                 json={'ents': ent.json()}
             )
             return [Plain(f'不学英语是吧')]
-    r = requests.get(
-        f'http://sentence.iciba.com/index.php?c=dailysentence&m=getTodaySentence&_={int(datetime.datetime.now().timestamp()*1000)}')
-    j = json.loads(r.text)
-    output = [Plain(j['content']+'\n'+j['note']), Image(url=j['picture']), Voice(url=j['tts'])]
 
-    print(output)
+    w = datetime.datetime.now().weekday() + 1
+    with open(f'Assets/柴郡猫猫/{w}.jpg', 'rb') as f:
+        b = f.read()
+    output = [Image(base64=base64.b64encode(b))]
+
     try:
         if attrs and attrs[0] in GLOBAL.subscribes:
             requests.post(
