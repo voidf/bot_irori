@@ -116,7 +116,7 @@ def import_applications():
                     l = ["没有结果喵"]
             else:
                 l.append('【错误】参数不合法\n')
-                ext = printHelp(MessageChain.get_empty())
+                ext = printHelp(CoreEntity(chain=MessageChain.get_empty()))
             
         return [Plain('\n'.join(l))] + img + ext
 
