@@ -1,4 +1,5 @@
 """Worker在windows下或wsl2下会出问题，不能超时kill掉"""
+from basicutils.media import pimg_base64
 from fapi.models.Auth import IroriConfig
 from basicutils.task import server_api, internal_api
 import os
@@ -17,6 +18,7 @@ app = Celery(
 )
 app.config_from_object('celeryconfig')
 
+from PIL import Image as PImage
 from basicutils.network import *
 from basicutils.chain import *
 from loguru import logger
@@ -90,14 +92,14 @@ def import_applications():
                 l.append(tot_funcs[attrs[0]].__doc__)
             elif attrs[0] == '#abb':
                 l.append(f'可用缩写表:{tot_alias}')
-            # elif attrs[0] in ('all', 'old'):
-            #     l.append('可用命令表：')
-            #     for k in tot_funcs:
-            #         l.append('\t'+k)
-            #     l.append('使用#h 命令名（带井号）可以查询详细用法')
-            #     l.append('使用#h #abb可以查询缩写表')
-            #     l.append('注命令后需打空格，之后的参数如存在空格即以空格分开多个参数，如#qr 1 1 4 5 1 4')
-            #     img.append(generateImageFromFile('Assets/muzukashi.png'))
+            elif attrs[0] in ('all', 'old'):
+                l.append('可用命令数：',len(tot_funcs))
+                # for k in tot_funcs:
+                    # l.append('\t'+k)
+                l.append('使用#h 命令名（带井号）可以查询详细用法')
+                l.append('使用#h #abb可以查询缩写表')
+                l.append('注命令后需打空格，之后的参数如存在空格即以空格分开多个参数，如#qr 1 1 4 5 1 4')
+                img.append(Image(base64=pimg_base64(PImage.open('Assets/muzukashi.png'))))
             elif attrs[0] in app_fun:
                 l.append(f'分类：{attrs[0]}')
                 for k, v in app_fun[attrs[0]].items():
