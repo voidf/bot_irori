@@ -93,7 +93,7 @@ def import_applications():
             elif attrs[0] == '#abb':
                 l.append(f'可用缩写表:{tot_alias}')
             elif attrs[0] in ('all', 'old'):
-                l.append('可用命令数：',len(tot_funcs))
+                l.append(f'可用命令数:{len(tot_funcs)}')
                 # for k in tot_funcs:
                     # l.append('\t'+k)
                 l.append('使用#h 命令名（带井号）可以查询详细用法')
