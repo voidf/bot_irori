@@ -92,6 +92,8 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
         await self.ws.accept()
         await self.ws.send_json({"action": "get_friend_list"})
         while 1:
+            if self.ws.state == WebSocketState.DISCONNECTED:
+                return
             try:
                 ret = await self.ws.receive_json()
                 logger.debug(ret)
@@ -102,9 +104,12 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                 logger.debug("pull private list done")
                 break
             except KeyError: pass
+            except RuntimeError: break # 断开连接
             except: logger.error(traceback.format_exc())
         await self.ws.send_json({"action": "get_group_list"})
         while 1:
+            if self.ws.state == WebSocketState.DISCONNECTED:
+                return
             try:
                 ret = await self.ws.receive_json()
                 logger.debug(ret)
@@ -114,6 +119,7 @@ class WebsocketSessionOnebot(WebsocketSessionBase):
                 logger.debug("pull group list done")
                 break
             except KeyError: pass # 心跳包
+            except RuntimeError: break # 断开连接
             except: logger.error(traceback.format_exc())
         self.receiver = asyncio.ensure_future(self._receive_loop())
         return myplayers
