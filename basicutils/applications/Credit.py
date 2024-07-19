@@ -568,7 +568,11 @@ def 仿洛谷每日签到(ent: CoreEntity):
 
         def write_center(text, font, height, percentage=0.5):
             lines = text.split('\n')
-            W = max(font.getsize(tx)[0] for tx in lines)
+            W = 0
+            for tx in lines:
+                x0, y0, x1, y1 = font.getbbox(tx)
+                w = x1-x0
+                W = max(w, W)
             draw.text(((w-W)*percentage , height), text, fill=font_color, font=font)
 
         write_center(fortune, font_fortune, h * 0.04)
@@ -577,7 +581,8 @@ def 仿洛谷每日签到(ent: CoreEntity):
         write_center("忌", font_yj, h * 0.310, 0.5)
 
         def write_yj_items(li: List[str], font, begin_height):
-            H = font.getsize(li[0])[1]
+            x0, y0, x1, y1 = font.getbbox(li[0])
+            H = y1-y0
             for i in li:
                 C = i.strip().split('\t')
                 if len(C) == 2:
