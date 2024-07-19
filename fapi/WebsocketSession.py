@@ -21,7 +21,7 @@ class WebsocketSessionBase(Session):
                 if await self._handle_syscall(ent):
                     continue
                 try:
-                    task.delay(ent.old_style_json()) # 向Worker发布任务
+                    task(ent.old_style_json()) # 向Worker发布任务
                 except:
                     logger.critical(traceback.format_exc())
             except RuntimeError:

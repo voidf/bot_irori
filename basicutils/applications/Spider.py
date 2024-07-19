@@ -4,8 +4,6 @@ import enum
 import os
 import sys
 
-from async_timeout import timeout
-
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 

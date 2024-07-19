@@ -4,7 +4,6 @@ import os
 # if __name__ == '__main__':
     # os.chdir('..')
 import basicutils.CONST as GLOBAL
-from basicutils.quine_mccluskey import qmccluskey
 import asyncio
 import numpy
 import math
@@ -248,31 +247,6 @@ def 统计姬from104(ent: CoreEntity):
     ostr.append(Plain(f"Variance 总体方差:{statistics.pvariance(l)}\n"))
     ostr.append(Plain(f"Standard Deviation 总体标准差:{statistics.pstdev(l)}\n"))
     return ostr
-
-def QM化简器(ent: CoreEntity):
-    """#QM []
-    用QM法化简逻辑式，将给定的布尔表达式化简成最简与或式（NP完全问题，规模过大会爆炸）
-    用法：
-        #QM <原式的逗号隔开的最小项表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
-        #QM <原式的逻辑式表示> [--dc=无关项的最小项表示] [--var=化简后显示字母]
-    例:
-        #QM 1,4,2,8,5,7 --var=a,b,c,d
-        #QM b'd+a'bc'+a'bcd' --dc=1,2 --var=a,b,c,d"""
-    v = ent.chain.tostr().split(' ')
-    if v[0].count(',') >= 1: # 最小项输入
-
-        return [Plain(qmccluskey.maid(
-            minterms=v[0].split(','), 
-            argsdont_cares=ent.meta.get('-dc', ''),
-            argsvariables=ent.meta.get('-var', '')
-        ))]
-
-    else:
-        return [Plain(qmccluskey.maid(
-            argssop=v[0], 
-            argsdont_cares=ent.meta.get('-dc', ''),
-            argsvariables=ent.meta.get('-var', '')
-        ))]
 
 def 打印真值表(ent: CoreEntity):
     """#真值表 []

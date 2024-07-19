@@ -4,19 +4,10 @@ from fapi.models.Auth import IroriConfig
 from basicutils.task import server_api, internal_api
 import os
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
-from celery import Celery
 import sys
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 print(sys.path)
-
-app = Celery(
-    'Worker', 
-    # broker='pyamqp://guest@localhost//', 
-    # backend="mongodb://127.0.0.1:27017/irori_taskqueue",
-
-)
-app.config_from_object('celeryconfig')
 
 from PIL import Image as PImage
 from basicutils.network import *
@@ -31,7 +22,6 @@ import importlib
 import inspect
 import re
 
-@app.task
 def task(s: str):
     """热更新测试通过"""
     ent = CoreEntity.handle_json(s)
@@ -48,7 +38,6 @@ def task(s: str):
         if resp.status_code!=200:
             logger.critical(resp.text[:300])
 
-@app.task
 def pull():
     cmdres = os.popen('git pull').read()
     return cmdres

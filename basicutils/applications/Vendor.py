@@ -8,7 +8,6 @@ import pickle
 import string
 import sys
 
-from async_timeout import timeout
 from click import prompt
 from basicutils.database import Sniffer, TriggerRule
 
