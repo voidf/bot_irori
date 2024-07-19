@@ -59,7 +59,10 @@ class MiraiSession(Session):
                             continue
                         try:
                             # logger.warning(f'conn2wk{ent}')
-                            task(ent.json()) # 向Worker发布任务
+                            resp_ent = task(ent.old_style_json()) # 向Worker发布任务
+                            if resp_ent:
+                                await self.upload(resp_ent)
+
                         except:
                             logger.critical(traceback.format_exc())
 
