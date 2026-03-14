@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
 
-from cfg import *
-
 from fapi.models.Auth import *
 
 from fapi.utils.jwt import *

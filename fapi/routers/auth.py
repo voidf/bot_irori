@@ -3,7 +3,6 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, R
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from pydantic import BaseModel
-from cfg import *
 
 from fapi.models.Auth import *
 from fapi.Sessions import SessionManager

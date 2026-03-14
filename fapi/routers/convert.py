@@ -8,7 +8,6 @@ from fapi.models.FileStorage import *
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, File, UploadFile
 from typing import Optional
-from cfg import *
 from loguru import logger
 from fapi.models.Auth import *
 

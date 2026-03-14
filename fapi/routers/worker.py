@@ -10,7 +10,6 @@ from fastapi import *
 # from fastapi import File as fapi_File
 from fastapi.responses import *
 from pydantic import BaseModel
-from cfg import *
 
 from fapi.models.Auth import *
 from fapi import trueReturn, falseReturn
